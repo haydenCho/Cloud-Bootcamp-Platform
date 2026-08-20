@@ -153,6 +153,9 @@ body {
   .learn-content pre code {
     @apply bg-transparent p-0 text-slate-100;
   }
+  .learn-content img {
+    @apply mb-4 max-w-full rounded-lg border border-slate-200;
+  }
   .learn-content a {
     @apply text-secondary underline hover:text-primary;
   }

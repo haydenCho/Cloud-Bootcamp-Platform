@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { getMissions } from '../../api/mission';
 import { useAuth } from '../../store/authStore';
 import MissionGallery from './MissionGallery';
+import PracticeNoteSection from './PracticeNoteSection';
 import ShellMissionDetail from './ShellMissionDetail';
 
 /**
@@ -69,12 +70,16 @@ export default function PracticeUnitPage({ unit }) {
 
       {status === 'done' &&
         (selected ? (
-          <MissionDetailDispatcher
-            mission={selected}
-            loggedIn={loggedIn}
-            onBack={() => setSelectedId(null)}
-            onCompleted={handleCompleted}
-          />
+          <div>
+            <MissionDetailDispatcher
+              mission={selected}
+              loggedIn={loggedIn}
+              onBack={() => setSelectedId(null)}
+              onCompleted={handleCompleted}
+            />
+            {/* 실습 노트(블로그 글) — 같은 단원의 미션이면 공통으로 노출 */}
+            <PracticeNoteSection unit={unit} />
+          </div>
         ) : (
           <MissionGallery
             unit={unit}

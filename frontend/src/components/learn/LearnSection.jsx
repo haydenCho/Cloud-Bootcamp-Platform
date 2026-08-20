@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import DOMPurify from 'dompurify';
 import { getContent } from '../../api/content';
 import { getProgress, updateProgress } from '../../api/progress';
 import { useAuth } from '../../store/authStore';
+import NoteArticle from './NoteArticle';
 
 /**
  * 학습 섹션.
@@ -109,8 +109,6 @@ export default function LearnSection({ unit }) {
   if (status === 'empty')
     return <p className="py-16 text-center text-dark/50">아직 등록된 학습 콘텐츠가 없습니다.</p>;
 
-  const safeHtml = DOMPurify.sanitize(content.body);
-
   return (
     <div>
       {/* 진도 바 */}
@@ -135,10 +133,7 @@ export default function LearnSection({ unit }) {
       </div>
 
       {/* 본문 (sanitize 됨) */}
-      <article
-        className="learn-content leading-relaxed text-dark/90"
-        dangerouslySetInnerHTML={{ __html: safeHtml }}
-      />
+      <NoteArticle html={content.body} />
     </div>
   );
 }

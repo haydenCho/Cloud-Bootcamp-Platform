@@ -19,6 +19,7 @@
     </ul>
   </li>
 </ul>
+<img src="/assets/imgs/notes/linux/01-linux-distro-timeline.png" alt="1991년부터 2007년까지 유닉스 계열에서 갈라져 나온 다양한 리눅스 배포판의 계보를 시간순으로 정리한 타임라인" loading="lazy">
 
 <h4>CLI(Command Line Interface)</h4>
 <p>리눅스는 커맨드 라인과 명령어를 사용하는 방식이고, 윈도우는 마우스로 아이콘을 클릭하는 GUI(Graphic User Interface) 방식입니다. 그래픽 화면을 띄우는 데는 컴퓨터 자원 소모가 크기 때문에 서버 용도로는 부적합합니다.</p>
@@ -39,6 +40,7 @@
   <li><strong>쉘(Shell)</strong>: 명령어 해석기입니다(GUI로 치면 파일 탐색기에 해당). 로그인을 해야 할당받을 수 있습니다.</li>
   <li><strong>커널(Kernel)</strong>: 운영체제의 심장으로, 외부의 접근을 아주 제한된 방식으로만 허가합니다. 원칙적으로 쉘로부터 <em>시스템 콜</em>을 통해서만 통신하지만, 성능을 위해 다른 방식을 허용하기도 합니다.</li>
 </ul>
+<img src="/assets/imgs/notes/linux/02-kernel-shell-layers.png" alt="사용자, 응용 프로그램, 쉘, 커널, 하드웨어로 이어지는 리눅스 계층 구조와 각 계층 간 통신 방식(명령어 입력, 시스템 콜, 하드웨어 제어)을 나타낸 다이어그램" loading="lazy">
 
 <h4>명령어 실행 과정</h4>
 <p><strong>사용자</strong>(명령어 작성) → <strong>쉘</strong>(명령어 파싱 및 해석) → (시스템 콜) → <strong>커널</strong>(파일 시스템 API 처리 후 반환) → (하드웨어 제어) → <strong>하드웨어</strong>(디스크 읽기) → <strong>쉘</strong>(결과를 역방향으로 반환, 화면 출력)</p>
@@ -66,6 +68,7 @@
   <li><code>usr</code>: 윈도우의 "Program Files"와 같은 역할로, 각종 프로그램이 설치됩니다.</li>
   <li><strong><code>var</code>: 로그 파일 등 용량이 계속 변하는 데이터를 보관</strong></li>
 </ul>
+<img src="/assets/imgs/notes/linux/03-ubuntu-directory-tree.png" alt="우분투 최상위 root 디렉터리 아래 bin, boot, dev, etc, home, mnt, opt, root, snap, tmp, usr, var 등 주요 디렉터리와 각 역할을 트리 구조로 정리한 그림" loading="lazy">
 <p>리눅스는 윈도우처럼 디스크를 여러 파티션으로 나눠 드라이브 문자를 붙이는 대신, USB나 CD 같은 매체도 전부 하나의 디렉터리 트리 아래로 마운트해서 관리합니다.</p>
 
 <h4>루트 디렉터리 관찰 포인트</h4>
@@ -268,6 +271,7 @@ $ find ./ -name ssh_config -print  # ssh_config라는 파일의 경로 출력</c
 <pre><code>$ find /var/www -type f -perm 777 -exec chmod 644 {} \;</code></pre>
 <p>백도어 탐지 예시(SetUID 비트가 설정된 파일 찾기):</p>
 <pre><code>find / -type f -perm -4000</code></pre>
+<img src="/assets/imgs/notes/linux/05-backdoor-setuid-detection.png" alt="find로 SetUID 비트가 설정된 파일 목록을 찾은 뒤 ls -altr로 /usr/bin/sudo의 권한 문자열이 -rwsr-xr-x로 붉게 강조되어 표시된 화면" loading="lazy">
 <p>권한 표시가 <code>-rwsr-xr-x</code>처럼 실행 위치가 <code>x</code>가 아니라 <code>s</code>로 나오면 일반적인 방식과 다르게 실행되는 파일이므로 주의가 필요합니다.</p>
 
 <h3>권한 및 소유권 관리</h3>
@@ -276,6 +280,7 @@ $ find ./ -name ssh_config -print  # ssh_config라는 파일의 경로 출력</c
 <p>파일 정보는 <code>[파일, 폴더 여부(1)] / [Owner 권한(3)] / [Group 권한(3)] / [Other 권한(3)]</code> 형태로 표시됩니다. 예를 들어 <code>-rw-r--r--</code>는 파일이며, 소유자는 읽고 쓰기가 가능하고 그룹과 그 외 사용자는 읽기만 가능하다는 뜻입니다.</p>
 <p>각 권한은 비트로 표현됩니다: 읽기=4, 쓰기=2, 실행=1. 권한을 읽을 때는 세 개의 숫자로 표현합니다(보통 644 또는 755를 많이 사용). 예: <code>-rw-r--r--</code> → 644</p>
 <blockquote>실행을 하려면 읽을 줄 알아야 하므로, r과 x는 보통 함께 부여합니다.</blockquote>
+<img src="/assets/imgs/notes/linux/04-file-permission-listing.png" alt="ls -altr 결과에서 파일마다 -rw-r-----, drwxrwxr-x, -rw------- 등 서로 다른 권한 비트 조합이 소유자·그룹과 함께 표시된 예시" loading="lazy">
 
 <h4>chmod</h4>
 <pre><code>$ chmod [부여할 권한] [권한을 변경할 파일/디렉터리]

@@ -12,6 +12,8 @@
   <li>직접 패킷을 막지 않으므로 네트워크 속도에 영향을 주지 않지만, 사람이 직접 조치해야 함</li>
 </ul>
 
+<img src="/assets/imgs/notes/security/03-ids-ips-diagram.png" alt="IDS와 IPS 배치 비교 다이어그램: IDS는 스위치 옆에서 트래픽을 미러링해 관리 시스템에 경고만 보내고, IPS는 방화벽과 스위치 사이 경로에 직접 위치해 공격 트래픽을 차단한다" loading="lazy">
+
 <h4>IPS(Intrusion Prevention System, 침입 방지 시스템)</h4>
 <ul>
   <li>트래픽이 지나가는 길목에 직접 위치하여 모든 데이터를 실시간으로 검사</li>
@@ -91,6 +93,8 @@
 </blockquote>
 <p>진행 순서: 정찰 → ARP 스푸핑을 통한 MITM 확보 → 자격증명 탈취(DNS 스푸핑·피싱 또는 패킷 스니핑) → 서비스 마비(DDoS) → 종합 방어. 자격증명 탈취와 패킷 스니핑 단계는 반드시 ARP 스푸핑으로 MITM 위치를 먼저 확보해야 성립한다.</p>
 
+<img src="/assets/imgs/notes/security/01-kill-chain-5phase.png" alt="공격 킬체인 5단계 침투 시나리오 다이어그램: Phase 1 정찰, Phase 2 MITM 확보, Phase 3 자격증명 탈취, Phase 4 서비스 마비를 거쳐 종합 방어(탐지·차단) 단계로 이어진다" loading="lazy">
+
 <h3>정찰 — 포트 스캐닝(Nmap)</h3>
 <h4>Nmap(Network Mapper)이란?</h4>
 <p>네트워크 발견 및 보안 감사를 위한 무료 오픈소스 도구다.</p>
@@ -114,6 +118,8 @@
   </li>
 </ul>
 <blockquote>마지막에 ACK 대신 RST로 끊어 연결을 완성하지 않으므로 서버 로그에 잘 남지 않는다 — 그래서 "스텔스" 스캔이다.</blockquote>
+
+<img src="/assets/imgs/notes/security/02-nmap-ping-sweep.png" alt="nmap -sn 명령으로 172.20.0.0/24 대역을 Ping Sweep한 터미널 출력 화면: 대역 내 각 호스트의 IP와 MAC 주소가 순서대로 나열된다" loading="lazy">
 
 <pre><code># 호스트 발견 (Ping Sweep)
 nmap -sn -T4 172.20.0.0/24
@@ -318,6 +324,8 @@ server {
 <h4>패킷 처리 흐름</h4>
 <p>패킷이 들어오면 <strong>디코더</strong>가 프로토콜별로 헤더를 해석해 정규화하고, <strong>전처리기(preprocessor)</strong>가 비정상 헤더나 조각난(fragmented) 패킷 등을 한 번 걸러내며, 그다음 <strong>탐지엔진</strong>이 룰과 패턴 매칭을 한다. 매칭되면 룰에 적힌 액션(경고, 로깅, 차단 등)이 실행된다. 이 순서를 알아두면 "왜 탐지가 안 됐는지"를 디버깅할 때 어느 단계 문제인지 감을 잡을 수 있다.</p>
 
+<img src="/assets/imgs/notes/security/04-snort-packet-flow.png" alt="Snort 패킷 처리 흐름 다이어그램: Network Backbone에서 들어온 패킷이 Sniffer, Preprocessor, Detection Engine(Rulesets 참조)을 거쳐 Alerts/Logging과 Log Files/Database로 이어진다" loading="lazy">
+
 <h4>룰 구조 — 헤더 + 옵션</h4>
 <p>룰 하나는 다음과 같이 생겼다.</p>
 <pre><code>alert tcp any any -&gt; 192.168.1.0/24 111 (content:"|00 01 86 a5|"; msg:"mountd access"; sid:1000001; rev:1;)</code></pre>
@@ -439,8 +447,13 @@ server {
   <li><strong>Connection: Keep-Alive</strong>: HTTP는 TCP 프로토콜을 사용하므로 연결을 끊었다가 다시 연결하려면 또 3-way handshake 과정을 거쳐야 한다. 너무 비효율적이기 때문에 Keep-Alive 설정으로 연결을 유지한다.</li>
   <li><strong>User-Agent</strong>: 접속한 대상의 소프트웨어 및 기기 정보</li>
 </ul>
+
+<img src="/assets/imgs/notes/security/05-http-request-cookie.png" alt="브라우저가 실제로 전송한 HTTP 요청 헤더 예시: GET 요청 라인, Accept, Accept-Encoding, Cookie(HSID/SSID/APISID/SAPISID 등 세션 식별자), Host, Connection: Keep-Alive, Accept-Language, User-Agent 필드가 나열되어 있다" loading="lazy">
+
 <blockquote>요청(request) 헤더 정보는 임의로 수정해서 보낼 수 있다.</blockquote>
 <p>터미널에서 직접 HTTP 요청을 보내 확인해볼 수도 있다(<code>nc</code> 이용).</p>
+
+<img src="/assets/imgs/notes/security/06-nc-http-request.png" alt="nc 명령으로 서버 80번 포트에 직접 접속해 GET / HTTP/1.1 요청을 보내고, HTTP/1.1 400 Bad Request 응답과 본문을 그대로 터미널에서 확인하는 화면" loading="lazy">
 
 <h3>방화벽</h3>
 <ul>

@@ -108,6 +108,8 @@
 
 <p>SPI 모델은 클라우드 서비스를 제공 범위에 따라 IaaS, PaaS, SaaS 세 가지로 구분한다.</p>
 
+<img src="/assets/imgs/notes/cloud-intro/01-iaas-paas-saas-pyramid.png" alt="IaaS, PaaS, SaaS를 피라미드로 나타낸 그림. 하단 IaaS는 AWS, Rackspace Cloud 같은 인프라 제공 서비스, 중간 PaaS는 Windows Azure, Google App Engine, Force.com 같은 플랫폼 제공 서비스, 상단 SaaS는 Gmail, Google Apps, Dropbox, Salesforce 같은 완성된 소프트웨어 서비스를 예시로 보여준다." loading="lazy">
+
 <h4>IaaS(Infrastructure as a Service)</h4>
 <ul>
 <li>서버의 기반 시설(인프라)을 제공한다.</li>
@@ -142,7 +144,11 @@
 
 <p>각 서비스 모델(IaaS/PaaS/SaaS)은 서비스 레벨, 즉 사람이 직접 다뤄야 하는 부분이 어디까지인지가 서로 다르다. SaaS로 갈수록 사용자가 관리해야 하는 영역이 줄어들고, 공급자가 관리하는 영역이 늘어난다.</p>
 
+<img src="/assets/imgs/notes/cloud-intro/02-service-model-responsibility-levels.png" alt="온프레미스, IaaS, PaaS, SaaS 네 열로 애플리케이션·데이터·런타임·미들웨어·OS·가상화·서버·스토리지·네트워킹 항목을 나열하고, 각 항목을 사용자가 직접 관리하는지(You Manage) 공급자가 관리하는지(Other Manages)를 색으로 구분해 보여주는 표." loading="lazy">
+
 <h3>클라우드 배치 모델(Deployment Model)</h3>
+
+<img src="/assets/imgs/notes/cloud-intro/03-cloud-deployment-models.png" alt="클라우드 배치 모델(Deployment Model) 다이어그램. 퍼블릭 클라우드(공급자 소유, 높은 확장성, 초기 비용 없음), 하이브리드 클라우드(퍼블릭과 프라이빗의 연동, Cloud Bursting), 프라이빗 클라우드(기업 전용 구축, 완벽한 통제와 강력한 보안), 멀티 클라우드(AWS·GCP 등 2개 이상의 공급자 동시 사용, 벤더 락인 방지 전략)를 각각 설명한다." loading="lazy">
 <ul>
 <li>AWS는 <strong>퍼블릭 클라우드(공공 클라우드)</strong>에 해당한다.</li>
 <li>회사의 기밀 문서 등을 위해 <strong>프라이빗(기업) 클라우드</strong>를 구축하기도 한다.
@@ -233,6 +239,8 @@
 
 <h3>클라우드 보안 아키텍처 기초</h3>
 
+<img src="/assets/imgs/notes/cloud-intro/04-cloud-security-architecture.png" alt="클라우드 보안 아키텍처 기초 다이어그램. 공동 책임 모델(고객은 OS 설정·IAM 권한·데이터 암호화 등 클라우드 '안'의 보안을, 공급자는 물리적 데이터센터 보안·하이퍼바이저 격리 등 클라우드 '의' 보안을 책임짐. 클라우드 보안 사고 원인 1위는 사용자의 설정 실수)와 3대 보안 핵심 기둥(IAM 최소 권한 원칙, VPC와 보안 그룹을 통한 네트워크 격리, Never Trust Always Verify의 제로 트러스트)을 보여준다." loading="lazy">
+
 <h4>방화벽</h4>
 <ul>
 <li>보안 과정을 자동으로 수행한다.</li>
@@ -290,6 +298,8 @@
 
 <p>클라우드 환경에서 빠르고 안정적으로 소프트웨어를 만들고 운영하려면, 개발과 운영이 하나가 되어야 한다.</p>
 
+<img src="/assets/imgs/notes/cloud-intro/05-devops-vs-sre.png" alt="DevOps와 SRE를 비교하는 벤 다이어그램. DevOps는 CI/CD, 협업, 전 과정에 대한 책임, 자동화된 워크플로를 강조하고, SRE는 안정성, 장애 대응, SLO, 운영 효율성을 강조하며, 두 영역이 공유하는 부분은 운영에 대한 집중과 지속적인 개선이다." loading="lazy">
+
 <h4>DevOps</h4>
 
 <p><strong>정의: 개발(Dev)과 운영(Ops)이 하나의 팀으로 협력하는 방법론이자 문화.</strong></p>
@@ -308,6 +318,8 @@
 <p><em>(노트에 세부 설명이 정리되어 있지 않음 — 강의 자료 참고)</em></p>
 
 <h3>클라우드 데이터 및 AI 생태계</h3>
+
+<img src="/assets/imgs/notes/cloud-intro/06-cloud-data-ai-pipeline.png" alt="클라우드 데이터 및 AI 생태계의 4단계 데이터 파이프라인 다이어그램. 수집(Ingestion, 다양한 기기에서 데이터 수집) → 저장(Storage, 가공 전 원시 데이터를 담는 데이터 레이크와 정제·구조화된 데이터 웨어하우스) → 처리(Processing, ETL) → 분석(Analytics, 대시보드) 순서로 이어지며, 하단에는 거대한 GPU 클러스터 없이도 클라우드 API 호출만으로 AI를 도입할 수 있는 'AI의 민주화' 개념을 설명한다." loading="lazy">
 <ul>
 <li><strong>데이터</strong>: 의미가 없는 데이터의 집합.</li>
 <li><strong>정보</strong>: 의미를 가지는 데이터.
@@ -358,6 +370,8 @@
 <p><em>(노트에 세부 설명이 정리되어 있지 않음 — 강의 자료 참고)</em></p>
 
 <h3>클라우드의 미래</h3>
+
+<img src="/assets/imgs/notes/cloud-intro/07-cloud-future-summary.png" alt="클라우드의 미래 & 요약 다이어그램. 엣지 컴퓨팅(자율주행차·스마트 공장을 위해 중앙 데이터센터가 아닌 발생 지점 근처에서 초저지연으로 데이터 처리), AI 인프라(거대 언어 모델 학습과 추론을 위한 클라우드 GPU 임대 및 전용 칩 제공), 친환경 & 양자 컴퓨팅(탄소 중립을 향한 지속 가능한 데이터센터 운영과 신약 개발을 위한 양자 클라우드 서비스)을 소개하며, '컴퓨팅 자원은 인터넷 너머 구름 속 거대한 수도꼭지를 틀어 쓰는 시대'라는 메시지로 마무리한다." loading="lazy">
 
 <h4>엣지 컴퓨팅</h4>
 <ul>

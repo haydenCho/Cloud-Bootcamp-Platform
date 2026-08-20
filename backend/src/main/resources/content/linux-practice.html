@@ -1,0 +1,1181 @@
+<h2>리눅스 실습 노트</h2>
+
+<p>VMware에 우분투 서버를 직접 설치하고, nginx/ssh 포트 변경, 백도어 공격·탐지, 오픈소스 빌드, 계정 기반 미니 서비스 제작까지 진행한 실습 기록입니다. 강의 내용을 그대로 따라만 하지 않고 트러블슈팅 과정을 남겨두었습니다.</p>
+
+<h3>실행 환경 준비 (VMware Workstation 다운로드)</h3>
+
+<ul>
+  <li>윈도우 자체 하이퍼바이저 사용 여부를 묻는 옵션이 있는데, 처음엔 사용하지 않음
+    <ul>
+      <li>내장 하이퍼바이저를 사용하면 리눅스를 한 대만 사용 가능 → 나중에 도커를 배워서 리눅스 한 대로 여러 개의 컨테이너를 띄울 수 있을 때 사용할 예정</li>
+    </ul>
+  </li>
+</ul>
+
+<h4>Ubuntu 다운로드</h4>
+
+<ul>
+  <li>데스크탑 버전 다운로드</li>
+  <li>가장 최신 버전은 문제가 생길 수 있음 → 안정화된 가장 최근 버전을 다운로드 (LTS는 AS 개념 → 문제가 발생하면 지원해주겠다는 뜻)</li>
+  <li>기종별 다운로드
+    <!-- image omitted: image.png (기종별 다운로드 옵션) -->
+    <ul>
+      <li><strong>Intel or AMD 64-bit architecture</strong>: 일반 컴퓨터</li>
+      <li><strong>ARM 64-bit architecture</strong>: ARM 보드 사용 기기</li>
+    </ul>
+  </li>
+</ul>
+<!-- image omitted: image%201.png (설치 버전 선택) -->
+
+<h3>가상 머신 만들기 (리눅스 운영체제 VM 생성하기)</h3>
+
+<!-- image omitted: image%202.png -->
+<!-- image omitted: image%203.png (VM 생성 단계 1) -->
+<!-- image omitted: image%204.png (VM 생성 단계 3) -->
+<!-- image omitted: image%205.png (VM 생성 단계 5: 100gb를 여러 개 파일로 쪼개서 저장하는 옵션이 더 유용함) -->
+<!-- image omitted: image%206.png (VM 생성 단계 2) -->
+<!-- image omitted: image%207.png (VM 생성 단계 4) -->
+<!-- image omitted: image%208.png (VM 생성 단계 6) -->
+<!-- image omitted: image%209.png (생성된 VM 화면: Edit virtual machine settings 클릭해서 셋팅 열기) -->
+<!-- image omitted: image%2010.png (설치한 우분투를 연동: 다운로드한 우분투 파일 열기) -->
+<!-- image omitted: image%2011.png (VM 화면의 Power on this virtual machine 클릭해서 가상 머신 실행, 알림 끄기) -->
+
+<p><strong>Ctrl + Alt로 운영체제 왔다갔다</strong> (VM 실행하면 마우스가 사라짐)</p>
+
+<!-- image omitted: image%2012.png (Download ubuntu에 커서가 있는 채로 엔터를 클릭하면 로딩 시작) -->
+<!-- image omitted: image%2013.png (로딩이 완료되면 언어 선택 창이 뜬다) -->
+<!-- image omitted: image%2014.png -->
+<!-- image omitted: image%2015.png -->
+<!-- image omitted: image%2016.png -->
+<!-- image omitted: image%2017.png (sda 설명 화면) -->
+
+<p><code>sda</code> → <code>sd</code> + 알파벳(처음이라 a, 다음은 b …). 리눅스 및 유닉스 계열 운영체제에서 첫 번째로 인식된 하드디스크나 SSD 같은 저장 장치(드라이브)를 가리키는 경로명이다.</p>
+
+<!-- image omitted: image%2018.png (설치 완료. 설정에서 CD/DVD > Device status 옵션 전부 끄기, 설치가 끝나서 더이상 연결할 필요 없으니까) -->
+<!-- image omitted: image%2019.png (설치가 끝나면 위와 같이 설정을 바꿔야 함) -->
+<!-- image omitted: image%2020.png (맨 위의 파일은 4기가(VMware 사이즈를 4기가로 했음), vmdk 파일들은 100기가를 여러 개의 vmdk 파일로 나눠서 저장 ⇒ 여기저기 저장한 건 커널의 몫) -->
+
+<p>런레벨 변경: GUI → CLI</p>
+
+<pre><code>sudo systemctl set-default multi-user.target</code></pre>
+
+<ul>
+  <li><code>sudo</code>: 관리자 모드로 실행</li>
+  <li><code>systemctl</code>: 운영체제를 잘 관리하기 위한 명령어</li>
+</ul>
+
+<pre><code>sudo reboot   # 재부팅
+sudo shutdown (== sudo init 0)   # 강제 종료</code></pre>
+
+<p><strong>접속</strong></p>
+
+<pre><code># 로그인
+login: [이름]
+Password: [비밀번호]
+
+# 로그아웃
+exit</code></pre>
+
+<p>시스템 업데이트</p>
+
+<pre><code>sudo apt-get update</code></pre>
+
+<ul>
+  <li>패키지 목록을 업데이트</li>
+  <li>패키지를 다운받거나 변경 사항이 생겼을 때마다 사용 (많이 사용한다!)</li>
+</ul>
+
+<p>패키지 업그레이드</p>
+
+<pre><code>sudo apt-get upgrade [-y]</code></pre>
+
+<ul>
+  <li>패키지 목록에 맞게 업그레이드</li>
+  <li>중간에 모든 패키지를 다운받겠냐고 물어봄 → <code>-y</code>를 붙여서 실행하면 안 물어봄</li>
+</ul>
+
+<!-- image omitted: image%2021.png (VMware 종료 옵션 화면) -->
+
+<ul>
+  <li><strong>Power Off</strong>: 강제종료</li>
+  <li><strong>Suspend</strong>: 가상 머신의 현재 상태(메모리, 애플리케이션)를 디스크에 저장하고 종료하여, 나중에 다시 실행할 때 즉시 작업 상태로 복원하는 기능</li>
+  <li><strong>Run in Background</strong>: 서버가 백그라운드로 돌아감</li>
+</ul>
+
+<h3>포트폴리오 페이지 만들기</h3>
+
+<ol>
+  <li>nginx로 페이지 로드
+    <ul>
+      <li><code>var/www/html/</code>이 홈
+        <ul>
+          <li><code>http://192.168.6.128/index.html</code> → <code>var/www/html/index.html</code>을 로드</li>
+          <li><code>http://192.168.6.128:8080/frontend/profile.html</code> → <code>var/www/html/frontend/profile.html</code>을 로드 (포트번호를 80에서 8080으로 바꾼 상태 → 접속할 때 포트번호를 적어줘야 함)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>클로드에 페이지 코드 작성 요청
+    <!-- image omitted: image%2022.png (클로드가 미리보기와 함께 파일 제공) -->
+    <ul>
+      <li>위와 같이 미리보기와 함께 파일 제공</li>
+      <li>다운로드 받아서 윈도우 → 원격 서버로 파일 이동 ("다운로드"에서 터미널 열기)
+        <pre><code>scp .\profile.html solcho@192.168.6.128:~/workspace/profile_front.html</code></pre>
+        <ul>
+          <li><code>/var/</code> 내부 파일은 sudo 권한이 필요하기 때문에 홈디렉토리에 따로 폴더(workspace)를 만들어놓고 한번 거쳐서 옮기기</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>vi 편집기로 들어가서 필요한 부분 수정하기</li>
+</ol>
+
+<h3>ssh 서비스 포트번호 2222로 변경하기</h3>
+
+<ol>
+  <li>포트번호는 환경설정 → etc</li>
+  <li>설정 파일 찾기
+    <pre><code>grep " 22" -r /etc/
+grep " 22$" -r /etc/</code></pre>
+    <p>→ <code>$</code>는 문자열의 끝을 의미 ⇒ 22로 끝나는 단어 탐색</p>
+  </li>
+  <li><code>/etc/ssh/sshd_config</code>에서 포트번호 수정하기
+    <!-- image omitted: image%2023.png (sshd_config에서 Port 주석 해제 후 2222로 설정) -->
+    <ul>
+      <li>원래는 port 설정이 주석 처리되어 있었음 → 기본값이 22</li>
+      <li>주석을 풀고 2222로 설정</li>
+    </ul>
+  </li>
+  <li>방화벽 해제
+    <ul>
+      <li>ssh reload를 위해 방화벽 해제
+        <pre><code>sudo systemctl stop ufw     # 방화벽 해제
+sudo systemctl disable ufw  # 보안 공부 전까지는 재부팅해도 꺼놓기</code></pre>
+      </li>
+      <li>ufw: 우분투 방화벽</li>
+    </ul>
+  </li>
+  <li>ssh reload
+    <ul>
+      <li>restart도 상관없음</li>
+      <li>결과
+        <!-- image omitted: image%2024.png (ssh reload 결과) -->
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<p>이후 putty나 xshell로 서버에 접속할 때 포트번호를 2222로 변경해야 한다!</p>
+
+<pre><code>ssh [사용자명]@[ip주소] -p 2222</code></pre>
+
+<!-- image omitted: image%2025.png (변경된 포트로 접속 설정 화면) -->
+
+<h3>nginx 포트번호를 80에서 8080으로 변경하기</h3>
+
+<ol>
+  <li>포트번호는 환경설정 → etc</li>
+  <li>설정 파일 찾기
+    <pre><code>grep -r "80" /etc/nginx
+grep "80" -r /etc/ | grep "nginx" | grep -v "#"</code></pre>
+    <!-- image omitted: image%2026.png (grep 결과) -->
+    <ul>
+      <li><code>/etc/nginx/sites-available/default</code> 내부에 포트번호인 80이 있는 것을 확인</li>
+      <li>80도 80이지만 <strong>listen 80</strong>인 게 알아볼 수 있었던 이유!</li>
+    </ul>
+  </li>
+  <li>설정 파일 변경
+    <!-- image omitted: image%2027.png (강사님 설명대로 주석처리) -->
+    <!-- image omitted: image%2028.png (아래는 주석 처리를 하라는데 안해도 문제는 없었음) -->
+    <ul>
+      <li><code>/etc/nginx/sites-available/default</code></li>
+      <li>포트번호가 80으로 설정되어 있음 → 8080로 설정</li>
+    </ul>
+  </li>
+  <li>서버 reload
+    <pre><code>systemctl reload nginx</code></pre>
+    <!-- image omitted: image%2029.png (reload 결과) -->
+  </li>
+  <li>웹 페이지 접속
+    <ul>
+      <li><code>http://192.168.6.128:8080/frontend/profile.html</code></li>
+      <li>포트번호가 기본값이 아니기 때문에 접속할 때 포트번호를 적어줘야 함 (80: HTTP 포트 번호 → 웹페이지 기본값이라 봐도 무방)</li>
+    </ul>
+  </li>
+</ol>
+
+<h3>ip주소 변경하기</h3>
+
+<ol>
+  <li>VMware Network Adapter 변경
+    <!-- image omitted: image%2030.png (NAT에서 Bridged로 변경) -->
+    <ul>
+      <li>NAT에서 Bridged로 변경</li>
+      <li>Bridged: 실제 공유기에 직접 연결 (NAT는 컴퓨터를 공유기로 사용)</li>
+    </ul>
+  </li>
+  <li>네트워크 인터페이스(NIC) 재부팅
+    <!-- image omitted: image%2031.png (ifconfig 결과) -->
+    <ul>
+      <li><code>ifconfig</code>로 ip주소가 192.168.6.128에서 192.168.100.104로 변경된 것을 확인</li>
+    </ul>
+  </li>
+  <li>ip주소로 페이지 접속
+    <ul>
+      <li>결과
+        <!-- image omitted: image%2032.png (내 포트폴리오 페이지) -->
+        <!-- image omitted: image%2033.png (강사님 포트폴리오 페이지) -->
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<h3>ip주소 임의 변경하기</h3>
+
+<ol>
+  <li>할당된 주소 확인
+    <!-- image omitted: image%2034.png (할당된 ip 범위 확인) -->
+    <ul>
+      <li>ip 주소가 대충 110번대까지 할당되었다는 것을 알 수 있음 → 200번대로 고정 주소를 설정하자! (나는 209번)</li>
+    </ul>
+  </li>
+  <li>ip주소는 <code>/etc/netplan</code> 내부에서 yaml 파일로 설정되어 있음
+    <!-- image omitted: image%2035.png (netplan 디렉토리 확인) -->
+    <ul>
+      <li>근데 yaml 파일은 직접 수정하기 좀 힘듦 → 설정을 위한 서비스가 존재함</li>
+    </ul>
+  </li>
+  <li><code>nmtui</code> 명령어로 '연결 편집' 실행
+    <ul>
+      <li>과정
+        <!-- image omitted: image%2036.png -->
+        <!-- image omitted: image%2037.png -->
+      </li>
+      <li>설정값
+        <!-- image omitted: e142f235-b271-4511-a8aa-a346546f90eb.png -->
+      </li>
+    </ul>
+  </li>
+  <li>네트워크 인터페이스 재가동 혹은 VMware 리부트</li>
+</ol>
+
+<p>설정 파일(.yaml) 내부 보기</p>
+
+<!-- image omitted: image%2038.png -->
+
+<ul>
+  <li><code>./netplan/90-NM-14f59568-5076-387a-aef6-10adfcca2e26.yaml</code>
+    <!-- image omitted: image%2039.png (netplan yaml 파일 내용) -->
+  </li>
+</ul>
+
+<h3>ssh에 비밀번호 없이 접속 가능하도록 설정</h3>
+
+<ul>
+  <li><code>sudo vi /etc/ssh/sshd_config</code> 설정
+    <ul>
+      <li>Permit을 검색해서 주석을 해제하고 yes로 수정
+        <!-- image omitted: image%2040.png (수정 전) -->
+        <!-- image omitted: image%2041.png (수정 후) -->
+      </li>
+    </ul>
+  </li>
+  <li><code>passwd -d [계정명]</code>
+    <!-- image omitted: image%2042.png -->
+    <ul>
+      <li>결과
+        <!-- image omitted: image%2043.png -->
+        <!-- image omitted: image%2044.png (tet1은 수동으로 수정) -->
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h3>백도어 만들고 탐지해보기</h3>
+
+<h4>백도어 만들기</h4>
+
+<p>상황: 관리자가 자리를 비운 사이에 tetris-server는 관리자의 쉘을 훔쳐서 백도어를 만들고자 한다. 백도어는 제한된 기능이 많아서, sudoers에도 등록을 하려고 한다.</p>
+
+<ul>
+  <li>관리자 계정
+    <pre><code>cp /usr/bin/bash ./door.hwp
+chown root:root ~usr1/door.hwp
+chmod u+s ~usr1/door.hwp</code></pre>
+    <!-- image omitted: image%2045.png (추후 파일명을 backdoor.hwp로 바꿈) -->
+  </li>
+  <li>usr1 계정
+    <ul>
+      <li><code>~usr1/backdoor.hwp -p</code>
+        <ul>
+          <li><code>-p</code>: 명시적으로 관리자 권한이 필요할 때 사용 (원래는 항상 권한에 대해 보수적으로 동작)</li>
+        </ul>
+      </li>
+      <li><code>id</code>
+        <!-- image omitted: image%2046.png (~usr1/backdoor.hwp) -->
+        <!-- image omitted: image%2047.png (~usr1/backdoor.hwp -p, euid = 0 확인) -->
+      </li>
+    </ul>
+  </li>
+  <li><code>/etc/sudoers</code> 수정
+    <ul>
+      <li><code>root → ALL=(ALL:ALL) ALL</code> 아래에 <code>usr1 → ALL=(ALL:ALL) ALL</code> 추가
+        <!-- image omitted: image%2048.png -->
+      </li>
+      <li><code>sudo su -</code>
+        <!-- image omitted: image%2049.png -->
+        <ul>
+          <li>관리자 권한 사용이 가능한 것을 확인 가능</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong>root ALL=(ALL:ALL) ALL 필드</strong></p>
+
+<p><code>[사용자/그룹] [호스트] = ([실행 사용자] : [실행 그룹]) [명령어]</code></p>
+
+<p>⇒ 특정 명령어에 대한 권한만 부여하고 싶다면 마지막 ALL 부분에 <code>ls</code>, <code>cat</code> 등 명령어를 작성하면 된다.</p>
+
+<h4>백도어 탐지</h4>
+
+<p>상황: 관리자는 주기적으로 set-uid 비트가 할당된 프로그램이 있는지 점검한다.</p>
+
+<pre><code>find / -type f -perm -4000</code></pre>
+
+<ul>
+  <li>SetUID(4000)가 설정된 파일을 찾음</li>
+  <li>해커가 일반 사용자 계정으로 접속한 뒤, 이 비트가 설정된 변조 쉘을 실행하여 즉시 root 권한을 탈취하는 기법 방어 (백도어 탐지)</li>
+</ul>
+
+<h4>인젝션 + 백도어</h4>
+
+<p>위의 백도어 실습은 관리자가 오프라인에서 자리를 비운 사이에 구멍을 만들어낸 과정이었음. "루트 권한으로 서비스를 제공하는 경우"에는 관리자의 위치와 상관없이 인젝션 공격으로 권한을 훔칠 수 있음.</p>
+
+<ol>
+  <li>서비스 실행 후 인젝션 시도 (<code>7887;bash</code>)
+    <!-- image omitted: image%2050.png (게임이 끝나고 bash가 실행된 모습) -->
+    <ul>
+      <li>게임이 끝나고 bash가 실행된 모습</li>
+    </ul>
+  </li>
+  <li>관리자 계정으로 전환
+    <!-- image omitted: image%2051.png -->
+  </li>
+  <li>관리자 계정으로 백도어 파일 생성
+    <!-- image omitted: image%2052.png -->
+  </li>
+  <li>백도어를 통해 탈취하려는 계정에서 해당 파일로 쉘 실행
+    <!-- image omitted: image%2053.png -->
+  </li>
+  <li><code>/etc/sudoers</code> 수정</li>
+  <li><code>sudo su</code></li>
+</ol>
+
+<h2>오픈소스 빌드하고 수정하기</h2>
+
+<h3>vitetris</h3>
+
+<ol>
+  <li>다운로드 파일 확인
+    <ul>
+      <li>https://www.victornils.net/tetris/</li>
+      <li>https://github.com/vicgeralds/vitetris/releases/tag/v0.59.1</li>
+    </ul>
+  </li>
+  <li>다운로드 및 압축해제
+    <pre><code>wget https://github.com/vicgeralds/vitetris/archive/refs/tags/v0.59.1.tar.gz
+tar -xvzf https://github.com/vicgeralds/vitetris/archive/refs/tags/v0.59.1.tar.gz</code></pre>
+  </li>
+  <li>개발에 필요한 필수 도구 다운로드
+    <pre><code>apt-get install build-essential</code></pre>
+  </li>
+  <li>게임 문서 확인(INSTALL or README)
+    <ul>
+      <li>대부분의 오픈소스가 문서에 내용을 저장해놓음 → 꼭 읽어야 하는 문서는 대문자</li>
+      <li>README: 사용 방법(vitetris 기준)</li>
+      <li>INSTALL: 빌드 방법 (vitetris 기준)
+        <!-- image omitted: image%2054.png (INSTALL 문서 내용) -->
+        <ul>
+          <li>실행을 위해서는 configure(환경설정)을 하고 make(빌드)를 해야 함</li>
+        </ul>
+      </li>
+    </ul>
+    <p>파일 확인</p>
+    <!-- image omitted: image%2055.png -->
+    <ul>
+      <li>make를 위한 파일: Makefile
+        <ul>
+          <li>원래는 내부의 명령어들을 사용자가 하나하나 작성해야 함</li>
+          <li>이를 쉽게 실행하고자 개발자가 Makefile을 만들어서 함께 배포</li>
+        </ul>
+      </li>
+      <li>configure: 실행 파일
+        <ul>
+          <li>환경 설정</li>
+          <li><code>./configure</code>로 실행 → config.mk 파일에 저장</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><code>./configure</code> 실행</li>
+  <li><code>make</code>로 빌드
+    <ul>
+      <li>결과
+        <!-- image omitted: image%2056.png -->
+        <!-- image omitted: image%2057.png -->
+        <li>strip 명령어를 해주세요 (기본값으로 실행이 됨)</li>
+        <li>게임을 시작하려면 <code>./tetris</code>를 실행하거나 make install을 해주세요
+          <ul>
+            <li>소스 인스톨 과정에 원래 make install이 있음</li>
+            <li>strip 과정에 prefix 인자를 넣어 환경을 설정하고 make install 과정에서 내용을 참조</li>
+          </ul>
+        </li>
+      </li>
+    </ul>
+  </li>
+  <li><code>./tetris</code>로 실행
+    <!-- image omitted: image%2058.png -->
+  </li>
+</ol>
+
+<h4>tetris net으로 함께 게임하기</h4>
+
+<ol>
+  <li>서버 열기: <code>./tetris listen 9999</code></li>
+  <li>클라이언트 접속하기: <code>./tetris connect 1.2.3.4.:9999</code></li>
+</ol>
+
+<h4>strip 없이 빌드해보기</h4>
+
+<!-- image omitted: image%2059.png (주석처리) -->
+<!-- image omitted: image%2060.png (실행 파일 두개를 file 명령어로 출력하면 strip 정보 확인 가능) -->
+
+<ul>
+  <li>실행 파일 텍스트로 추출하기: <code>strings tetris &gt; tetris-pre</code></li>
+</ul>
+
+<h3>게임만 가능한 계정 만들기</h3>
+
+<ol>
+  <li>유저 만들기
+    <pre><code>adduser tetris_server
+adduser tetris_client</code></pre>
+  </li>
+  <li>테트리스 실행 파일 복사하기
+    <pre><code>cp /home/solcho/tetris/vitetris-0.59.1/tetris /tmp/tetris</code></pre>
+    <ul>
+      <li>경로를 쉽게 하고 이후 파일 정리를 쉽게 하기 위해 tmp 파일에서 작업</li>
+    </ul>
+  </li>
+  <li><code>/etc/passwd</code> 설정 바꾸기
+    <!-- image omitted: image%2061.png -->
+    <ul>
+      <li><code>usr/bin/bash</code> 부분을 <code>/tmp/tetris-server.sh</code>로 변경
+        <ul>
+          <li>만약 실행 파일의 위치가 <code>~/tetris/tetris-server.sh</code>였다면 <code>/home/tetris_server/tetris/tetris-server.sh</code></li>
+        </ul>
+      </li>
+      <li>로그인 후 실행될 쉘 필드 → 로그인 이후 "테트리스 서버를 만들도록 하는 실행 파일"을 실행하도록 변경</li>
+    </ul>
+  </li>
+  <li>실행 파일 생성하기
+    <p><code>/tmp/tetris-server.sh</code></p>
+    <pre><code># 서버
+#!/usr/bin/bash
+/tmp/tetris listen 9999
+
+# 클라이언트
+#!/usr/bin/bash
+/tmp/tetris connect 192.168.100.209:9999</code></pre>
+    <ul>
+      <li><strong><code>#!/usr/bin/bash</code>: bash로 실행</strong>
+        <ul>
+          <li># = hash, ! = bang ( #! = shebang 쉬뱅)</li>
+          <li><code>#![경로명]</code>: 명령어를 해석할 프로그램의 위치</li>
+        </ul>
+      </li>
+      <li><code>/tmp/tetris listen 9999</code>: tmp 내부의 tetris 실행파일을 9999번 포트로 서버 열기</li>
+      <li><code>/tmp/tetris connect 192.168.100.209:9999</code>: tmp 내부의 tetris 실행파일을 실행하여 해당 주소로 연결</li>
+    </ul>
+    <p>파일 내부 모습</p>
+    <!-- image omitted: image%2062.png -->
+    <p><strong>.sh 파일은 이름만 .sh이고 실제로는 텍스트 파일</strong><br>
+    → 어떤 쉘로 실행할 것인지 지정해줘야 쉘 스크립트로써의 역할을 함</p>
+    <p>⇒ <code>#!/usr/bin/bash</code></p>
+    <ul>
+      <li><strong>#![경로명]: 명령어를 해석할 프로그램의 위치</strong>
+        <ul>
+          <li>스크립트 파일의 맨 첫 줄에 위치</li>
+          <li>해당 스크립트를 해석하고 실행할 프로그램(인터프리터)의 경로를 지정</li>
+          <li>#은 주석이지만 #!는 다름</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>실행 파일 소유/권한 부여
+    <ul>
+      <li>위의 sh 파일을 만들면 처음에는 실행 권한이 없음 → 실행파일이 아님</li>
+      <li><code>chown tetris_server:tetris_server tetris-server.sh</code> (생략 가능)</li>
+      <li><code>chmod 755 ./tetris-server.sh</code>
+        <ul>
+          <li>결과
+            <!-- image omitted: image%2063.png (test.sh와 같이 실행 권한이 없어 실행파일이라고 볼 수 없음) -->
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<p><code>/etc/passwd</code> 내부 정보의 마지막 필드는 로그인 직후 실행될 쉘 → 쉘 스크립트(실행 파일)를 넣어줘야 함. 실행파일을 임의로 지정한다면 절대경로로 파일의 경로를 설정한다. .sh 파일: 쉘 스크립트(실행 파일)</p>
+
+<h3>게임 계정 응용 - 포트번호 입력받기</h3>
+
+<ol>
+  <li>쉘 스크립트 수정
+    <pre><code>#!/usr/bin/bash
+
+# 사용자에게 입력을 요청
+read -p "사용할 포트 번호를 입력하세요 (기본 9999): " USER_PORT
+
+# 입력이 비어있으면 9999로 설정
+PORT=${USER_PORT:-9999}
+
+/home/tet1/bin/tetris listen "$PORT"</code></pre>
+    <ul>
+      <li>제미나이의 도움을 받음 (쉘 스크립트에 대해 배우기 전이라서 도움)</li>
+    </ul>
+  </li>
+  <li><code>/etc/passwd</code> 설정 파일 수정</li>
+  <li>네트워크 연결 상태 확인
+    <ul>
+      <li>tet1이 5555번으로 포트를 연 상태
+        <!-- image omitted: image%2064.png -->
+      </li>
+      <li>tet2가 5555번 포트로 연결한 상태
+        <!-- image omitted: image%2065.png -->
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<p><strong>네트워크 연결 상태: LISTEN과 ESTABLISHED</strong></p>
+
+<ul>
+  <li>LISTEN: 서버 측에서 연결 요청을 기다리고 있는 상태. 특정 포트에서 들어오는 클라이언트의 연결 요청을 대기.</li>
+  <li>ESTABLISHED: TCP 연결이 성공적으로 수립되어 데이터 전송이 가능한 상태. 연결이 활성화되어 있고, 실제 데이터 교환이 이루어지고 있는 상태.</li>
+</ul>
+
+<h4>IP 주소도 입력 받기</h4>
+
+<ul>
+  <li>서버 파일은 변경X (현재 주소로 열어야 하니까)</li>
+  <li>클라이언트 파일
+    <pre><code>#!/usr/bin/bash
+
+read -p "사용할 IP 주소를 입력하세요 (기본 localhost): " USER_IP
+read -p "사용할 포트 번호를 입력하세요(기본 9999): " USER_PORT
+
+IP=${USER_IP:-localhost}
+PORT=${USER_PORT:-9999}
+
+/home/tet2/bin/tetris connect "$IP:$PORT"</code></pre>
+    <ul>
+      <li>따옴표 사이에 콜론이 있으면 쉘에 따라 인자 전달이 부정확해질 수 있음 → 따옴표 내부에 콜론 포함하기</li>
+    </ul>
+  </li>
+</ul>
+
+<h4>"$PORT" 따옴표 없애기</h4>
+
+<p>소스 코드</p>
+
+<pre><code>#!/usr/bin/bash
+
+# 사용자에게 입력을 요청
+read -p "사용할 포트 번호를 입력하세요 (기본 9999): " USER_PORT
+
+# 입력이 비어있으면 9999로 설정
+PORT=${USER_PORT:-9999}
+
+/home/tet1/bin/tetris listen $PORT</code></pre>
+
+<ul>
+  <li>인자 값을 올바르게 줬을 때 실행 자체는 문제 없이 됨</li>
+  <li>문제상황: Insection(삽입) 공격
+    <ul>
+      <li><code>/home/tet1/</code> 내부에 보안 관련 문서인 security.txt가 있다고 가정
+        <!-- image omitted: image%2066.png -->
+      </li>
+    </ul>
+  </li>
+  <li>tet1 계정으로 접속 후 포트번호 입력에 아래와 같이 작성
+    <ul>
+      <li><code>4444; cat /home/tet1/security.txt</code></li>
+      <li>따옴표가 없어서 listen 4444 명령어와 cat 명령어를 각각 실행</li>
+      <li>따옴표가 있었다면 저 내용을 전부 하나의 값으로 판단 → 대처 가능</li>
+    </ul>
+  </li>
+</ul>
+
+<p>위의 코드로는 인젝션 공격이 안 먹힘 (위의 내용들은 이론적인 내용). 코드를 아래와 같이 수정.</p>
+
+<pre><code>#!/usr/bin/bash
+
+read -p "사용할 포트 번호를 입력하세요 (기본 9999): " USER_PORT
+PORT=${USER_PORT:-9999}
+
+wval "/home/tet1/bin/tetris listen $PORT"</code></pre>
+
+<ul>
+  <li>프로세스
+    <!-- image omitted: image%2067.png -->
+    <ul>
+      <li>ssh는 init에서 관리</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>스타워즈 서비스를 만들어보자</h3>
+
+<p>링크: <code>ssh starwars@starwarstel.net</code></p>
+
+<ol>
+  <li>포팅 작업
+    <ul>
+      <li>포팅: 이미 있는 코드를 다른 언어로 변환하는 작업</li>
+      <li>https://github.com/mgracanin/ASCIIStarWars/blob/main/__init__.py (Python)</li>
+      <li>코드(C언어)
+        <pre><code>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;unistd.h&gt;
+
+#define LPS 14 // Lines per frame
+
+int main() {
+    const char *file_path = "starwars.txt";
+    FILE *fp = fopen(file_path, "r");
+
+    if (fp == NULL) {
+        fprintf(stderr, "File %s does not exist.\n", file_path);
+        fprintf(stderr, "파일이 실행 파일과 같은 디렉토리에 있는지 확인하세요.\n");
+        return 1;
+    }
+
+    char line[256];
+    char frame_buffer[LPS][256];
+
+    // 초기 화면 확보를 위한 개행
+    for (int i = 0; i &lt; LPS; i++) printf("\n");
+
+    while (fgets(line, sizeof(line), fp)) {
+        // 첫 번째 줄은 딜레이 값 (정수)
+        int delay_multiplier = atoi(line);
+
+        // 다음 13줄(LPS-1)을 읽어서 프레임 구성
+        for (int i = 0; i &lt; LPS - 1; i++) {
+            if (fgets(frame_buffer[i], sizeof(frame_buffer[i]), fp)) {
+                // 개행 문자 제거 (파이썬의 join 효과)
+                frame_buffer[i][strcspn(frame_buffer[i], "\n")] = 0;
+            } else {
+                frame_buffer[i][0] = '\0';
+            }
+        }
+
+        // 터미널 제어: LPS만큼 위로 이동 후 내용 삭제(\x1b[14A\x1b[J)
+        printf("\x1b[%dA\x1b[J", LPS);
+        for (int i = 0; i &lt; LPS - 1; i++) {
+            printf("%s\n", frame_buffer[i]);
+        }
+
+        // 파이썬의 sleep(int(podaci[i]) * 67 / 1000) 계산
+        // usleep은 마이크로초(1/1,000,000초) 단위임
+        // 67/1000초는 67,000마이크로초
+        usleep(delay_multiplier * 67000);
+    }
+
+    fclose(fp);
+    return 0;
+}</code></pre>
+      </li>
+    </ul>
+  </li>
+  <li>컴파일
+    <pre><code>gcc -o starsh ./star.c</code></pre>
+  </li>
+  <li>텍스트 파일 다운로드
+    <pre><code>scp ./starwars.txt star@192.168.100.209:/home/star/</code></pre>
+  </li>
+  <li>용량 줄이기
+    <pre><code>strip starsh</code></pre>
+  </li>
+  <li>실행
+    <pre><code>./starsh</code></pre>
+  </li>
+</ol>
+
+<h4>스타워즈 시청 계정 만들기</h4>
+
+<ol>
+  <li>계정 생성
+    <pre><code>adduser watchstar</code></pre>
+  </li>
+  <li>실행 파일 복사
+    <pre><code>cp /home/star/bin/* /home/watchstar/bin/</code></pre>
+  </li>
+  <li>스크립트 쉘 작성
+    <pre><code>#!/usr/bin/bash
+/home/watchstar/bin/starsh</code></pre>
+  </li>
+  <li>파일 소유/권한 변경
+    <pre><code>chown watchstar:watchstar /home/watchstar/bin/*
+chmod 755 /home/watchstar/bin/*</code></pre>
+  </li>
+  <li><code>/etc/passwd</code> 설정 변경
+    <pre><code>watchstar:x:1009:1009:,,,:/home/watchstar:/home/watchstar/bin/watch-star.sh</code></pre>
+  </li>
+  <li>계정 실행
+    <!-- image omitted: image%2068.png -->
+  </li>
+</ol>
+
+<p>다른 영화(서비스)도 있다면 입력값에 따라 다른 서비스를 제공하는 계정도 만들 수 있겠다.</p>
+
+<h4>트러블슈팅 (파일 경로)</h4>
+
+<p><strong>문제상황</strong></p>
+
+<p>계정 생성, 설정 파일 수정, 스크립트 쉘 작성, 소유/권한 설정까지 끝났고 스크립트 쉘이 잘 실행되는 것도 확인했는데 시청 계정에서 실행하면 안 되는 상황.</p>
+
+<p><strong>로그</strong></p>
+
+<pre><code>File 'starwars.txt' does not exist.
+파일이 실행 파일과 같은 디렉토리에 있는지 확인하세요.</code></pre>
+
+<!-- image omitted: image%2069.png -->
+
+<p><strong>원인 추론</strong></p>
+
+<ol>
+  <li>권한 설정 문제</li>
+  <li>실행 파일 경로 문제</li>
+  <li>C 코드 내부 txt 파일 경로 문제</li>
+</ol>
+
+<ol>
+  <li>권한 설정 문제: 권한을 다시 설정하고 제대로 설정된 것을 확인</li>
+  <li>스크립트 쉘을 실행했을 때 제대로 실행되었기 때문에 경로 문제는 아님</li>
+  <li>2번에서 제대로 실행되었는데, 다른 계정에서 실행되지 않음 → txt 파일이 상대경로나 명확하게 지정되어 있지 않아서 문제가 생길 가능성이 있음</li>
+</ol>
+
+<p><strong>문제 해결 방법</strong></p>
+
+<p>C언어 내부 코드 수정</p>
+
+<pre><code>// 수정 전
+const char *file_path = "starwars.txt";
+
+// 수정 후 (절대 경로)
+const char *file_path = "/home/watchstar/bin/starwars.txt";</code></pre>
+
+<p><strong>결과</strong></p>
+
+<!-- image omitted: image%2068.png -->
+
+<p>제대로 잘 실행된다!</p>
+
+<p><strong>회고</strong></p>
+
+<ul>
+  <li>코드를 실행할 때 문제의 상당수가 경로 문제다. 항상 경로를 확실하게 작성하자.</li>
+  <li>로그를 잘 읽는 것도 중요하다. 개발자가 작성한 로그도 중요하고 시스템 로그도 중요함.</li>
+</ul>
+
+<h3>입력값에 따라 다른 서비스 제공해보기</h3>
+
+<p>스크립트 쉘</p>
+
+<pre><code>#!/usr/bin/bash
+
+read -p "원하시는 서비스를 선택하세요(스타워즈:0, 테트리스:1): " USER_CHOICE
+
+CHOICE=${USER_CHOICE}
+
+if [ "$CHOICE" -eq 0 ]; then
+        /home/fun/bin/starsh
+elif [ "$CHOICE" -eq 1 ]; then
+        /home/fun/bin/tetris
+else
+        echo "제공하지 않는 서비스입니다."
+fi</code></pre>
+
+<p>결과 (fun 계정으로도 잘 실행됨)</p>
+
+<!-- image omitted: image%2070.png -->
+
+<h4>시간 동기화 (time)</h4>
+
+<ol>
+  <li>time: 37번 포트
+    <ul>
+      <li>현재 시스템 시간을 출력해줌</li>
+      <li>윈도우와 다르게 동기화를 주기적으로 수행해줘야 함 → rdate, ntptime</li>
+    </ul>
+  </li>
+  <li>rdate: 시간 동기화를 해주는 명령어(더 오래됨)
+    <pre><code>sudo apt install rdate
+rdate time.bora.net</code></pre>
+    <ul>
+      <li>bora.net: 시간 동기화를 제공하는 사이트 (여러가지 사이트가 있는데, 빠르고 유명함)</li>
+    </ul>
+  </li>
+  <li>ntptime: 시간 동기화를 해주는 명령어(최근)
+    <ul>
+      <li>기능 자체는 rdate와 같음</li>
+    </ul>
+  </li>
+</ol>
+
+<h4>관리자(root)로 원격 접속하기 (관리자 계정 만들기)</h4>
+
+<ol>
+  <li>관리자 계정 생성
+    <pre><code>adduser admin</code></pre>
+    <ul>
+      <li><code>vi /etc/passwd</code>에서 UID, GID를 0(root)로 변경</li>
+    </ul>
+  </li>
+  <li>ssh 설정 파일 변경
+    <ul>
+      <li><code>vi /etc/ssh/sshd_config</code></li>
+      <li><code>/Root</code>로 관련 설정 검색
+        <!-- image omitted: image%2071.png -->
+        <ul>
+          <li>PermitRootLogin 설정을 주석 해제하고 yes로 변경
+            <!-- image omitted: image%2072.png -->
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>서비스 재구동 (3가지 방법 중 한 가지 사용)
+    <pre><code>systemctl restart ssh
+
+systemctl reload ssh
+systemctl reload daemon   # daemon-reload: 모든 장치 파일을 다시 로드하고 전체 종속성 트리를 다시 생성(init을 reload)
+
+systemctl stop ssh
+systemctl start ssh</code></pre>
+  </li>
+  <li>원격에서 접속
+    <pre><code>ssh admin@192.168.100.209</code></pre>
+  </li>
+  <li>관리 디렉토리에 파일 원격 복사 가능한지 확인
+    <!-- image omitted: image%2073.png -->
+    <!-- image omitted: image%2074.png -->
+  </li>
+</ol>
+
+<h4>nginx 최신 버전 소스 빌드하기 (clone)</h4>
+
+<p>깃허브 링크: https://github.com/nginx/nginx</p>
+
+<ol>
+  <li>소스코드 다운로드 받기
+    <pre><code>git clone https://github.com/nginx/nginx.git</code></pre>
+    <ul>
+      <li>수업에서는 wget로 다운받고 압축 해제
+        <!-- image omitted: image%2075.png -->
+      </li>
+    </ul>
+  </li>
+  <li>README.md로 설치과정 찾아보기
+    <ul>
+      <li><code>/config</code>로 빌드 과정 검색
+        <!-- image omitted: image%2076.png -->
+        <ul>
+          <li><code>auto/configure</code>로 빌드하는 것 확인</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>필요 라이브러리 확인하기
+    <ul>
+      <li><code>auto/configure</code>로 설치하려고 하면 아래와 같은 에러 발생
+        <!-- image omitted: image%2077.png -->
+        <ul>
+          <li>PCRE: 정규식(RE) 관련 라이브러리</li>
+        </ul>
+      </li>
+      <li>README.md에서 필요한 라이브러리 검색
+        <!-- image omitted: image%2078.png -->
+        <ul>
+          <li><code>/dependency</code>로 검색</li>
+          <li>dependency(의존성): 설치나 실행에 반드시 필요한 모듈 혹은 라이브러리</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>필요 라이브러리 설치하기 (3개)
+    <pre><code>apt install libpcre3-dev zlib1g-dev
+apt install libssl-dev
+
+# 한 줄로 실행도 가능
+apt install libpcre3-dev zlib1g-dev libssl-dev -y</code></pre>
+  </li>
+  <li>빌드 설정파일 다운받기
+    <pre><code>auto/configure</code></pre>
+    <!-- image omitted: image%2079.png -->
+    <ul>
+      <li>Makefile과 objs 디렉토리 생성됨</li>
+    </ul>
+  </li>
+  <li>서버 빌드하기
+    <pre><code>make</code></pre>
+    <!-- image omitted: image%2080.png -->
+    <ul>
+      <li>objs 내의 파일들을 이용해서 빌드</li>
+    </ul>
+  </li>
+  <li>실행 파일 확인
+    <!-- image omitted: image%2081.png -->
+  </li>
+  <li>버전 확인
+    <!-- image omitted: image%2082.png -->
+    <ul>
+      <li>기존 버전(1.24.0)과 최신 버전(1.31.1)</li>
+    </ul>
+  </li>
+  <li>실행
+    <pre><code>./nginx</code></pre>
+  </li>
+  <li>웹 서비스 확인</li>
+</ol>
+
+<p>nginx를 수동으로 설치하면 systemctl에 등록이 되지 않는다! ⇒ 자동화 코드가 필요함 ⇒ 쉘스크립트로 구현해보자! (make 파일도 자동화 스크립트)</p>
+
+<h4>nginx 최신 버전 소스 빌드하기 (wget)</h4>
+
+<ol>
+  <li>소스코드 다운로드 받기
+    <pre><code>wget https://github.com/nginx/nginx/archive/refs/tags/release-1.31.0.tar.gz
+tar xvzf release-1.31.0.tar.gz
+cd nginx-release-1.31.0</code></pre>
+  </li>
+  <li>README.md로 설치과정 찾아보기
+    <ul>
+      <li><code>/config</code>로 빌드 과정 검색
+        <!-- image omitted: image%2076.png -->
+        <ul>
+          <li><code>auto/configure</code>로 빌드하는 것 확인</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>필요 라이브러리 확인하기
+    <ul>
+      <li><code>auto/configure</code>로 설치하려고 하면 아래와 같은 에러 발생
+        <!-- image omitted: image%2077.png -->
+        <ul>
+          <li>PCRE: 정규식(RE) 관련 라이브러리</li>
+        </ul>
+      </li>
+      <li>README.md에서 필요한 라이브러리 검색
+        <!-- image omitted: image%2078.png -->
+        <ul>
+          <li><code>/dependency</code>로 검색</li>
+          <li>dependency(의존성): 설치나 실행에 반드시 필요한 모듈 혹은 라이브러리</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>필요 라이브러리 설치하기 (3개)
+    <pre><code>apt install libpcre3-dev zlib1g-dev
+apt install libssl-dev
+
+# 한 줄로 실행도 가능
+apt install libpcre3-dev zlib1g-dev libssl-dev -y</code></pre>
+  </li>
+  <li>빌드 설정파일 다운받기
+    <pre><code>auto/configure --prefix=/home/solcho/nginx</code></pre>
+    <ul>
+      <li><code>--prefix</code>: 설치 경로 설정
+        <!-- image omitted: image%2079.png -->
+        <li>Makefile과 objs 디렉토리 생성됨</li>
+      </li>
+    </ul>
+  </li>
+  <li>서버 빌드하기
+    <pre><code>make</code></pre>
+    <!-- image omitted: image%2080.png -->
+    <ul>
+      <li>objs 내의 파일들을 이용해서 빌드</li>
+    </ul>
+  </li>
+  <li>실행 파일 확인
+    <!-- image omitted: image%2083.png -->
+    <ul>
+      <li>nginx 디렉토리가 만들어진 것도 확인할 수 있다!</li>
+    </ul>
+  </li>
+  <li>버전 확인
+    <!-- image omitted: image%2082.png -->
+    <ul>
+      <li>기존 버전(1.24.0)과 최신 버전(1.31.1)</li>
+    </ul>
+  </li>
+  <li>실행
+    <pre><code>./nginx
+./nginx -c /home/solcho/nginx/conf/nginx.conf</code></pre>
+  </li>
+  <li>웹 서비스 확인</li>
+</ol>
+
+<h4>nginx 구동 원리</h4>
+
+<!-- image omitted: image%2084.png -->
+
+<ul>
+  <li>nginx 프로세스를 여러 개로 나눔
+    <ul>
+      <li>이전에는 전부 root 권한으로 구동 → nginx를 통해 루트 계정에 해킹하는 경우가 많았음 ⇒ 방지하고자 여러 개로 나눠서 하나만 root 권한</li>
+      <li>나머지 프로세스는 www-data가 구동
+        <!-- image omitted: image%2085.png -->
+      </li>
+    </ul>
+  </li>
+  <li><code>/etc/nginx/nginx/conf</code>
+    <ul>
+      <li>유저 정보
+        <!-- image omitted: image%2086.png -->
+        <ul>
+          <li>user와 프로세스 개수를 정할 수 있음</li>
+          <li>프로세스 개수는 많을수록 좋지만 컴퓨터 성능에 따라 너무 많아지면 오히려 성능이 떨어진다</li>
+        </ul>
+      </li>
+      <li>수동 설치한 nginx의 conf 파일
+        <!-- image omitted: image%2087.png -->
+        <ul>
+          <li>유저가 설정되어 있지 않음</li>
+          <li><code>user solcho</code>로 수정</li>
+        </ul>
+      </li>
+      <li>서버 위치
+        <!-- image omitted: image%2088.png -->
+        <ul>
+          <li>기본값은 <code>root html</code></li>
+          <li>안전하게 가고 싶으면 절대주소로 수정 → 수정하지 않으면 로딩 안 됨</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>서버 재구동
+    <pre><code>pkill -9 nginx
+# 또는
+sbin/nginx -s stop
+
+./nginx -c /home/solcho/nginx/conf/nginx.conf</code></pre>
+  </li>
+</ul>
+
+<h3>트러블슈팅 - 웹 페이지 권한 에러 (403 Forbidden)</h3>
+
+<h4>문제 정의</h4>
+
+<p>nginx 서버가 실행되고 있는데 웹 페이지가 403 에러메세지와 함께 로딩되지 않음.</p>
+
+<!-- image omitted: image%2089.png -->
+
+<h4>사실 수집</h4>
+
+<ul>
+  <li>서버 점검
+    <!-- image omitted: image%2090.png -->
+    <ul>
+      <li>서버가 제대로 열려있는 것을 확인</li>
+    </ul>
+  </li>
+</ul>
+
+<h4>원인 추론 및 가설 설정</h4>
+
+<ol>
+  <li><code>./nginx</code>로만 실행했을 때, config 파일 지정이 잘못되었을 수 있음
+    <pre><code>./nginx -c /home/solcho/nginx/conf/nginx.conf</code></pre>
+    <ul>
+      <li>위의 명령어로 conf 파일을 수동 설치한 파일로 지정</li>
+      <li>문제가 해결되지 않음</li>
+    </ul>
+  </li>
+  <li>nginx.conf 설정 문제
+    <ul>
+      <li>nginx 구동 원리
+        <!-- image omitted: image%2084.png -->
+        <ul>
+          <li>nginx 프로세스를 여러 개로 나눔
+            <ul>
+              <li>이전에는 전부 root 권한으로 구동 → nginx를 통해 루트 계정에 해킹하는 경우가 많았음 ⇒ 방지하고자 여러 개로 나눠서 하나만 root 권한</li>
+              <li>나머지 프로세스는 www-data가 구동
+                <!-- image omitted: image%2085.png -->
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<h4>조치 및 검증</h4>
+
+<ul>
+  <li><code>/etc/nginx/nginx/conf</code>
+    <ul>
+      <li>유저 정보
+        <!-- image omitted: image%2086.png -->
+        <ul>
+          <li>user와 프로세스 개수를 정할 수 있음</li>
+          <li>프로세스 개수는 많을수록 좋지만 컴퓨터 성능에 따라 너무 많아지면 오히려 성능이 떨어진다</li>
+          <li>수동 설치한 nginx의 conf 파일
+            <!-- image omitted: image%2087.png -->
+            <ul>
+              <li>유저가 설정되어 있지 않음</li>
+              <li><code>user solcho</code>로 수정</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>서버 위치
+        <!-- image omitted: image%2088.png -->
+        <ul>
+          <li>기본값은 <code>root html</code></li>
+          <li>절대주소로 수정 (<code>/var/www/html</code>)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>서버 재구동
+    <pre><code>pkill -9 nginx
+# 또는
+sbin/nginx -s stop
+
+./nginx -c /home/solcho/nginx/conf/nginx.conf</code></pre>
+  </li>
+</ul>
+
+<h4>결과 관찰</h4>
+
+<!-- image omitted: image%2091.png -->
+
+<p>설정한대로 solcho 계정으로 4개의 프로세스 생성.</p>
+
+<!-- image omitted: image%2092.png -->
+
+<p>웹서비스 로딩 확인.</p>
+
+<h3>vi에서 한글 입력 안 됨</h3>
+
+<pre><code>:set encoding=utf-8</code></pre>
