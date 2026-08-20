@@ -1,0 +1,110 @@
+/* ---- Pretendard 폰트 (외부 CDN 미사용, /public/assets/fonts 에서 직접 서빙) ---- */
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('/assets/fonts/Pretendard-Regular.otf') format('opentype');
+}
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url('/assets/fonts/Pretendard-Medium.otf') format('opentype');
+}
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url('/assets/fonts/Pretendard-SemiBold.otf') format('opentype');
+}
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('/assets/fonts/Pretendard-Bold.otf') format('opentype');
+}
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  src: url('/assets/fonts/Pretendard-ExtraBold.otf') format('opentype');
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * 스크롤바가 레이아웃 공간을 차지해 페이지마다(스크롤 유무) 요소가 흔들리던 문제 해결:
+ * scrollbar-gutter: stable 로 스크롤 여부와 무관하게 항상 동일한 거터를 예약한다.
+ * (WebKit 2px 얇은 바이므로 예약 거터도 2px 로 사실상 공간 차지 없음 + 페이지 간 흔들림 없음)
+ */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* 전반적으로 light 톤 테마 + Pretendard 폰트 */
+body {
+  @apply bg-slate-50 font-sans text-dark;
+}
+
+/* ---- 스크롤바: 2px 얇은 바 / 평소 흐릿, 호버 시 진하게 (전역 상속용, 재정의 금지) ---- */
+/* WebKit (Chrome/Edge/Safari) */
+*::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(22, 35, 38, 0.15); /* dark 15% — 평소 흐릿 */
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(22, 35, 38, 0.55); /* 호버 시 진하게 */
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(22, 35, 38, 0.15) transparent;
+}
+
+/* 학습 본문(관리자 HTML)용 기본 타이포그래피 — Tailwind preflight 로 리셋된 요소 복원 */
+@layer components {
+  .learn-content h2 {
+    @apply mb-3 mt-6 text-xl font-bold text-dark;
+  }
+  .learn-content h3 {
+    @apply mb-2 mt-5 text-lg font-semibold text-primary;
+  }
+  .learn-content p {
+    @apply mb-4;
+  }
+  .learn-content ul {
+    @apply mb-4 list-disc space-y-1 pl-6;
+  }
+  .learn-content ol {
+    @apply mb-4 list-decimal space-y-1 pl-6;
+  }
+  .learn-content pre {
+    @apply mb-4 overflow-x-auto rounded-lg bg-dark p-4 text-sm text-slate-100;
+  }
+  .learn-content :not(pre) > code {
+    @apply rounded bg-slate-200 px-1.5 py-0.5 text-sm text-primary;
+  }
+  .learn-content pre code {
+    @apply bg-transparent p-0 text-slate-100;
+  }
+  .learn-content a {
+    @apply text-secondary underline hover:text-primary;
+  }
+}

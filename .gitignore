@@ -1,0 +1,38 @@
+# ---- 환경 변수 (민감정보) ----
+.env
+*.env
+!.env.example
+backend/.env
+frontend/.env
+
+# ---- 로그 (런타임 산출물) ----
+logs/
+*.log
+
+# ---- 개인 참고 자료 (로컬 유지, GitHub 미업로드) — CLAUDE.md 폴더 구조 규칙 ----
+notes/
+refers/
+
+# ---- Node / Frontend ----
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+.eslintcache
+
+# ---- Java / Backend (Gradle) ----
+backend/build/
+backend/.gradle/
+backend/bin/
+backend/out/
+*.class
+
+# ---- IDE / OS ----
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ---- 기타 ----
+*.local

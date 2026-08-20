@@ -1,0 +1,329 @@
+# API 명세 — 클라우드 부트캠프 학습 플랫폼
+
+모든 엔드포인트는 `/api/v1/...` 로 시작합니다.
+
+## 공통 응답 포맷
+
+성공:
+
+```json
+{ "success": true, "data": { }, "message": null }
+```
+
+실패:
+
+```json
+{ "success": false, "data": null, "message": "에러 메시지" }
+```
+
+## 인증 방식
+
+- **Access Token**: 로그인/재발급 응답 body 의 `data.accessToken` 으로 내려갑니다.
+  클라이언트는 `Authorization: Bearer <accessToken>` 헤더로 전송합니다.
+  localStorage 저장 금지(XSS). 메모리(상태)에만 보관합니다.
+- **Refresh Token**: httpOnly 쿠키(`refreshToken`) 로 내려가며, 재발급/로그아웃 시 사용됩니다.
+
+---
+
+## 1단계: 인증 + 사용자 CRUD
+
+### 인증 필요 여부 표기
+- 🔓 = 비로그인 접근 가능
+- 🔒 = 인증 필요 (Access Token)
+- 👑 = ADMIN 역할 필요
+
+| Method | Path | 인증 | 설명 |
+|---|---|---|---|
+| POST | `/api/v1/auth/signup` | 🔓 | 회원가입 (가입 후 바로 로그인 처리) |
+| POST | `/api/v1/auth/login` | 🔓 | 로그인 (Access 토큰 발급 + Refresh 쿠키 설정) |
+| POST | `/api/v1/auth/refresh` | 🔓* | Refresh 쿠키로 Access 토큰 재발급 |
+| POST | `/api/v1/auth/logout` | 🔒 | 로그아웃 (Refresh 토큰 무효화 + 쿠키 삭제) |
+| GET | `/api/v1/users/me` | 🔒 | 내 정보 조회 |
+| PATCH | `/api/v1/users/me` | 🔒 | 내 정보 수정 (닉네임, 프로필 이미지) |
+| PATCH | `/api/v1/users/me/password` | 🔒 | 비밀번호 변경 |
+| DELETE | `/api/v1/users/me` | 🔒 | 회원 탈퇴 |
+
+`*` refresh 는 별도 Access 토큰 없이 쿠키만으로 호출.
+
+---
+
+### POST `/api/v1/auth/signup`
+
+Request body:
+
+```json
+{
+  "loginId": "guest2",
+  "password": "1234",
+  "nickname": "게스트2"
+}
+```
+
+Response `data`:
+
+```json
+{
+  "accessToken": "eyJhb...",
+  "user": {
+    "id": 3,
+    "loginId": "guest2",
+    "nickname": "게스트2",
+    "profileImageUrl": null,
+    "role": "USER"
+  }
+}
+```
+
+- 성공 시 `Set-Cookie: refreshToken=...; HttpOnly; Path=/; SameSite=Lax` 헤더 포함.
+- `loginId` 중복 시 실패 응답(`message`: "이미 사용 중인 아이디입니다.").
+
+### POST `/api/v1/auth/login`
+
+Request body:
+
+```json
+{ "loginId": "admin", "password": "..." }
+```
+
+Response `data`: signup 과 동일 구조(accessToken + user).
+
+### POST `/api/v1/auth/refresh`
+
+- 요청: body 없음. `refreshToken` httpOnly 쿠키 필요.
+- Response `data`: `{ "accessToken": "..." }` (필요 시 Refresh 쿠키 회전).
+
+### POST `/api/v1/auth/logout`
+
+- Refresh 토큰 무효화(`refresh_token_hash` = NULL) 및 쿠키 삭제.
+- Response `data`: `null`.
+
+### GET `/api/v1/users/me`
+
+Response `data`:
+
+```json
+{
+  "id": 2,
+  "loginId": "guest",
+  "nickname": "게스트",
+  "profileImageUrl": null,
+  "role": "USER",
+  "createdAt": "2026-08-20T10:00:00"
+}
+```
+
+### PATCH `/api/v1/users/me`
+
+Request body(변경할 필드만):
+
+```json
+{ "nickname": "새닉네임", "profileImageUrl": "/assets/imgs/profile/xxx.png" }
+```
+
+Response `data`: 수정된 user 객체.
+
+### PATCH `/api/v1/users/me/password`
+
+```json
+{ "currentPassword": "...", "newPassword": "..." }
+```
+
+Response `data`: `null`.
+
+### DELETE `/api/v1/users/me`
+
+Response `data`: `null`.
+
+---
+
+## 2단계: 로드맵(학습 단원)
+
+| Method | Path | 인증 | 설명 |
+|---|---|---|---|
+| GET | `/api/v1/units` | 🔓 | 전체 학습 단원 목록 (sort_order 오름차순) |
+
+### GET `/api/v1/units`
+
+- 인증 불필요(비로그인 로드맵 열람용).
+- `sort_order` 오름차순으로 전체 단원을 반환한다.
+
+Response `data`:
+
+```json
+[
+  {
+    "id": 1,
+    "code": "cloud-intro",
+    "name": "클라우드 개론",
+    "groupCode": "cloud",
+    "type": "GENERAL",
+    "iconImagePath": "/assets/imgs/roadmap/cloud-intro.png",
+    "sortOrder": 1,
+    "hasContent": true,
+    "blankCount": 0,
+    "missionCount": 0
+  },
+  {
+    "id": 2,
+    "code": "linux",
+    "name": "리눅스",
+    "groupCode": "linux",
+    "type": "GENERAL",
+    "iconImagePath": "/assets/imgs/roadmap/linux.png",
+    "sortOrder": 2,
+    "hasContent": true,
+    "blankCount": 5,
+    "missionCount": 0
+  }
+]
+```
+
+- `type`: `GENERAL`(일반 학습) / `PRACTICE`(실습).
+- `iconImagePath`: 프론트가 그대로 `<img src>` 로 사용하는 웹 경로. 실제 파일은
+  `frontend/public/assets/imgs/roadmap/{code}.png` 에 두면 되고, 없으면 프론트에서
+  단원 이름 첫 글자 플레이스홀더로 대체한다.
+- `hasContent`(bool) / `blankCount`(int) / `missionCount`(int): 학습하기(`/study`) 카드의 보조 정보용.
+  저장하지 않고 조회 시점에 그룹 집계로 계산한다. 로드맵은 이 필드를 사용하지 않는다.
+- 프론트 라우트 `/study`(학습하기)는 이 엔드포인트만 사용하며 별도 백엔드 API 는 없다.
+
+---
+
+## 4단계: 학습 콘텐츠 · 진도 · 빈칸 채우기
+
+| Method | Path | 인증 | 설명 |
+|---|---|---|---|
+| GET | `/api/v1/units/{code}/content` | 🔓 | 일반 학습 본문(HTML) 조회 |
+| PATCH | `/api/v1/units/{code}/progress` | 🔒 | 스크롤 진도 저장(upsert) |
+| GET | `/api/v1/progress` | 🔒 | 로그인 사용자의 GENERAL 단원별 진도 요약 |
+| GET | `/api/v1/units/{code}/blanks` | 🔓 | 빈칸 문제 목록(로그인 시 이전 답안 포함) |
+| POST | `/api/v1/blanks/{id}/answer` | 🔒 | 빈칸 답안 제출/채점 |
+
+### GET `/api/v1/units/{code}/content`
+
+Response `data`: `{ "id":1, "unitCode":"linux", "title":"...", "body":"<h2>...</h2>..." }`
+- `body` 는 HTML. 프론트는 렌더링 전 DOMPurify 로 sanitize 한다.
+- 콘텐츠가 없으면 404(`message`: "등록된 학습 콘텐츠가 없습니다.").
+
+### PATCH `/api/v1/units/{code}/progress`
+
+Request: `{ "scrollPercent": 0~100 }`
+Response `data`: `{ "unitCode":"linux", "scrollPercent":92, "completed":true }`
+- 진도는 뒤로 가지 않도록 기존값과 **최댓값**을 유지한다.
+- `scrollPercent >= 90` 이면 `completed=true` 및 `completed_at` 기록(한 번 완료되면 유지).
+
+### GET `/api/v1/progress`
+
+Response `data` (GENERAL 단원만):
+```json
+[ { "unitCode":"linux", "type":"GENERAL", "generalPercent":92, "blankPercent":60 } ]
+```
+- `generalPercent` = `progress.scroll_percent`.
+- `blankPercent` = 해당 단원 빈칸 문제 중 맞힌 비율(맞힌 수 / 전체 수 × 100).
+- PRACTICE 단원은 포함하지 않는다(5단계 mission_progress 예정).
+
+### GET `/api/v1/units/{code}/blanks`
+
+Response `data`:
+```json
+[ { "id":1, "sentenceTemplate":"... {blank} ...", "score":10, "sortOrder":1,
+    "userAnswer":"chmod", "isCorrect":true } ]
+```
+- **정답 문자열(answer)은 포함하지 않는다**(치팅 방지). 정답은 채점 응답에서만 노출.
+- `userAnswer` / `isCorrect` 는 로그인 상태에서 이전 답안이 있을 때만 채워지고, 없으면 `null`.
+- `{blank}` 위치를 프론트에서 `<input>` 으로 치환해 렌더링한다.
+
+### POST `/api/v1/blanks/{id}/answer`
+
+Request: `{ "answer": "chmod" }`
+Response `data`: `{ "isCorrect": false, "correctAnswer": "chmod" }`
+- 정답 비교는 앞뒤 공백/대소문자를 무시한다(학습 편의).
+- upsert: 최초 제출은 생성, 이후는 답안/정답여부 갱신 + `attempts` 증가.
+- 오답 UI(정답 회색 표시)를 위해 `correctAnswer` 를 함께 반환한다.
+
+---
+
+## 5단계: 실습 미션 (실습 시뮬레이터)
+
+| Method | Path | 인증 | 설명 |
+|---|---|---|---|
+| GET | `/api/v1/units/{code}/missions` | 🔓 | PRACTICE 단원의 미션 목록 + XP 요약 (로그인 시 완료 여부 포함) |
+| POST | `/api/v1/missions/{id}/verify` | 🔒 | 미션 정답 검증(패턴 매칭) + 성공 시 완료 저장 |
+
+> 5단계에서는 `SHELL` 유형만 실제 검증을 구현합니다. 나머지 유형(PYTHON/DB/DOCKER/K8S)은
+> 이후 단계에서 `MissionVerifier` 구현체를 추가하는 방식으로 확장됩니다.
+
+### GET `/api/v1/units/{code}/missions`
+
+Response `data`:
+```json
+{
+  "missions": [
+    { "id": 1, "title": "숨김 파일까지 모두 표시",
+      "description": "현재 디렉토리의 숨김 파일까지 ...",
+      "missionType": "SHELL", "xpReward": 50, "sortOrder": 1, "completed": false }
+  ],
+  "earnedXp": 0,
+  "totalXp": 250
+}
+```
+- **`verify_pattern`(정답 정규식)은 응답에 포함하지 않는다**(치팅 방지).
+- `completed` 는 로그인 사용자의 완료 여부(비로그인 시 항상 false).
+- `earnedXp`/`totalXp` 는 저장하지 않고 조회 시점에 계산한다(완료 미션 xp 합 / 전체 xp 합).
+
+### POST `/api/v1/missions/{id}/verify`
+
+Request: `{ "input": "ls -a" }`
+Response `data`: `{ "correct": true, "completed": true, "xpReward": 50 }`
+- 백엔드는 **사용자 입력을 실행하지 않고** `mission_type` 에 맞는 검증기(현재 SHELL=정규식 매칭)로
+  `verify_pattern` 과 대조만 한다(CLAUDE.md 실습 콘텐츠 실행 원칙).
+- 성공 시 `mission_progress` 를 upsert(완료 처리). 성공 명령의 "그럴듯한 출력"은 프론트에서 생성한다.
+- `xpReward` 는 해당 미션의 보상 XP(성공 시 "+N XP" 표시용).
+
+---
+
+## 6단계: 커뮤니티 (게시글 / 댓글 / 답글)
+
+> **커뮤니티는 열람·작성 모두 인증 필요**(🔒). 비로그인 접근 시 프론트는 공통 `LoginPrompt`
+> 로 안내하고 로그인 페이지로 유도한 뒤, 로그인 성공 시 원래 경로로 복귀시킨다.
+> 본문은 일반 텍스트(줄바꿈만). 답글은 1단계 깊이만 지원(답글에 답글 불가).
+
+| Method | Path | 인증 | 설명 |
+|---|---|---|---|
+| GET | `/api/v1/posts` | 🔒 | 게시글 목록(최신순, 댓글 수 포함) |
+| POST | `/api/v1/posts` | 🔒 | 게시글 작성(로그인 사용자 누구나) |
+| GET | `/api/v1/posts/{id}` | 🔒 | 게시글 상세(조회 시 view_count +1) |
+| PUT | `/api/v1/posts/{id}` | 🔒 | 게시글 수정(작성자 본인만) |
+| DELETE | `/api/v1/posts/{id}` | 🔒 | 게시글 삭제(작성자 본인 또는 ADMIN, 딸린 댓글 함께 삭제) |
+| GET | `/api/v1/posts/{id}/comments` | 🔒 | 댓글+답글 트리 |
+| POST | `/api/v1/posts/{id}/comments` | 🔒 | 댓글/답글 작성 |
+| PUT | `/api/v1/comments/{id}` | 🔒 | 댓글 수정(작성자 본인 또는 ADMIN) |
+| DELETE | `/api/v1/comments/{id}` | 🔒 | 댓글 삭제(작성자 본인 또는 ADMIN) |
+| GET | `/api/v1/users/me/posts` | 🔒 | 내가 쓴 글(대시보드) |
+| GET | `/api/v1/users/me/comments` | 🔒 | 내가 쓴 댓글(대시보드) |
+
+### POST `/api/v1/posts`
+Request: `{ "title": "...", "body": "여러 줄\n본문" }`
+Response `data`(상세): `{ id, title, body, authorId, authorNickname, authorProfileImageUrl, viewCount, createdAt, updatedAt }`
+
+### GET `/api/v1/posts` (목록 항목)
+`{ id, title, authorId, authorNickname, viewCount, commentCount, createdAt }`
+- 작성자 닉네임/프로필은 저장 시 복사하지 않고 `user_id` 조인으로 채운다(프로필 변경 즉시 과거 글에도 반영).
+
+### POST `/api/v1/posts/{id}/comments`
+Request: `{ "body": "...", "parentCommentId": null | 최상위댓글id }`
+- `parentCommentId` 가 답글(대댓글)을 가리키면 400("답글에는 답글을 달 수 없습니다.").
+
+### GET `/api/v1/posts/{id}/comments` (트리)
+```json
+[ { "id":1, "body":"...", "authorId":2, "authorNickname":"게스트",
+    "authorProfileImageUrl":null, "parentCommentId":null,
+    "createdAt":"...", "updatedAt":"...",
+    "replies":[ { "id":3, "parentCommentId":1, "replies":[], ... } ] } ]
+```
+
+- 권한: 게시글 수정=작성자, 게시글 삭제=작성자/ADMIN, 댓글 수정·삭제=작성자/ADMIN. 서버에서 최종 검증(403).
+- SecurityConfig: `/api/v1/posts/**`, `/api/v1/comments/**` 는 공개 목록에 넣지 않고 명시적으로 `authenticated()`.
+
+---
+
+> 이후 단계(나머지 실습 유형, 배포 전 마무리 등)의 엔드포인트는 해당 단계 구현 시 이 문서에 추가합니다.

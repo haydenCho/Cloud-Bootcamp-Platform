@@ -1,0 +1,66 @@
+# 개발용 docker compose 뼈대 (frontend / backend / mariadb).
+# 실행: docker compose -f deploy/docker-compose.yml --env-file ../.env up --build
+# 값은 루트 .env 에서 주입됩니다(.env.example 참고). 운영 설정은 docker-compose.prod.yml 로 분리 예정.
+
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: bootcamp-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-bootcamp}
+      MARIADB_USER: ${MARIADB_USER:-bootcamp}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-bootcamp}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-root}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ../backend
+    container_name: bootcamp-backend
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: "3306"
+      DB_NAME: ${MARIADB_DATABASE:-bootcamp}
+      DB_USERNAME: ${MARIADB_USER:-bootcamp}
+      DB_PASSWORD: ${MARIADB_PASSWORD:-bootcamp}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_TOKEN_VALIDITY_MINUTES: ${JWT_ACCESS_TOKEN_VALIDITY_MINUTES:-30}
+      JWT_REFRESH_TOKEN_VALIDITY_DAYS: ${JWT_REFRESH_TOKEN_VALIDITY_DAYS:-14}
+      ADMIN_LOGIN_ID: ${ADMIN_LOGIN_ID:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_NICKNAME: ${ADMIN_NICKNAME:-관리자}
+      GUEST_LOGIN_ID: ${GUEST_LOGIN_ID:-guest}
+      GUEST_PASSWORD: ${GUEST_PASSWORD:-1234}
+      GUEST_NICKNAME: ${GUEST_NICKNAME:-게스트}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ../frontend
+      args:
+        # Vite 는 빌드 시점에 API URL 을 주입한다.
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
+    container_name: bootcamp-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  mariadb-data:
