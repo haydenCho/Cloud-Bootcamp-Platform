@@ -173,10 +173,15 @@ community_comment 1─N community_comment (self, parent_comment_id로 답글)
 - `blank_answer` 정답 비교는 앞뒤 공백/대소문자를 무시합니다. 재제출 시 `attempts` 를 증가시킵니다. 빈칸 목록 조회 API 는 치팅 방지를 위해 정답(`answer`)을 내려주지 않고, 채점 응답에서만 정답을 노출합니다.
 - 엔티티는 FK를 JPA 연관관계 대신 `*_id` 컬럼(Long)으로 단순 매핑했습니다(1인 개발 규모에 맞춘 단순화).
 
-## 구현 메모 (7단계 4/4 반영 — GENERAL 학습 콘텐츠 전체 채우기)
+## 구현 메모 (7단계 4/4 반영 — GENERAL 학습 콘텐츠 전체 채우기, 이후 보정)
 
-- GENERAL 타입 10개 단원 **전부**에 대해 `content`(학습 본문)와 `blank_question`(빈칸 문제)을 시드 완료했습니다. 관리자 에디터 전까지 `ContentDataInitializer` / `BlankDataInitializer` 가 담당하며, `existsByUnitId` 로 이미 시드된 단원은 건드리지 않아 재기동해도 중복 생성되지 않습니다(idempotent).
-- 콘텐츠 출처: 리눅스·쉘 스크립트·파이썬·AWS·도커·네트워크·보안·K8s 는 `notes/` 의 노션 노트 기반, "클라우드 개론"은 기존(4단계) 본문 유지, **"그외"는 대응 노트가 없어 일반 지식(Git/JSON·YAML/.env/CI·CD)으로 가볍게 작성 → 사용자 검토 필요**.
+- GENERAL 타입 10개 단원 **전부**에 대해 `content`(학습 본문)와 `blank_question`(빈칸 문제)을 시드 완료했습니다. 관리자 에디터 전까지 `ContentDataInitializer` / `BlankDataInitializer` 가 담당합니다.
+- **콘텐츠 보정(7단계 4/4 직후)**: 최초 채우기 때 "기존 클라우드 개론·리눅스와 비슷한 분량으로 맞추라"는 잘못된 기준 때문에, 4단계에서 파이프라인 검증용으로 일부러 짧게 넣은 두 샘플(클라우드 개론·리눅스)의 분량에 맞춰 나머지 8개 단원까지 실제 노트보다 훨씬 짧게 요약되는 문제가 있었습니다. `notes/`의 노션 노트를 다시 참조해 클라우드 개론·리눅스를 포함한 9개 단원(그외 제외) 본문을 노트 분량에 맞게 다시 작성했습니다.
+- 본문 저장 방식을 **classpath 리소스 파일 기반**으로 바꿨습니다. `backend/src/main/resources/content/{unit-code}.html` 파일에 HTML 본문을 두고, `ContentDataInitializer`가 이를 읽어 시드합니다. 노트 원문을 그대로 옮기면 단원 하나의 분량이 Java 문자열 상수(text block)의 UTF-8 65535바이트 제한을 넘을 수 있어, Java 소스에 인라인 문자열로 두는 방식(4단계~7단계 4/4)을 버리고 파일로 분리했습니다.
+- **갱신 로직**: `ContentDataInitializer`는 단원에 본문이 없으면 새로 만들고, 있으면 파일 내용과 DB의 기존 `body`/`title`을 **문자열로 비교해서 다를 때만** `Content.updateBody()`로 교체합니다. 별도의 버전/체크섬 컬럼 없이 동작하며, 최초 실행 시에는 위 보정으로 짧은 본문을 새 본문으로 교체하고, 이후에는 파일과 DB 내용이 같아지므로 재기동해도 불필요한 재시딩 없이 그대로 유지됩니다(idempotent).
+- 콘텐츠 출처: "그외"를 제외한 9개 단원(클라우드 개론·리눅스·쉘 스크립트·파이썬·AWS·도커·네트워크·보안·K8s) 모두 `notes/`의 노션 노트 기반. **"그외"는 대응 노트가 없어 일반 지식(Git/JSON·YAML/.env/CI·CD)으로 가볍게 작성한 상태를 유지 → 필요 시 추후 사용자 검토**.
+- 빈칸 문제(`blank_question`)는 이번 보정에서 건드리지 않았습니다(단원당 4개 유지, 리눅스만 5개). 노트 분량이 늘어난 만큼 늘릴 수도 있지만 핵심 작업이 아니라 보류했습니다.
+- **완전히 빈 DB에서 콘텐츠/빈칸/미션이 하나도 안 만들어지는 버그를 발견해 함께 고쳤습니다.** `@Order` 를 `@Configuration` 클래스에 붙여왔는데, Spring Boot는 `CommandLineRunner` 실행 순서를 결정할 때 클래스의 `@Order` 는 보지 않고 `@Bean` 팩토리 메서드의 `@Order` 만 본다. 그래서 단원 시드(`UnitDataInitializer`)보다 콘텐츠/빈칸 시드가 먼저 실행되는 경우가 있었고, 이때는 `unitRepository.findByCode()` 가 아직 없는 단원을 찾지 못해 조용히(에러 없이) 아무것도 만들지 않았다. 볼륨을 한 번 지우고 새로 띄워 재현 후, `UnitDataInitializer`/`ContentDataInitializer`/`BlankDataInitializer`/`MissionDataInitializer` 네 곳 모두 `@Order` 를 `@Bean` 메서드로 옮겨 고쳤고, 완전히 빈 DB에서 한 번에 정상 시드되는 것을 확인했다.
 
 ## 구현 메모 (7단계 1/4 반영 — 잔디심기 · 서비스 좋아요)
 

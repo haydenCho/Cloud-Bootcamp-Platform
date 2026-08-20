@@ -15,10 +15,10 @@ import org.springframework.core.annotation.Order;
 /**
  * GENERAL 단원 몇 개에 빈칸 채우기 문제를 시드한다. (4단계)
  * sentence_template 의 "{blank}" 위치가 프론트에서 입력칸으로 치환된다.
- * 단원 시드 이후 실행되도록 @Order(2).
+ * 단원 시드(UnitDataInitializer) 이후 실행되도록 @Bean 메서드에 @Order(2)를 둔다.
+ * (주의: CommandLineRunner 실행 순서는 @Configuration 클래스가 아니라 @Bean 팩토리 메서드의 @Order 로 결정된다.)
  */
 @Configuration
-@Order(2)
 public class BlankDataInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(BlankDataInitializer.class);
@@ -97,6 +97,7 @@ public class BlankDataInitializer {
     );
 
     @Bean
+    @Order(2)
     CommandLineRunner seedBlanks(UnitRepository unitRepository, BlankQuestionRepository questionRepository) {
         return args -> {
             int created = 0;

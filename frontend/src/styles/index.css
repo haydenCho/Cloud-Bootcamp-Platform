@@ -119,8 +119,24 @@ body {
   .learn-content h3 {
     @apply mb-2 mt-5 text-lg font-semibold text-primary;
   }
+  .learn-content h4 {
+    @apply mb-2 mt-4 text-base font-semibold text-dark;
+  }
   .learn-content p {
     @apply mb-4;
+  }
+  .learn-content blockquote {
+    @apply mb-4 border-l-4 border-secondary/40 bg-secondary/5 py-2 pl-4 italic text-dark/80;
+  }
+  .learn-content table {
+    @apply mb-4 w-full border-collapse text-sm;
+  }
+  .learn-content th,
+  .learn-content td {
+    @apply border border-dark/10 px-3 py-1.5 text-left align-top;
+  }
+  .learn-content th {
+    @apply bg-dark/5 font-semibold;
   }
   .learn-content ul {
     @apply mb-4 list-disc space-y-1 pl-6;

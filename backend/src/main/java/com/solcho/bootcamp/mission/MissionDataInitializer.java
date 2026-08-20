@@ -15,13 +15,13 @@ import org.springframework.core.annotation.Order;
 
 /**
  * 리눅스 실습(linux-practice) 단원에 SHELL 미션을 시드한다. (5단계)
- * 단원 시드 이후 실행되도록 @Order(2).
+ * 단원 시드(UnitDataInitializer) 이후 실행되도록 @Bean 메서드에 @Order(2)를 둔다.
+ * (주의: CommandLineRunner 실행 순서는 @Configuration 클래스가 아니라 @Bean 팩토리 메서드의 @Order 로 결정된다.)
  *
  * verify_pattern 은 입력을 "앞뒤 trim + 연속 공백 1칸" 으로 정규화한 값과 매칭된다(ShellMissionVerifier).
  * 나머지 실습 단원(쉘/서버/파이썬/DB/도커/K8s) 미션은 이후 단계에서 각각 추가한다.
  */
 @Configuration
-@Order(2)
 public class MissionDataInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(MissionDataInitializer.class);
@@ -52,6 +52,7 @@ public class MissionDataInitializer {
     );
 
     @Bean
+    @Order(2)
     CommandLineRunner seedMissions(UnitRepository unitRepository,
                                    PracticeMissionRepository missionRepository) {
         return args -> {

@@ -17,10 +17,10 @@ import org.springframework.core.annotation.Order;
  * group_code 는 같은 주제(linux, docker, k8s, shell, python 등)끼리 묶는다.
  * icon_image_path 는 프론트에서 바로 쓰는 웹 경로(/assets/imgs/roadmap/{code}.png)로 저장한다.
  *
- * content/blank 시드가 단원 id 를 참조하므로 가장 먼저 실행되도록 @Order(1).
+ * content/blank/mission 시드가 단원 id 를 참조하므로 가장 먼저 실행되도록 @Bean 메서드에 @Order(1)을 둔다.
+ * (주의: CommandLineRunner 실행 순서는 @Configuration 클래스가 아니라 @Bean 팩토리 메서드의 @Order 로 결정된다.)
  */
 @Configuration
-@Order(1)
 public class UnitDataInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(UnitDataInitializer.class);
@@ -49,6 +49,7 @@ public class UnitDataInitializer {
     );
 
     @Bean
+    @Order(1)
     CommandLineRunner seedUnits(UnitRepository unitRepository) {
         return args -> {
             int created = 0;
