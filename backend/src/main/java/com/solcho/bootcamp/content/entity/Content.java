@@ -58,4 +58,10 @@ public class Content {
         this.title = title;
         this.body = body;
     }
+
+    /** 시드 본문 갱신용(관리자 에디터 전까지). 내용이 바뀐 경우에만 호출한다. */
+    public void updateBody(String title, String body) {
+        this.title = title;
+        this.body = body;
+    }
 }

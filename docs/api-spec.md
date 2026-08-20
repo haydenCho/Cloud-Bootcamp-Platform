@@ -185,6 +185,8 @@ Response `data`:
 - `hasContent`(bool) / `blankCount`(int) / `missionCount`(int): 학습하기(`/study`) 카드의 보조 정보용.
   저장하지 않고 조회 시점에 그룹 집계로 계산한다. 로드맵은 이 필드를 사용하지 않는다.
 - 프론트 라우트 `/study`(학습하기)는 이 엔드포인트만 사용하며 별도 백엔드 API 는 없다.
+- **(7단계 4/4) GENERAL 10개 단원 전체에 콘텐츠·빈칸 시드 완료** → 모든 GENERAL 단원이 `hasContent=true`,
+  `blankCount>0` 으로 응답한다("그외"는 노트 없이 일반 지식으로 작성, 사용자 검토 대상).
 
 ---
 

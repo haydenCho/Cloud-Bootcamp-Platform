@@ -173,6 +173,11 @@ community_comment 1─N community_comment (self, parent_comment_id로 답글)
 - `blank_answer` 정답 비교는 앞뒤 공백/대소문자를 무시합니다. 재제출 시 `attempts` 를 증가시킵니다. 빈칸 목록 조회 API 는 치팅 방지를 위해 정답(`answer`)을 내려주지 않고, 채점 응답에서만 정답을 노출합니다.
 - 엔티티는 FK를 JPA 연관관계 대신 `*_id` 컬럼(Long)으로 단순 매핑했습니다(1인 개발 규모에 맞춘 단순화).
 
+## 구현 메모 (7단계 4/4 반영 — GENERAL 학습 콘텐츠 전체 채우기)
+
+- GENERAL 타입 10개 단원 **전부**에 대해 `content`(학습 본문)와 `blank_question`(빈칸 문제)을 시드 완료했습니다. 관리자 에디터 전까지 `ContentDataInitializer` / `BlankDataInitializer` 가 담당하며, `existsByUnitId` 로 이미 시드된 단원은 건드리지 않아 재기동해도 중복 생성되지 않습니다(idempotent).
+- 콘텐츠 출처: 리눅스·쉘 스크립트·파이썬·AWS·도커·네트워크·보안·K8s 는 `notes/` 의 노션 노트 기반, "클라우드 개론"은 기존(4단계) 본문 유지, **"그외"는 대응 노트가 없어 일반 지식(Git/JSON·YAML/.env/CI·CD)으로 가볍게 작성 → 사용자 검토 필요**.
+
 ## 구현 메모 (7단계 1/4 반영 — 잔디심기 · 서비스 좋아요)
 
 - `activity_log` 구현. `ActivityLogService.record(userId)` 가 오늘 날짜 행을 upsert(없으면 생성, 있으면 count+1)한다. UNIQUE(user_id, activity_date).
