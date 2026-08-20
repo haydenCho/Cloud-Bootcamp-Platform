@@ -4,6 +4,7 @@ import com.solcho.bootcamp.blank.dto.BlankQuestionResponse;
 import com.solcho.bootcamp.blank.dto.SubmitAnswerResponse;
 import com.solcho.bootcamp.blank.entity.BlankAnswer;
 import com.solcho.bootcamp.blank.entity.BlankQuestion;
+import com.solcho.bootcamp.activity.service.ActivityLogService;
 import com.solcho.bootcamp.blank.repository.BlankAnswerRepository;
 import com.solcho.bootcamp.blank.repository.BlankQuestionRepository;
 import com.solcho.bootcamp.common.exception.ApiException;
@@ -22,13 +23,16 @@ public class BlankService {
     private final BlankQuestionRepository questionRepository;
     private final BlankAnswerRepository answerRepository;
     private final UnitRepository unitRepository;
+    private final ActivityLogService activityLogService;
 
     public BlankService(BlankQuestionRepository questionRepository,
                         BlankAnswerRepository answerRepository,
-                        UnitRepository unitRepository) {
+                        UnitRepository unitRepository,
+                        ActivityLogService activityLogService) {
         this.questionRepository = questionRepository;
         this.answerRepository = answerRepository;
         this.unitRepository = unitRepository;
+        this.activityLogService = activityLogService;
     }
 
     /**
@@ -69,15 +73,21 @@ public class BlankService {
                 .orElseThrow(() -> ApiException.notFound("존재하지 않는 문제입니다."));
         boolean correct = question.isCorrect(answer);
 
-        answerRepository.findByUserIdAndBlankQuestionId(userId, questionId)
-                .ifPresentOrElse(
-                        existing -> existing.resubmit(answer, correct),
-                        () -> answerRepository.save(BlankAnswer.builder()
-                                .userId(userId)
-                                .blankQuestionId(questionId)
-                                .userAnswer(answer)
-                                .isCorrect(correct)
-                                .build()));
+        var existing = answerRepository.findByUserIdAndBlankQuestionId(userId, questionId);
+        boolean wasCorrect = existing.map(BlankAnswer::isCorrect).orElse(false);
+        existing.ifPresentOrElse(
+                a -> a.resubmit(answer, correct),
+                () -> answerRepository.save(BlankAnswer.builder()
+                        .userId(userId)
+                        .blankQuestionId(questionId)
+                        .userAnswer(answer)
+                        .isCorrect(correct)
+                        .build()));
+
+        // 새로 맞힌 경우에만 잔디 기록(오답/이미 맞힌 문제 재제출은 제외)
+        if (correct && !wasCorrect) {
+            activityLogService.record(userId);
+        }
 
         return new SubmitAnswerResponse(correct, question.getAnswer());
     }

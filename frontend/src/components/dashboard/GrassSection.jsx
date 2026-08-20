@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { getMockActivity } from '../../mocks/mockActivity';
+import { useEffect, useMemo, useState } from 'react';
+import { getActivity } from '../../api/activity';
 
 // level(0~4) → 팔레트 톤 차등 색상
 const LEVEL_CLASS = [
@@ -13,19 +13,37 @@ const LEVEL_CLASS = [
 const CELL = '0.75rem'; // 12px
 
 /**
- * 잔디심기 섹션 (GitHub 스타일).
- * ⚠️ 활동량은 더미(getMockActivity). 4단계에서 실제 activity_log API 로 교체 예정.
+ * 잔디심기 섹션 (GitHub 스타일). 실제 activity_log API(GET /api/v1/activity) 연동.
  * 별도 라이브러리 없이 CSS Grid + 팔레트 톤 차등으로만 렌더링한다.
  */
 export default function GrassSection() {
-  const days = useMemo(() => getMockActivity(26), []); // 약 6개월
+  const [days, setDays] = useState([]);
+  const [status, setStatus] = useState('loading'); // loading | done | error
+
+  useEffect(() => {
+    let alive = true;
+    getActivity()
+      .then((data) => {
+        if (!alive) return;
+        setDays(data);
+        setStatus('done');
+      })
+      .catch(() => alive && setStatus('error'));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   const total = useMemo(() => days.reduce((sum, d) => sum + d.count, 0), [days]);
+
+  if (status === 'loading') return <p className="py-10 text-center text-slate-400">불러오는 중...</p>;
+  if (status === 'error')
+    return <p className="py-10 text-center text-red-500">활동 내역을 불러오지 못했습니다.</p>;
 
   return (
     <section>
       <div className="mb-4 flex items-baseline justify-between">
         <h2 className="text-xl font-bold text-dark">잔디심기</h2>
-        <span className="text-xs text-dark/50">※ 활동량은 아직 더미 데이터입니다</span>
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">

@@ -1,5 +1,6 @@
 package com.solcho.bootcamp.mission.service;
 
+import com.solcho.bootcamp.activity.service.ActivityLogService;
 import com.solcho.bootcamp.common.exception.ApiException;
 import com.solcho.bootcamp.mission.dto.MissionListResponse;
 import com.solcho.bootcamp.mission.dto.MissionResponse;
@@ -24,15 +25,18 @@ public class MissionService {
     private final MissionProgressRepository progressRepository;
     private final UnitRepository unitRepository;
     private final MissionVerifierRegistry verifierRegistry;
+    private final ActivityLogService activityLogService;
 
     public MissionService(PracticeMissionRepository missionRepository,
                           MissionProgressRepository progressRepository,
                           UnitRepository unitRepository,
-                          MissionVerifierRegistry verifierRegistry) {
+                          MissionVerifierRegistry verifierRegistry,
+                          ActivityLogService activityLogService) {
         this.missionRepository = missionRepository;
         this.progressRepository = progressRepository;
         this.unitRepository = unitRepository;
         this.verifierRegistry = verifierRegistry;
+        this.activityLogService = activityLogService;
     }
 
     /**
@@ -86,14 +90,19 @@ public class MissionService {
 
         boolean completed;
         if (correct) {
-            MissionProgress progress = progressRepository
-                    .findByUserIdAndMissionId(userId, missionId)
+            var existing = progressRepository.findByUserIdAndMissionId(userId, missionId);
+            boolean alreadyCompleted = existing.map(MissionProgress::isCompleted).orElse(false);
+            MissionProgress progress = existing
                     .orElseGet(() -> progressRepository.save(MissionProgress.builder()
                             .userId(userId)
                             .missionId(missionId)
                             .build()));
             progress.markCompleted();
             completed = true;
+            // 처음 완료한 미션만 잔디 기록(이미 완료한 미션 재검증은 제외)
+            if (!alreadyCompleted) {
+                activityLogService.record(userId);
+            }
         } else {
             // 이미 완료된 미션이면 오답을 내도 완료 상태는 유지
             completed = progressRepository.findByUserIdAndMissionId(userId, missionId)

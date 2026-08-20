@@ -173,6 +173,13 @@ community_comment 1─N community_comment (self, parent_comment_id로 답글)
 - `blank_answer` 정답 비교는 앞뒤 공백/대소문자를 무시합니다. 재제출 시 `attempts` 를 증가시킵니다. 빈칸 목록 조회 API 는 치팅 방지를 위해 정답(`answer`)을 내려주지 않고, 채점 응답에서만 정답을 노출합니다.
 - 엔티티는 FK를 JPA 연관관계 대신 `*_id` 컬럼(Long)으로 단순 매핑했습니다(1인 개발 규모에 맞춘 단순화).
 
+## 구현 메모 (7단계 1/4 반영 — 잔디심기 · 서비스 좋아요)
+
+- `activity_log` 구현. `ActivityLogService.record(userId)` 가 오늘 날짜 행을 upsert(없으면 생성, 있으면 count+1)한다. UNIQUE(user_id, activity_date).
+- **기록 시점**은 "학습에 실질적 진전"이 있을 때만: (1) progress 스크롤이 실제 전진했을 때, (2) 빈칸을 **새로** 맞혔을 때(오답/이미 맞힌 문제 재제출 제외), (3) 실습 미션을 **처음** 완료했을 때. 단순 조회·오답은 기록하지 않아 잔디가 의미 없이 부풀지 않게 했다. 기존 ProgressService/BlankService/MissionService 에 호출 한 줄씩만 추가.
+- 조회(GET /api/v1/activity)는 저장된 count 를 level(0~4)로 환산: 0 / 1~2 / 3~4 / 5~7 / 8+.
+- `service_like` 구현. user_id 를 PK 로 사용(사용자당 1행). 총 개수는 `COUNT(*)`, 취소 시 행 삭제. GET(공개)은 총 개수+본인 여부, POST(인증)는 토글.
+
 ## 구현 메모 (6단계 반영)
 
 - `community_post` / `community_comment` 구현. 작성자 닉네임/프로필은 복사 저장하지 않고 `user_id` 조인으로 응답에 채웁니다(설계 원칙 그대로 — 프로필 변경 즉시 과거 글/댓글에 반영).

@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../store/authStore';
 import { logout } from '../api/auth';
+import ServiceLikeButton from './ServiceLikeButton';
 
 /**
  * 상단 헤더.
@@ -45,8 +46,9 @@ export default function Header() {
           </nav>
         </div>
 
-        {/* 오른쪽: 인증 상태별 버튼 */}
+        {/* 오른쪽: 서비스 좋아요 + 인증 상태별 버튼 */}
         <div className="flex items-center gap-2">
+          <ServiceLikeButton />
           {user ? (
             <>
               <span className="hidden text-sm text-dark/70 sm:inline">

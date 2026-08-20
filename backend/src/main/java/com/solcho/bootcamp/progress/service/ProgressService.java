@@ -1,5 +1,6 @@
 package com.solcho.bootcamp.progress.service;
 
+import com.solcho.bootcamp.activity.service.ActivityLogService;
 import com.solcho.bootcamp.blank.repository.BlankAnswerRepository;
 import com.solcho.bootcamp.blank.repository.BlankQuestionRepository;
 import com.solcho.bootcamp.common.exception.ApiException;
@@ -26,15 +27,18 @@ public class ProgressService {
     private final UnitRepository unitRepository;
     private final BlankQuestionRepository blankQuestionRepository;
     private final BlankAnswerRepository blankAnswerRepository;
+    private final ActivityLogService activityLogService;
 
     public ProgressService(ProgressRepository progressRepository,
                            UnitRepository unitRepository,
                            BlankQuestionRepository blankQuestionRepository,
-                           BlankAnswerRepository blankAnswerRepository) {
+                           BlankAnswerRepository blankAnswerRepository,
+                           ActivityLogService activityLogService) {
         this.progressRepository = progressRepository;
         this.unitRepository = unitRepository;
         this.blankQuestionRepository = blankQuestionRepository;
         this.blankAnswerRepository = blankAnswerRepository;
+        this.activityLogService = activityLogService;
     }
 
     /** 스크롤 진도 upsert. scroll_percent >= 90 이면 완료 처리(엔티티에서 처리). */
@@ -49,8 +53,13 @@ public class ProgressService {
                         .unitId(unit.getId())
                         .scrollPercent(0)
                         .build());
+        int before = progress.getScrollPercent();
         progress.applyScroll(scrollPercent);
         progressRepository.save(progress);
+        // 진도가 실제로 전진했을 때만 잔디 기록(반복 저장/후퇴로 부풀지 않게)
+        if (progress.getScrollPercent() > before) {
+            activityLogService.record(userId);
+        }
         return ProgressResponse.of(unit.getCode(), progress);
     }
 

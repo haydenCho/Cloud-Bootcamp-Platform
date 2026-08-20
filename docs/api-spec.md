@@ -326,4 +326,36 @@ Request: `{ "body": "...", "parentCommentId": null | 최상위댓글id }`
 
 ---
 
+## 7단계(1/4): 잔디심기(activity_log) · 서비스 좋아요(service_like)
+
+| Method | Path | 인증 | 설명 |
+|---|---|---|---|
+| GET | `/api/v1/activity` | 🔒 | 최근 6개월 날짜별 활동(잔디) |
+| GET | `/api/v1/service-like` | 🔓 | 서비스 좋아요 총 개수 + 내가 눌렀는지 |
+| POST | `/api/v1/service-like` | 🔒 | 좋아요 토글(있으면 취소, 없으면 생성) |
+
+### GET `/api/v1/activity`
+
+Response `data` (일요일 정렬 시작 ~ 오늘, 오름차순):
+```json
+[ { "date": "2026-03-01", "level": 0, "count": 0 },
+  { "date": "2026-03-02", "level": 2, "count": 3 } ]
+```
+- `level` = count 구간 → 0 / 1~2(1) / 3~4(2) / 5~7(3) / 8+(4).
+- 3단계 프론트 `mockActivity.js` 와 동일 shape(대시보드 GrassSection 이 그대로 사용).
+- **활동 기록 시점**(activity_count 증가): 진도가 실제로 전진했을 때 / 빈칸을 새로 맞혔을 때 /
+  실습 미션을 처음 완료했을 때. 단순 조회·오답·재제출은 기록하지 않는다(잔디 인플레이션 방지).
+
+### GET `/api/v1/service-like`
+
+Response `data`: `{ "totalCount": 3, "likedByMe": false }`
+- 비로그인 시 `likedByMe` 는 항상 false. 총 개수는 `COUNT(*)` 로 계산(저장하지 않음).
+
+### POST `/api/v1/service-like`
+
+- 토글: 이미 눌렀으면 삭제(취소), 아니면 생성(좋아요).
+- Response `data`: 토글 후 `{ totalCount, likedByMe }`.
+
+---
+
 > 이후 단계(나머지 실습 유형, 배포 전 마무리 등)의 엔드포인트는 해당 단계 구현 시 이 문서에 추가합니다.

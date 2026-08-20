@@ -62,6 +62,8 @@ public class SecurityConfig {
                         ).permitAll()
                         // 이후 단계에서 로드맵/비로그인 학습 열람 등 공개 GET API 를 여기에 추가.
                         .requestMatchers(HttpMethod.GET, "/api/v1/units/**", "/api/v1/roadmap/**").permitAll()
+                        // 서비스 좋아요 총 카운트는 비로그인도 조회 가능(GET). 토글(POST)은 인증 필요.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/service-like").permitAll()
                         // 커뮤니티(글/댓글)는 열람·작성 모두 로그인 필요 — 공개 목록에 넣지 않고 명시적으로 인증 요구.
                         .requestMatchers("/api/v1/posts/**", "/api/v1/comments/**").authenticated()
                         // ---- 그 외 전부 인증 필요 ----
