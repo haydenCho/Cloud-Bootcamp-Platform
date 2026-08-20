@@ -53,6 +53,39 @@ body {
   @apply bg-slate-50 font-sans text-dark;
 }
 
+/*
+ * 로드맵(/) 진입 애니메이션 — transform(scale/scaleX) + opacity 만 사용(레이아웃 영향 없음).
+ * prefers-reduced-motion: reduce 환경에서는 애니메이션을 걸지 않아(기본=최종 정적 상태) 바로 완성 상태로 보인다.
+ * 지연(animation-delay)은 각 요소 인라인 style 로 sort_order 순서를 준다.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .rm-node-in {
+    animation: rmNodeIn 0.35s ease-out both;
+  }
+  .rm-line-in {
+    transform-origin: left center;
+    animation: rmLineIn 0.28s ease-out both;
+  }
+}
+@keyframes rmNodeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes rmLineIn {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
 /* ---- 스크롤바: 2px 얇은 바 / 평소 흐릿, 호버 시 진하게 (전역 상속용, 재정의 금지) ---- */
 /* WebKit (Chrome/Edge/Safari) */
 *::-webkit-scrollbar {

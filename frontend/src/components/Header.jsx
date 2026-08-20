@@ -31,16 +31,16 @@ export default function Header() {
             클라우드 부트캠프
           </Link>
           <nav className="hidden items-center sm:flex">
-            <NavLink to="/" end className={navLinkClass}>
+            <NavLink to="/" end className={navLinkClass} data-tour="roadmap">
               로드맵
             </NavLink>
-            <NavLink to="/dashboard" className={navLinkClass}>
+            <NavLink to="/dashboard" className={navLinkClass} data-tour="dashboard">
               대시보드
             </NavLink>
-            <NavLink to="/study" className={navLinkClass}>
+            <NavLink to="/study" className={navLinkClass} data-tour="study">
               학습하기
             </NavLink>
-            <NavLink to="/community" className={navLinkClass}>
+            <NavLink to="/community" className={navLinkClass} data-tour="community">
               커뮤니티
             </NavLink>
           </nav>

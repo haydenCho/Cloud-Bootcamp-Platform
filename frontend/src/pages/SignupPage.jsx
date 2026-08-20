@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { signup } from '../api/auth';
 import AuthField from '../components/AuthField';
+import { getTourState, maybeStartTour } from '../store/tourStore';
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -19,9 +20,14 @@ export default function SignupPage() {
     setError(null);
     setLoading(true);
     try {
-      // 회원가입 성공 시 바로 로그인 상태가 되고 원래 가려던 곳(또는 로드맵)으로 이동
+      // 회원가입 성공 시 바로 로그인 상태가 된다.
       await signup({ loginId, password, nickname });
-      navigate(from, { replace: true });
+      // 신규 가입 → 온보딩 투어 시작(같은 브라우저에서 이미 본 계정이면 생략).
+      // 투어가 시작되면 스스로 페이지를 이동시키고 최종적으로 /dashboard 에서 끝난다.
+      maybeStartTour(loginId);
+      if (!getTourState().active) {
+        navigate(from, { replace: true }); // 투어가 안 뜨는 경우만 기본 이동
+      }
     } catch (err) {
       setError(err.message);
     } finally {

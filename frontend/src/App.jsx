@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { bootstrapAuth } from './api/auth';
 import Header from './components/Header';
+import OnboardingTour from './components/onboarding/OnboardingTour';
 import RequireAuth from './components/auth/RequireAuth';
 import RoadmapPage from './pages/RoadmapPage';
 import StudyPage from './pages/StudyPage';
@@ -28,6 +29,7 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <Header />
+      <OnboardingTour />
       <main>
         {ready ? (
           <Routes>

@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
  *
  * 클릭 시 /units/:code 로 이동한다.
  */
-export default function RoadmapNode({ unit }) {
+export default function RoadmapNode({ unit, className = '', style }) {
   const navigate = useNavigate();
   const [imgFailed, setImgFailed] = useState(false);
 
@@ -22,13 +22,15 @@ export default function RoadmapNode({ unit }) {
     <button
       type="button"
       onClick={() => navigate(`/units/${unit.code}`)}
-      className="group flex w-28 flex-col items-center gap-2 focus:outline-none"
+      className={`group flex w-28 flex-col items-center gap-2 focus:outline-none ${className}`}
+      style={style}
       title={unit.name}
     >
+      {/* 크기(scale)는 로드맵의 마우스 확대 효과가 담당 → 여기선 hover 시 색/그림자만 강조 */}
       <span
         className={`flex h-20 w-20 items-center justify-center rounded-full border-2 ${ringColor}
-                    bg-white shadow-sm transition-all duration-200
-                    group-hover:scale-110 group-hover:border-accent group-hover:shadow-md`}
+                    bg-white shadow-sm transition-colors duration-200
+                    group-hover:border-accent group-hover:shadow-md`}
       >
         {unit.iconImagePath && !imgFailed ? (
           <img
