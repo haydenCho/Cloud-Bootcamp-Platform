@@ -1,0 +1,1725 @@
+<h2>도커(Docker)(실습)</h2>
+<p>날짜: 7월 21 → 7월 24
+종류: 실습</p>
+<h3>WSL 실습</h3>
+<h5>버전 확인</h5>
+<pre><code class="language-bash">PS C:\Users\EZ&gt; wsl -l -v
+  NAME            STATE           VERSION
+* Ubuntu-24.04    Running         2
+</code></pre>
+<h5>운영체제 리스트</h5>
+<pre><code class="language-bash">PS C:\Users\EZ&gt; wsl --list --online
+다음은 설치할 수 있는 유효한 배포 목록입니다.
+'wsl.exe --install &lt;Distro&gt;'을 사용하여 설치합니다.
+
+NAME                            FRIENDLY NAME
+Ubuntu                          Ubuntu
+Ubuntu-26.04                    Ubuntu 26.04 LTS
+Ubuntu-24.04                    Ubuntu 24.04 LTS
+Ubuntu-22.04                    Ubuntu 22.04 LTS
+openSUSE-Tumbleweed             openSUSE Tumbleweed
+openSUSE-Leap-16.0              openSUSE Leap 16.0
+SUSE-Linux-Enterprise-15-SP7    SUSE Linux Enterprise 15 SP7
+SUSE-Linux-Enterprise-16.0      SUSE Linux Enterprise 16.0
+kali-linux                      Kali Linux Rolling
+Debian                          Debian GNU/Linux
+AlmaLinux-8                     AlmaLinux OS 8
+AlmaLinux-9                     AlmaLinux OS 9
+AlmaLinux-Kitten-10             AlmaLinux OS Kitten 10
+AlmaLinux-10                    AlmaLinux OS 10
+archlinux                       Arch Linux
+FedoraLinux-44                  Fedora Linux 44
+FedoraLinux-43                  Fedora Linux 43
+eLxr                            eLxr 12.12.0.0 GNU/Linux
+OracleLinux_7_9                 Oracle Linux 7.9
+OracleLinux_8_10                Oracle Linux 8.10
+OracleLinux_9_5                 Oracle Linux 9.5
+SUSE-Linux-Enterprise-15-SP6    SUSE Linux Enterprise 15 SP6
+</code></pre>
+<ul>
+<li>MS에서 제공하는 운영체제 목록
+<ul>
+<li>이외의 운영체제는 설치가 불가능하다</li>
+</ul>
+</li>
+</ul>
+<h5>운영체제 설치</h5>
+<pre><code class="language-bash">wsl --install &lt;Distro&gt;
+</code></pre>
+<h5>운영체제 관리</h5>
+<pre><code class="language-bash">wsl --uninstall
+wsl --update
+wsl --set-default, -s &lt;Distro&gt;
+wsl --set-version &lt;Distro&gt; &lt;Version&gt;
+wsl --terminate, -t &lt;Distro&gt;
+wsl --unregister &lt;Distro&gt;
+</code></pre>
+<h5>운영체제 백업 및 리스토어</h5>
+<pre><code class="language-bash">Linux용 Windows 하위 시스템 배포를 관리하기 위한 인수:
+
+    --export &lt;Distro&gt; &lt;FileName&gt; [Options]
+        배포를 tar 파일로 내보냅니다.
+        파일 이름은 - for stdout 일 수 있습니다.
+
+        옵션:
+            --format &lt;Format&gt;
+                내보내기 형식을 지정합니다. 지원되는 값: tar, tar.gz, tar.xz, vhd.
+
+    --import &lt;Distro&gt; &lt;InstallLocation&gt; &lt;FileName&gt; [Options]
+        지정된 tar 파일을 새 배포로 가져옵니다.
+        파일 이름은 - for stdin 일 수 있습니다.
+
+**wsl --export Ubuntu-24.04 C:\WSL_Backup\ubuntu2404_backup.tar
+wsl --import Ubuntu-24.04-Restored C:\WSL\Ubuntu-24.04-Restored D:\WSL_Backup\ubuntu2404_backup.tar**
+</code></pre>
+<h3>도커 실습 환경 구축</h3>
+<h4>1. 실습 환경 구축</h4>
+<ol>
+<li>디렉토리 생성: <code>mkdir /mnt/c/study/docker -p</code></li>
+<li>파일 생성: <code>touch foo.txt</code>
+<img src="/assets/imgs/notes/docker-practice/01-4aa7452d-ab88-48a1-841a-2bf409456f58.png" alt="{4AA7452D-AB88-48A1-841A-2BF409456F58}.png" loading="lazy">
+<img src="/assets/imgs/notes/docker-practice/02-ae9f860b-116f-48e6-a8e0-6a86ef621bc2.png" alt="{AE9F860B-116F-48E6-A8E0-6A86EF621BC2}.png" loading="lazy"></li>
+</ol>
+<p>윈도우와 리눅스(WSL)의 파일들을 공유해서 사용할 수 있다. 하지만 이럴 경우 파일을 읽고 사용할 때 매우매우 느리다. 꼭 필요할 때만 이렇게 쓰고, 평소에는 WSL의 홈 디렉토리에서 작업을 하자</p>
+<h4>2. 도커 엔진 다운로드</h4>
+<p>https://docs.docker.com/engine/install/ubuntu/</p>
+<ol>
+<li>이전 버전의 라이브러리 제거<pre><code class="language-bash">sudo apt remove $(dpkg --get-selections docker.io docker-compose docker-compose-v2 docker-doc podman-docker containerd runc | cut -f1)
+</code></pre>
+</li>
+<li>apt 레포지토리 설치<pre><code class="language-bash"># Add Docker's official GPG key:
+sudo apt update
+sudo apt install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+sudo tee /etc/apt/sources.list.d/docker.sources &lt;&lt;EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release &amp;&amp; echo &quot;${UBUNTU_CODENAME:-$VERSION_CODENAME}&quot;)
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+
+sudo apt update
+</code></pre>
+</li>
+<li>패키지 다운로드<pre><code class="language-bash">sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+</code></pre>
+</li>
+<li>확인<pre><code class="language-bash">sudo systemctl status docker
+sudo systemctl start docker
+sudo docker run hello-world
+</code></pre>
+</li>
+<li>도커 실행 권한 추가<pre><code class="language-bash"># 1. 현재 접속 중인 사용자($USER)를 docker 그룹에 편입 (-aG: append Group)
+sudo usermod -aG docker $USER
+
+# 2. 변경된 그룹 권한을 현재 터미널에 즉시 적용 (또는 서버 재부팅/재로그인 필요)
+newgrp docker
+
+# 3. sudo 없이 도커 테스트 이미지(hello-world) 실행해보기!
+docker run hello-world
+💡 &quot;Hello from Docker!&quot; 메시지가 출력되었다면, 성공적으로 도커 엔진 설치 및 권한 부여가 완료된 것입니다!
+</code></pre>
+</li>
+</ol>
+<h3>도커 명령어</h3>
+<h5>컨테이너 생성 및 실행</h5>
+<pre><code class="language-bash">docker run -d --name &lt;컨테이너 이름&gt; -p [외부 포트]:[내부 포트] &lt;서버&gt;:[버전]
+
+docker run -d --name myWeb3 -p 83:80 nginx:latest
+</code></pre>
+<ul>
+<li>latest 버전은 항상 실행 당시 제일 마지막에 나온 버전
+⇒ 내가 배포한 이후 버전이 바뀌면서 문제가 생길 수 있음
+<ul>
+<li>항상 특정 버전을 지정해서 쓰는 게 좋다</li>
+</ul>
+</li>
+</ul>
+<h5>볼륨 포함 실행</h5>
+<pre><code class="language-bash">$ docker run --name some-nginx -v /some/content:/usr/share/nginx/html:ro -d nginx
+</code></pre>
+<ul>
+<li><code>-v</code> 옵션: 볼륨 추가</li>
+<li>내가 가지고 있는 실제 파일(/some/content)을 도커 내부의 특정 위치(/usr/share/nginx/html)에서 링크하라</li>
+</ul>
+<h3>도커로 로컬 게임 띄우기</h3>
+<ol>
+<li>게임 소스 파일 준비하기</li>
+<li>도커 컨테이너 실행하기<pre><code class="language-bash">docker run -d --name catGame -p 8080:80 -v ./game1/tsunami-cat:/usr/share/nginx/html:ro nginx
+</code></pre>
+<img src="/assets/imgs/notes/docker-practice/03-d830b0da-b3c4-445d-ad12-a3280eac429e.png" alt="{D830B0DA-B3C4-445D-AD12-A3280EAC429E}.png" loading="lazy"></li>
+<li>결과 확인
+<img src="/assets/imgs/notes/docker-practice/04-effdb3d3-2611-4b23-9ca2-38263d26f127.png" alt="{EFFDB3D3-2611-4B23-9CA2-38263D26F127}.png" loading="lazy">
+<ul>
+<li>오픈한 포트번호로 docker-proxy가 리슨 중
+<img src="/assets/imgs/notes/docker-practice/05-6382c085-2b44-4f3d-a04e-e434286ee9e8.png" alt="{6382C085-2B44-4F3D-A04E-E434286EE9E8}.png" loading="lazy"></li>
+</ul>
+</li>
+</ol>
+<h3>미션) 두 개의 게임 띄우기</h3>
+<h5>설명</h5>
+<ul>
+<li>git으로 두 개의 게임 소스를 받아와서 도커 컨테이너 구성</li>
+<li>http://localhost에 접근하면 index.html에서 두 개의 게임 중 하나를 선택, 클릭할 수 있어야 하고, 클릭한 게임을 실행한다</li>
+</ul>
+<h5>과정</h5>
+<ol>
+<li>git clone으로 게임 소스 파일 준비</li>
+<li>두 개 게임으로 접근 가능한 메인 페이지 생성하기
+<img src="/assets/imgs/notes/docker-practice/06-ba75a632-ae46-479b-881a-2f02d6c9f28d.png" alt="{BA75A632-AE46-479B-881A-2F02D6C9F28D}.png" loading="lazy"></li>
+<li>도커 띄우기<pre><code class="language-bash">docker run -d --name gameWeb -p 8080:80 -v ./:/usr/share/nginx/html:ro nginx
+</code></pre>
+</li>
+<li>확인
+<img src="/assets/imgs/notes/docker-practice/07-dbfa4dd9-71aa-401f-b63a-213458e6acf3.png" alt="{DBFA4DD9-71AA-401F-B63A-213458E6ACF3}.png" loading="lazy"></li>
+</ol>
+<h3>WSL 네트워크 설정 변경 (NAT → Mirror)</h3>
+<p>https://blog.naver.com/bsmouse/223624044811</p>
+<ol>
+<li>윈도우 탐색기로 홈디렉토리 이동 (예. C\User\EZ)</li>
+<li><code>.wslconfig</code> 파일 생성 후 다음 내용 저장<pre><code class="language-bash">[experimental]
+networkingMode=mirrored
+dnsTunneling=true
+autoProxy=true
+</code></pre>
+</li>
+<li>wsl 재시작: <code>wsl --shutdown</code></li>
+<li>bash 실행 후, IP 확인 (윈도우와 동일한 IP가 출력되어야 한다!)
+<img src="/assets/imgs/notes/docker-practice/08-ad0e622c-7646-4921-bf54-a4f776a6609c.png" alt="{AD0E622C-7646-4921-BF54-A4F776A6609C}.png" loading="lazy">
+<img src="/assets/imgs/notes/docker-practice/09-43f0b693-80c1-4f90-81e6-2782f8365b36.png" alt="{43F0B693-80C1-4F90-81E6-2782F8365B36}.png" loading="lazy"></li>
+<li>방화벽 해제</li>
+</ol>
+<h3>Docker 컨테이너 정보 확인</h3>
+<p><code>docker container inspect &lt;컨테이너 이름&gt;</code></p>
+<ul>
+<li>컨테이너에 대한 정보가 나온다</li>
+<li>전체 정보<pre><code class="language-bash">[
+    {
+        &quot;Id&quot;: &quot;94d3569b63f3cbba3981d95b95facaaf327dbae18dd011aecc60849b2e1882ed&quot;,
+        &quot;Created&quot;: &quot;2026-07-22T01:12:56.580613431Z&quot;,
+        &quot;Path&quot;: &quot;/docker-entrypoint.sh&quot;,
+        &quot;Args&quot;: [
+            &quot;nginx&quot;,
+            &quot;-g&quot;,
+            &quot;daemon off;&quot;
+        ],
+        &quot;State&quot;: {
+            &quot;Status&quot;: &quot;running&quot;,
+            &quot;Running&quot;: true,
+            &quot;Paused&quot;: false,
+            &quot;Restarting&quot;: false,
+            &quot;OOMKilled&quot;: false,
+            &quot;Dead&quot;: false,
+            &quot;Pid&quot;: 1375,
+            &quot;ExitCode&quot;: 0,
+            &quot;Error&quot;: &quot;&quot;,
+            &quot;StartedAt&quot;: &quot;2026-07-22T01:22:22.24072316Z&quot;,
+            &quot;FinishedAt&quot;: &quot;2026-07-22T01:21:51.259103953Z&quot;
+        },
+        &quot;Image&quot;: &quot;sha256:5a88c9c45479443d7be2eadc894b4ed0a9801bae03d97a5760ae13b5c2005942&quot;,
+        &quot;ResolvConfPath&quot;: &quot;/var/lib/docker/containers/94d3569b63f3cbba3981d95b95facaaf327dbae18dd011aecc60849b2e1882ed/resolv.conf&quot;,
+        &quot;HostnamePath&quot;: &quot;/var/lib/docker/containers/94d3569b63f3cbba3981d95b95facaaf327dbae18dd011aecc60849b2e1882ed/hostname&quot;,
+        &quot;HostsPath&quot;: &quot;/var/lib/docker/containers/94d3569b63f3cbba3981d95b95facaaf327dbae18dd011aecc60849b2e1882ed/hosts&quot;,
+        &quot;LogPath&quot;: &quot;/var/lib/docker/containers/94d3569b63f3cbba3981d95b95facaaf327dbae18dd011aecc60849b2e1882ed/94d3569b63f3cbba3981d95b95facaaf327dbae18dd011aecc60849b2e1882ed-json.log&quot;,
+        &quot;Name&quot;: &quot;/webGame&quot;,
+        &quot;RestartCount&quot;: 0,
+        &quot;Driver&quot;: &quot;overlayfs&quot;,
+        &quot;Platform&quot;: &quot;linux&quot;,
+        &quot;MountLabel&quot;: &quot;&quot;,
+        &quot;ProcessLabel&quot;: &quot;&quot;,
+        &quot;AppArmorProfile&quot;: &quot;&quot;,
+        &quot;ExecIDs&quot;: null,
+        &quot;HostConfig&quot;: {
+            &quot;Binds&quot;: [
+                &quot;/mnt/c/study/docker/game:/usr/share/nginx/html:ro&quot;
+            ],
+            &quot;ContainerIDFile&quot;: &quot;&quot;,
+            &quot;LogConfig&quot;: {
+                &quot;Type&quot;: &quot;json-file&quot;,
+                &quot;Config&quot;: {}
+            },
+            &quot;NetworkMode&quot;: &quot;bridge&quot;,
+            &quot;PortBindings&quot;: {
+                &quot;80/tcp&quot;: [
+                    {
+                        &quot;HostIp&quot;: &quot;&quot;,
+                        &quot;HostPort&quot;: &quot;80&quot;
+                    }
+                ]
+            },
+            &quot;RestartPolicy&quot;: {
+                &quot;Name&quot;: &quot;no&quot;,
+                &quot;MaximumRetryCount&quot;: 0
+            },
+            &quot;AutoRemove&quot;: false,
+            &quot;VolumeDriver&quot;: &quot;&quot;,
+            &quot;VolumesFrom&quot;: null,
+            &quot;ConsoleSize&quot;: [
+                30,
+                142
+            ],
+            &quot;CapAdd&quot;: null,
+            &quot;CapDrop&quot;: null,
+            &quot;CgroupnsMode&quot;: &quot;private&quot;,
+            &quot;Dns&quot;: null,
+            &quot;DnsOptions&quot;: [],
+            &quot;DnsSearch&quot;: [],
+            &quot;ExtraHosts&quot;: null,
+            &quot;GroupAdd&quot;: null,
+            &quot;IpcMode&quot;: &quot;private&quot;,
+            &quot;Cgroup&quot;: &quot;&quot;,
+            &quot;Links&quot;: null,
+            &quot;OomScoreAdj&quot;: 0,
+            &quot;PidMode&quot;: &quot;&quot;,
+            &quot;Privileged&quot;: false,
+            &quot;PublishAllPorts&quot;: false,
+            &quot;ReadonlyRootfs&quot;: false,
+            &quot;SecurityOpt&quot;: null,
+            &quot;UTSMode&quot;: &quot;&quot;,
+            &quot;UsernsMode&quot;: &quot;&quot;,
+            &quot;ShmSize&quot;: 67108864,
+            &quot;Runtime&quot;: &quot;runc&quot;,
+            &quot;Isolation&quot;: &quot;&quot;,
+            &quot;CpuShares&quot;: 0,
+            &quot;Memory&quot;: 0,
+            &quot;NanoCpus&quot;: 0,
+            &quot;CgroupParent&quot;: &quot;&quot;,
+            &quot;BlkioWeight&quot;: 0,
+            &quot;BlkioWeightDevice&quot;: [],
+            &quot;BlkioDeviceReadBps&quot;: [],
+            &quot;BlkioDeviceWriteBps&quot;: [],
+            &quot;BlkioDeviceReadIOps&quot;: [],
+            &quot;BlkioDeviceWriteIOps&quot;: [],
+            &quot;CpuPeriod&quot;: 0,
+            &quot;CpuQuota&quot;: 0,
+            &quot;CpuRealtimePeriod&quot;: 0,
+            &quot;CpuRealtimeRuntime&quot;: 0,
+            &quot;CpusetCpus&quot;: &quot;&quot;,
+            &quot;CpusetMems&quot;: &quot;&quot;,
+            &quot;Devices&quot;: [],
+            &quot;DeviceCgroupRules&quot;: null,
+            &quot;DeviceRequests&quot;: null,
+            &quot;MemoryReservation&quot;: 0,
+            &quot;MemorySwap&quot;: 0,
+            &quot;MemorySwappiness&quot;: null,
+            &quot;OomKillDisable&quot;: null,
+            &quot;PidsLimit&quot;: null,
+            &quot;Ulimits&quot;: [],
+            &quot;CpuCount&quot;: 0,
+            &quot;CpuPercent&quot;: 0,
+            &quot;IOMaximumIOps&quot;: 0,
+            &quot;IOMaximumBandwidth&quot;: 0,
+            &quot;MaskedPaths&quot;: [
+                &quot;/proc/acpi&quot;,
+                &quot;/proc/asound&quot;,
+                &quot;/proc/interrupts&quot;,
+                &quot;/proc/kcore&quot;,
+                &quot;/proc/keys&quot;,
+                &quot;/proc/latency_stats&quot;,
+                &quot;/proc/sched_debug&quot;,
+                &quot;/proc/scsi&quot;,
+                &quot;/proc/timer_list&quot;,
+                &quot;/proc/timer_stats&quot;,
+                &quot;/sys/devices/virtual/powercap&quot;,
+                &quot;/sys/firmware&quot;
+            ],
+            &quot;ReadonlyPaths&quot;: [
+                &quot;/proc/bus&quot;,
+                &quot;/proc/fs&quot;,
+                &quot;/proc/irq&quot;,
+                &quot;/proc/sys&quot;,
+                &quot;/proc/sysrq-trigger&quot;
+            ]
+        },
+        &quot;Storage&quot;: {
+            &quot;RootFS&quot;: {
+                &quot;Snapshot&quot;: {
+                    &quot;Name&quot;: &quot;overlayfs&quot;
+                }
+            }
+        },
+        &quot;Mounts&quot;: [
+            {
+                &quot;Type&quot;: &quot;bind&quot;,
+                &quot;Source&quot;: &quot;/mnt/c/study/docker/game&quot;,
+                &quot;Destination&quot;: &quot;/usr/share/nginx/html&quot;,
+                &quot;Mode&quot;: &quot;ro&quot;,
+                &quot;RW&quot;: false,
+                &quot;Propagation&quot;: &quot;rprivate&quot;
+            }
+        ],
+        &quot;Config&quot;: {
+            &quot;Hostname&quot;: &quot;94d3569b63f3&quot;,
+            &quot;Domainname&quot;: &quot;&quot;,
+            &quot;User&quot;: &quot;&quot;,
+            &quot;AttachStdin&quot;: false,
+            &quot;AttachStdout&quot;: false,
+            &quot;AttachStderr&quot;: false,
+            &quot;ExposedPorts&quot;: {
+                &quot;80/tcp&quot;: {}
+            },
+            &quot;Tty&quot;: false,
+            &quot;OpenStdin&quot;: false,
+            &quot;StdinOnce&quot;: false,
+            &quot;Env&quot;: [
+                &quot;PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&quot;,
+                &quot;NGINX_VERSION=1.31.3&quot;,
+                &quot;NJS_VERSION=1.0.0&quot;,
+                &quot;NJS_RELEASE=1~trixie&quot;,
+                &quot;ACME_VERSION=0.4.1&quot;,
+                &quot;PKG_RELEASE=1~trixie&quot;,
+                &quot;DYNPKG_RELEASE=1~trixie&quot;
+            ],
+            &quot;Cmd&quot;: [
+                &quot;nginx&quot;,
+                &quot;-g&quot;,
+                &quot;daemon off;&quot;
+            ],
+            &quot;Image&quot;: &quot;nginx&quot;,
+            &quot;Volumes&quot;: null,
+            &quot;WorkingDir&quot;: &quot;&quot;,
+            &quot;Entrypoint&quot;: [
+                &quot;/docker-entrypoint.sh&quot;
+            ],
+            &quot;Labels&quot;: {
+                &quot;maintainer&quot;: &quot;NGINX Docker Maintainers &lt;docker-maint@nginx.com&gt;&quot;
+            },
+            &quot;StopSignal&quot;: &quot;SIGQUIT&quot;
+        },
+        &quot;NetworkSettings&quot;: {
+            &quot;SandboxID&quot;: &quot;6b2d2f7029703d88b0e1739f6957714caad8a868f2d8db1078a93e83808ca84c&quot;,
+            &quot;SandboxKey&quot;: &quot;/var/run/docker/netns/6b2d2f702970&quot;,
+            &quot;Ports&quot;: {
+                &quot;80/tcp&quot;: [
+                    {
+                        &quot;HostIp&quot;: &quot;0.0.0.0&quot;,
+                        &quot;HostPort&quot;: &quot;80&quot;
+                    },
+                    {
+                        &quot;HostIp&quot;: &quot;::&quot;,
+                        &quot;HostPort&quot;: &quot;80&quot;
+                    }
+                ]
+            },
+            &quot;Networks&quot;: {
+                &quot;bridge&quot;: {
+                    &quot;IPAMConfig&quot;: null,
+                    &quot;Links&quot;: null,
+                    &quot;Aliases&quot;: null,
+                    &quot;DriverOpts&quot;: null,
+                    &quot;GwPriority&quot;: 0,
+                    &quot;NetworkID&quot;: &quot;f93ca60ecb836d4815d9c5efb7505cd01be853588cca60c61e888b55ba591300&quot;,
+                    &quot;EndpointID&quot;: &quot;7180a3ef344fc7f5ed3f708958a774355ce7fbc8df8ca9e1a590e698e007905a&quot;,
+                    &quot;Gateway&quot;: &quot;172.17.0.1&quot;,
+                    &quot;IPAddress&quot;: &quot;172.17.0.2&quot;,
+                    &quot;MacAddress&quot;: &quot;92:ee:72:e2:16:ea&quot;,
+                    &quot;IPPrefixLen&quot;: 16,
+                    &quot;IPv6Gateway&quot;: &quot;&quot;,
+                    &quot;GlobalIPv6Address&quot;: &quot;&quot;,
+                    &quot;GlobalIPv6PrefixLen&quot;: 0,
+                    &quot;DNSNames&quot;: null
+                }
+            }
+        },
+        &quot;ImageManifestDescriptor&quot;: {
+            &quot;mediaType&quot;: &quot;application/vnd.oci.image.manifest.v1+json&quot;,
+            &quot;digest&quot;: &quot;sha256:db4f612f385437d11eb26620a4f1d7efb3ff44e1296a3c21540b30454e6e2bf3&quot;,
+            &quot;size&quot;: 2290,
+            &quot;annotations&quot;: {
+                &quot;com.docker.official-images.bashbrew.arch&quot;: &quot;amd64&quot;,
+                &quot;org.opencontainers.image.base.digest&quot;: &quot;sha256:9bb8a3626890e084ab54e888fdd7c4b6d2f119071cd4c5dc5fecb4d73062aa5f&quot;,
+                &quot;org.opencontainers.image.base.name&quot;: &quot;debian:trixie-slim&quot;,
+                &quot;org.opencontainers.image.created&quot;: &quot;2026-07-15T23:30:13Z&quot;,
+                &quot;org.opencontainers.image.revision&quot;: &quot;ccdab6c99ae2e2fc53a144dc68d6b8f44163adf2&quot;,
+                &quot;org.opencontainers.image.source&quot;: &quot;https://github.com/nginx/docker-nginx.git#ccdab6c99ae2e2fc53a144dc68d6b8f44163adf2:mainline/debian&quot;,
+                &quot;org.opencontainers.image.url&quot;: &quot;https://hub.docker.com/_/nginx&quot;,
+                &quot;org.opencontainers.image.version&quot;: &quot;1.31.3&quot;
+            },
+            &quot;platform&quot;: {
+                &quot;architecture&quot;: &quot;amd64&quot;,
+                &quot;os&quot;: &quot;linux&quot;
+            }
+        }
+    }
+]
+</code></pre>
+</li>
+</ul>
+<h5>프로세스</h5>
+<pre><code class="language-bash">&quot;Args&quot;: [
+    &quot;nginx&quot;,
+    &quot;-g&quot;,
+    &quot;daemon off;&quot;
+],
+</code></pre>
+<ul>
+<li>nginx를 daemon off 상태로 실행중</li>
+</ul>
+<blockquote>
+<p><strong>Docker는 기능을 실행시켜주는 프로세스다!</strong></p>
+</blockquote>
+<h5>이미지 정보</h5>
+<pre><code class="language-bash">&quot;Image&quot;: &quot;sha256:5a88c9c45479443d7be2eadc894b4ed0a9801bae03d97a5760ae13b5c2005942&quot;,
+</code></pre>
+<h5>네트워크 정보</h5>
+<pre><code class="language-bash">&quot;Networks&quot;: {
+    &quot;bridge&quot;: {
+        &quot;IPAMConfig&quot;: null,
+        &quot;Links&quot;: null,
+        &quot;Aliases&quot;: null,
+        &quot;DriverOpts&quot;: null,
+        &quot;GwPriority&quot;: 0,
+        &quot;NetworkID&quot;: &quot;f93ca60ecb836d4815d9c5efb7505cd01be853588cca60c61e888b55ba591300&quot;,
+        &quot;EndpointID&quot;: &quot;7180a3ef344fc7f5ed3f708958a774355ce7fbc8df8ca9e1a590e698e007905a&quot;,
+        &quot;Gateway&quot;: &quot;172.17.0.1&quot;,
+        &quot;IPAddress&quot;: &quot;172.17.0.2&quot;,
+        &quot;MacAddress&quot;: &quot;92:ee:72:e2:16:ea&quot;,
+        &quot;IPPrefixLen&quot;: 16,
+        &quot;IPv6Gateway&quot;: &quot;&quot;,
+        &quot;GlobalIPv6Address&quot;: &quot;&quot;,
+        &quot;GlobalIPv6PrefixLen&quot;: 0,
+        &quot;DNSNames&quot;: null
+    }
+}
+</code></pre>
+<h3>이미지 정보 확인</h3>
+<p><code>docker image inspect &lt;이미지 이름&gt;</code></p>
+<ul>
+<li>컨테이너 정보 확인과 같은 방식이다</li>
+<li>nginx<pre><code class="language-bash">[
+    {
+        &quot;Id&quot;: &quot;sha256:5a88c9c45479443d7be2eadc894b4ed0a9801bae03d97a5760ae13b5c2005942&quot;,
+        &quot;RepoTags&quot;: [
+            &quot;nginx:latest&quot;
+        ],
+        &quot;RepoDigests&quot;: [
+            &quot;nginx@sha256:5a88c9c45479443d7be2eadc894b4ed0a9801bae03d97a5760ae13b5c2005942&quot;
+        ],
+        &quot;Comment&quot;: &quot;buildkit.dockerfile.v0&quot;,
+        &quot;Created&quot;: &quot;2026-07-15T23:30:55.953154252Z&quot;,
+        &quot;Config&quot;: {
+            &quot;ExposedPorts&quot;: {
+                &quot;80/tcp&quot;: {}
+            },
+            &quot;Env&quot;: [
+                &quot;PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&quot;,
+                &quot;NGINX_VERSION=1.31.3&quot;,
+                &quot;NJS_VERSION=1.0.0&quot;,
+                &quot;NJS_RELEASE=1~trixie&quot;,
+                &quot;ACME_VERSION=0.4.1&quot;,
+                &quot;PKG_RELEASE=1~trixie&quot;,
+                &quot;DYNPKG_RELEASE=1~trixie&quot;
+            ],
+            &quot;Entrypoint&quot;: [
+                &quot;/docker-entrypoint.sh&quot;
+            ],
+            &quot;Cmd&quot;: [
+                &quot;nginx&quot;,
+                &quot;-g&quot;,
+                &quot;daemon off;&quot;
+            ],
+            &quot;Labels&quot;: {
+                &quot;maintainer&quot;: &quot;NGINX Docker Maintainers &lt;docker-maint@nginx.com&gt;&quot;
+            },
+            &quot;StopSignal&quot;: &quot;SIGQUIT&quot;
+        },
+        &quot;Architecture&quot;: &quot;amd64&quot;,
+        &quot;Os&quot;: &quot;linux&quot;,
+        &quot;Size&quot;: 63132183,
+        &quot;RootFS&quot;: {
+            &quot;Type&quot;: &quot;layers&quot;,
+            &quot;Layers&quot;: [
+                &quot;sha256:f2ec4de84f559f5c7be4233b589cdbdbb5507807e05621b77320edd55a1f2a0f&quot;,
+                &quot;sha256:228e620990b5c3d9e3f214a69e229b4f448ff84a506224a00941910c9983ff65&quot;,
+                &quot;sha256:1c53941aba0260ff1127e6b3bfecdccca19be41697b53907582d977c01e574f0&quot;,
+                &quot;sha256:32b1ccafaf99cc8e384384e81bfe821ee85641a9547d49a0028a2e68dc26f615&quot;,
+                &quot;sha256:d04b91e45bfae9b6f8c681f3a8df71b7dc0f189e273fd6e572e8654dd9e0dce6&quot;,
+                &quot;sha256:ee27e7233604155bf0fe221d34807f9143b0daadfce8e7367eb7864b6cfe64b5&quot;,
+                &quot;sha256:fb28b3cca92af0364e8a369d9715ebbf0e8922c743be5e71c09c4d3a38bc8992&quot;
+            ]
+        },
+        &quot;Metadata&quot;: {
+            &quot;LastTagTime&quot;: &quot;2026-07-22T01:11:05.413454111Z&quot;
+        },
+        &quot;Descriptor&quot;: {
+            &quot;mediaType&quot;: &quot;application/vnd.oci.image.index.v1+json&quot;,
+            &quot;digest&quot;: &quot;sha256:5a88c9c45479443d7be2eadc894b4ed0a9801bae03d97a5760ae13b5c2005942&quot;,
+            &quot;size&quot;: 10229
+        },
+        &quot;Identity&quot;: {
+            &quot;Pull&quot;: [
+                {
+                    &quot;Repository&quot;: &quot;docker.io/library/nginx&quot;
+                }
+            ]
+        }
+    }
+]
+</code></pre>
+</li>
+</ul>
+<h5>nginx 버전</h5>
+<pre><code class="language-bash">&quot;RepoTags&quot;: [
+    &quot;nginx:latest&quot;
+],
+</code></pre>
+<h5>명령어</h5>
+<pre><code class="language-bash">&quot;Cmd&quot;: [
+    &quot;nginx&quot;,
+    &quot;-g&quot;,
+    &quot;daemon off;&quot;
+],
+</code></pre>
+<h5>nginx 위치</h5>
+<pre><code class="language-bash">&quot;Identity&quot;: {
+    &quot;Pull&quot;: [
+        {
+            &quot;Repository&quot;: &quot;docker.io/library/nginx&quot;
+        }
+    ]
+}
+</code></pre>
+<h3>도커 통신하기</h3>
+<ol>
+<li>도커 IP 주소 확인
+<img src="/assets/imgs/notes/docker-practice/10-3183f34c-d520-4a81-bcce-9ba747552897.png" alt="{3183F34C-D520-4A81-BCCE-9BA747552897}.png" loading="lazy"></li>
+<li>ping으로 도커 통신 확인
+<img src="/assets/imgs/notes/docker-practice/11-d3e46a0f-1670-444d-86d9-1e3ec8f1929c.png" alt="{D3E46A0F-1670-444D-86D9-1E3EC8F1929C}.png" loading="lazy"></li>
+</ol>
+<h3>미션) 3-tier 서버 구성</h3>
+<h5>설명</h5>
+<ul>
+<li>nginx-tomcat-mariadb 서비스를 컨테이너로 구동하고 서로 연동</li>
+<li>login.jsp를 동작시키는 서버 구성</li>
+</ul>
+<h5>설계</h5>
+<pre><code class="language-mermaid">flowchart LR
+		nginx_컨테이너 &lt;--&gt; tomcat_컨테이너 &lt;--&gt; mariaDB_컨테이너
+</code></pre>
+<ul>
+<li>컨테이너를 각각 띄워서 컨테이너 IP로 연동</li>
+<li>nginx 컨테이너: login.html</li>
+<li>tomcat 컨테이너: login.jsp</li>
+<li>mariaDB 컨테이너: userdb</li>
+</ul>
+<p><a href="https://app.notion.com/p/3592e080218f807c88fedabac0f7a694?pvs=21">서버 구축</a></p>
+<h4>Nginx-Web 서버</h4>
+<ol>
+<li>nginx 설정 파일 복사
+<ul>
+<li><code>docker run -d --name fo nginx</code></li>
+<li><code>docker cp foo:/etc/nginx/conf.d/default.conf /mnt/c/study/docker/3tier-server/web/conf/</code></li>
+</ul>
+</li>
+<li>nginx 설정 파일 수정<pre><code class="language-bash">server {
+    listen       80;
+    listen  [::]:80;
+    **server_name  192.168.100.65;**
+
+    #access_log  /var/log/nginx/host.access.log  main;
+
+    location / {
+        **proxy_pass http://172.17.0.3:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;**
+    }
+
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+}
+</code></pre>
+<ul>
+<li>server_name: 사용자가 접속할 주소</li>
+<li>proxy_pass: 톰캣 주소</li>
+</ul>
+</li>
+<li>nginx 컨테이너 실행
+<ul>
+<li><code>docker run -d --name web-sv -p 80:80 -v /mnt/c/study/docker/3tier-server/web/conf:/etc/nginx/conf.d/:ro nginx</code></li>
+</ul>
+<blockquote>
+<p>💡 로컬에서 수정한 nginx 설정 파일을 마운트한다!</p>
+</blockquote>
+</li>
+</ol>
+<h4>Tomcat-Was 서버</h4>
+<ol>
+<li>소스 파일 준비
+<ol>
+<li>html 소스 파일 준비
+<ul>
+<li>portfolio.html<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;조은솔 | Eunsol Cho — Cloud &amp; Infra Engineer&lt;/title&gt;
+&lt;meta name=&quot;description&quot; content=&quot;클라우드·인프라 엔지니어 조은솔의 포트폴리오. Linux, AWS, Docker, Kubernetes, 보안 점검 자동화.&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; as=&quot;style&quot; crossorigin href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css&quot;&gt;
+&lt;style&gt;
+  :root{
+    --bg:#e8e8e6;
+    --panel:#f4f4f2;
+    --ink:#111111;
+    --ink-soft:#3a3a3a;
+    --gray:#8a8a88;
+    --line:#c9c9c6;
+    --dark:#0c0c0c;
+    --dark-ink:#f2f2f0;
+    --dark-gray:#7d7d7b;
+    --dark-line:#2a2a2a;
+    --font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  a{color:inherit;text-decoration:none;}
+  ::selection{background:var(--ink);color:var(--bg);}
+
+  .label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gray);}
+  .container{max-width:1200px;margin:0 auto;padding:0 24px;}
+
+  /* ===== NAV ===== */
+  nav{position:sticky;top:0;z-index:100;background:rgba(232,232,230,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
+  .nav-inner{max-width:1200px;margin:0 auto;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;}
+  .nav-logo{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+  .nav-logo sup{font-size:8px;}
+  .nav-links{display:flex;gap:28px;}
+  .nav-links a{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);transition:opacity .2s;}
+  .nav-links a:hover{opacity:.45;}
+
+  /* ===== HERO ===== */
+  header{border-bottom:1px solid var(--line);}
+  .hero{max-width:1200px;margin:0 auto;padding:96px 24px 72px;text-align:center;}
+  .hero .label{display:inline-block;margin-bottom:28px;background:var(--ink);color:var(--panel);padding:7px 16px;border-radius:999px;}
+  .hero h1{font-size:clamp(40px,7.5vw,88px);line-height:1.04;font-weight:800;letter-spacing:-.03em;}
+  .hero h1 .thin{font-weight:400;}
+  .hero-sub{margin-top:32px;font-size:clamp(15px,2vw,18px);color:var(--ink-soft);font-weight:500;}
+  .hero-strip{border-top:1px solid var(--line);}
+  .hero-strip-inner{max-width:1200px;margin:0 auto;padding:14px 24px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+
+  /* ===== SECTION SHELL ===== */
+  section{border-bottom:1px solid var(--line);}
+  .sec-inner{max-width:1200px;margin:0 auto;padding:80px 24px;}
+  .sec-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:48px;}
+  .sec-head h2{font-size:clamp(28px,4vw,44px);font-weight:800;letter-spacing:-.02em;}
+  .sec-head .label{background:var(--ink);color:var(--panel);padding:6px 14px;border-radius:999px;white-space:nowrap;}
+
+  /* ===== ABOUT ===== */
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);}
+  .stat{background:var(--panel);padding:28px 24px;}
+  .stat.dark{background:var(--dark);color:var(--dark-ink);}
+  .stat.dark .label{color:var(--dark-gray);}
+  .stat .num{font-size:clamp(36px,4.5vw,56px);font-weight:800;letter-spacing:-.03em;line-height:1;}
+  .stat .num sup{font-size:.45em;font-weight:600;}
+  .stat .label{margin-top:10px;display:block;}
+  .about-text p{font-size:15px;color:var(--ink-soft);margin-bottom:16px;}
+  .about-text strong{color:var(--ink);font-weight:700;}
+  .principles{margin-top:32px;border-top:1px solid var(--line);}
+  .principle{display:flex;gap:20px;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px;font-weight:600;}
+  .principle span:first-child{color:var(--gray);}
+
+  /* ===== SKILLS (accordion) ===== */
+  .skill-list{border-top:1px solid var(--line);}
+  .skill{border-bottom:1px solid var(--line);}
+  .skill-btn{width:100%;background:none;border:none;cursor:pointer;font-family:inherit;color:inherit;display:flex;justify-content:space-between;align-items:center;padding:22px 16px;text-align:left;transition:background .2s,color .2s;}
+  .skill-btn:hover,.skill.open .skill-btn{background:var(--ink);color:var(--panel);}
+  .skill-btn:hover .sign,.skill.open .sign{color:var(--panel);}
+  .skill-btn .name{font-size:clamp(20px,3vw,30px);font-weight:700;letter-spacing:-.01em;}
+  .skill-btn .sign{font-size:22px;font-weight:400;color:var(--gray);transition:transform .25s,color .2s;}
+  .skill.open .sign{transform:rotate(45deg);}
+  .skill-body{max-height:0;overflow:hidden;transition:max-height .35s ease;}
+  .skill-body-inner{padding:0 8px 24px;font-size:14px;color:var(--ink-soft);max-width:640px;}
+  .skill-body-inner li{list-style:none;padding:6px 0;border-bottom:1px dashed var(--line);}
+  .skill-body-inner li:last-child{border-bottom:none;}
+
+  /* ===== PROJECT ===== */
+  .project-card{border:1px solid var(--line);background:var(--panel);}
+  .project-card + .project-card{margin-top:56px;}
+  .project-top{padding:36px 32px;background:var(--dark);color:var(--dark-ink);display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:flex-end;}
+  .project-top h3{font-size:clamp(24px,3.5vw,38px);font-weight:800;letter-spacing:-.02em;line-height:1.15;}
+  .project-meta{text-align:right;font-size:12px;color:var(--dark-gray);font-weight:600;letter-spacing:.04em;}
+  .project-body{display:grid;grid-template-columns:1fr 1fr;}
+  .project-col{padding:32px;}
+  .project-col + .project-col{border-left:1px solid var(--line);}
+  .project-col h4{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray);margin-bottom:16px;}
+  .project-col p{font-size:14px;color:var(--ink-soft);margin-bottom:14px;}
+  .phase{padding:14px 0;border-bottom:1px solid var(--line);}
+  .phase:first-of-type{border-top:1px solid var(--line);}
+  .phase .ph-title{display:flex;gap:14px;font-size:14px;font-weight:700;}
+  .phase .ph-title span:first-child{color:var(--gray);font-weight:600;}
+  .phase p{font-size:13px;color:var(--ink-soft);margin:6px 0 0 34px;}
+  .tags{display:flex;flex-wrap:wrap;gap:8px;padding:24px 32px;border-top:1px solid var(--line);}
+  .tag{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;background:var(--ink);color:var(--panel);padding:6px 14px;border-radius:999px;}
+  .terminal{background:var(--dark);color:#c8c8c4;font-family:'SF Mono',Consolas,'Courier New',monospace;font-size:12px;line-height:1.7;padding:20px;margin-top:20px;overflow-x:auto;white-space:pre;}
+  .terminal .ok{color:#9ece6a;}
+  .terminal .bad{color:#f7768e;}
+  .terminal .dim{color:#6a6a68;}
+
+  /* ===== TABLE ROWS (certs / experience) ===== */
+  .rows{border-top:1px solid var(--line);}
+  .row{display:grid;grid-template-columns:170px 1fr auto;gap:20px;align-items:baseline;padding:18px 16px;border-bottom:1px solid var(--line);transition:background .2s;}
+  .row:hover{background:var(--ink);color:var(--panel);}
+  .row .date{font-size:12px;color:var(--gray);font-weight:600;letter-spacing:.03em;}
+  .row .title{font-size:16px;font-weight:700;}
+  .row .org{font-size:12px;color:var(--gray);text-align:right;font-weight:500;}
+  .row:hover .date,.row:hover .org{color:#a9a9a7;}
+
+  /* ===== CONTACT (dark) ===== */
+  .contact{background:var(--dark);color:var(--dark-ink);border-bottom:none;}
+  .contact .sec-inner{padding:96px 24px 48px;}
+  .contact .label{color:var(--dark-gray);}
+  .contact-say{margin-bottom:12px;}
+  .contact-email{display:inline-block;font-size:clamp(24px,5vw,56px);font-weight:800;letter-spacing:-.02em;border-bottom:2px solid var(--dark-ink);padding-bottom:4px;transition:opacity .2s;word-break:break-all;}
+  .contact-email:hover{opacity:.6;}
+  .contact-grid{display:flex;justify-content:space-between;gap:32px;flex-wrap:wrap;margin-top:72px;padding-top:28px;border-top:1px solid var(--dark-line);}
+  .contact-links{display:flex;flex-direction:column;gap:14px;}
+  .contact-links a{font-size:clamp(22px,3.5vw,34px);font-weight:700;letter-spacing:-.01em;line-height:1.2;color:var(--dark-ink);transition:opacity .2s,transform .2s;}
+  .contact-links a:hover{opacity:.6;transform:translateX(6px);}
+  .contact-loc{text-align:right;}
+  .contact-loc .time{font-size:13px;font-weight:600;margin-top:4px;}
+  .footer-bar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:64px;padding-top:20px;border-top:1px solid var(--dark-line);font-size:11px;color:var(--dark-gray);letter-spacing:.05em;text-transform:uppercase;}
+
+  /* ===== SCROLLBAR (overlay) ===== */
+  html{scrollbar-width:none;}
+  html::-webkit-scrollbar{display:none;}
+  #scrollbar-thumb{position:fixed;top:0;right:0;width:7px;background:var(--ink);border:1px solid var(--bg);border-right:none;border-radius:0;z-index:150;transition:opacity .2s;}
+  #scrollbar-thumb:hover,#scrollbar-thumb.dragging{opacity:.55;cursor:grab;}
+  #scrollbar-thumb.dragging{cursor:grabbing;}
+
+  /* ===== INTRO TYPING ===== */
+  #intro{position:fixed;inset:0;z-index:200;background:var(--dark);color:var(--dark-ink);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;transition:opacity .6s ease;}
+  #intro.done{opacity:0;pointer-events:none;}
+  #intro h1{font-size:clamp(48px,10vw,124px);line-height:1.04;font-weight:800;letter-spacing:-.03em;min-height:2.08em;transition:opacity .25s ease;}
+  #intro.leaving h1{opacity:0;}
+  .hero-pre{opacity:0;transform:translateY(24px);}
+  .hero-enter{opacity:1;transform:none;transition:opacity .8s ease .15s,transform .8s ease .15s;}
+  .type-cursor{display:inline-block;width:.06em;min-width:2px;height:1em;background:currentColor;vertical-align:-.08em;margin-left:2px;animation:cursor-blink .8s step-end infinite;}
+  @keyframes cursor-blink{50%{opacity:0;}}
+  body.intro-lock{overflow:hidden;}
+  @media (prefers-reduced-motion:reduce){
+    #intro{display:none;}
+  }
+
+  /* ===== SCROLL REVEAL ===== */
+  .reveal{opacity:0;transform:translateY(32px);transition:opacity .8s ease,transform .8s ease;}
+  .reveal.visible{opacity:1;transform:none;}
+  @media (prefers-reduced-motion:reduce){
+    .reveal{opacity:1;transform:none;transition:none;}
+  }
+
+  /* ===== MOBILE ===== */
+  @media (max-width:760px){
+    .nav-links{gap:16px;}
+    .nav-links a{font-size:10px;}
+    .hero{padding:64px 20px 48px;}
+    .sec-inner{padding:56px 20px;}
+    .sec-head{flex-direction:column;gap:8px;margin-bottom:32px;}
+    .sec-head .label{text-align:left;}
+    .about-grid{grid-template-columns:1fr;gap:32px;}
+    .project-body{grid-template-columns:1fr;}
+    .project-col + .project-col{border-left:none;border-top:1px solid var(--line);}
+    .project-top,.project-col{padding:24px 20px;}
+    .tags{padding:20px;}
+    .project-meta{text-align:left;}
+    .row{grid-template-columns:1fr;gap:2px;}
+    .row .org{text-align:left;}
+    .contact-loc{text-align:left;}
+    .contact .sec-inner{padding:64px 20px 36px;}
+  }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;div id=&quot;scrollbar-thumb&quot; aria-hidden=&quot;true&quot;&gt;&lt;/div&gt;
+
+&lt;div id=&quot;intro&quot; aria-hidden=&quot;true&quot;&gt;
+  &lt;div&gt;
+    &lt;h1&gt;&lt;span id=&quot;intro-l1&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span id=&quot;intro-l2&quot;&gt;&lt;/span&gt;&lt;/h1&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;nav&gt;
+  &lt;div class=&quot;nav-inner&quot;&gt;
+    &lt;a href=&quot;#top&quot; class=&quot;nav-logo&quot;&gt;Eunsol Cho&lt;sup&gt;®&lt;/sup&gt;&lt;/a&gt;
+    &lt;div class=&quot;nav-links&quot;&gt;
+      &lt;a href=&quot;#about&quot;&gt;About&lt;/a&gt;
+      &lt;a href=&quot;#skills&quot;&gt;Skills&lt;/a&gt;
+      &lt;a href=&quot;#project&quot;&gt;Project&lt;/a&gt;
+      &lt;a href=&quot;#contact&quot;&gt;Contact&lt;/a&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/nav&gt;
+
+&lt;header id=&quot;top&quot;&gt;
+  &lt;div class=&quot;hero&quot;&gt;
+    &lt;span class=&quot;label&quot;&gt;Infra · Cloud · Security&lt;/span&gt;
+    &lt;h1&gt;Cloud &amp;amp; Infra&lt;br&gt;&lt;span class=&quot;thin&quot;&gt;Engineer&lt;/span&gt;&lt;/h1&gt;
+    &lt;p class=&quot;hero-sub&quot;&gt;안정적인 시스템 위에 신뢰를 쌓는 엔지니어, 조은솔입니다.&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;hero-strip&quot;&gt;
+    &lt;div class=&quot;hero-strip-inner&quot;&gt;
+      &lt;span class=&quot;label&quot;&gt;Based in Korea&lt;/span&gt;
+      &lt;span class=&quot;label&quot;&gt;Eunsol Cho — Portfolio&lt;/span&gt;
+      &lt;span class=&quot;label&quot;&gt;Open to Work&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/header&gt;
+
+&lt;section id=&quot;about&quot;&gt;
+  &lt;div class=&quot;sec-inner&quot;&gt;
+    &lt;div class=&quot;sec-head&quot;&gt;
+      &lt;h2&gt;About Me&lt;/h2&gt;
+      &lt;span class=&quot;label&quot;&gt;01 — Quick Info&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;about-grid&quot;&gt;
+      &lt;div class=&quot;stats&quot;&gt;
+        &lt;div class=&quot;stat dark&quot;&gt;&lt;div class=&quot;num&quot;&gt;72&lt;sup&gt;+&lt;/sup&gt;&lt;/div&gt;&lt;span class=&quot;label&quot;&gt;자동화한 KISA 보안 점검 항목&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;stat&quot;&gt;&lt;div class=&quot;num&quot;&gt;3&lt;/div&gt;&lt;span class=&quot;label&quot;&gt;보안점검 프로그램 개선 버전&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;stat&quot;&gt;&lt;div class=&quot;num&quot;&gt;4&lt;/div&gt;&lt;span class=&quot;label&quot;&gt;자격증 &amp;amp; 수상&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;stat&quot;&gt;&lt;div class=&quot;num&quot;&gt;2&lt;sup&gt;Y&lt;/sup&gt;&lt;/div&gt;&lt;span class=&quot;label&quot;&gt;IT 동아리 · 부트캠프 활동&lt;/span&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;about-text&quot;&gt;
+        &lt;p&gt;&lt;strong&gt;서비스가 멈추지 않는 기반을 만드는 일에 매력을 느끼는 인프라 엔지니어 조은솔입니다.&lt;/strong&gt;&lt;/p&gt;
+        &lt;p&gt;소프트웨어를 전공하며 웹 서비스 개발과 AI 모델 학습까지 경험했고, 그 과정에서 애플리케이션이 동작하는 &lt;strong&gt;서버·네트워크·클라우드 기반&lt;/strong&gt;에 대한 관심으로 인프라 직무에 발을 들였습니다. 개발 경험 덕분에 시스템을 코드와 운영 양쪽의 관점에서 바라볼 수 있습니다.&lt;/p&gt;
+        &lt;p&gt;현재 클라우드 엔지니어 부트캠프에서 Linux, AWS, Docker, Kubernetes를 학습하며, KISA 보안 가이드 기반의 &lt;strong&gt;시스템 보안 점검 자동화&lt;/strong&gt;를 직접 설계·구현하고 있습니다. 단순히 코드를 작성하는 것보다 점검 대상 파일과 시스템 자체를 이해하는 것을 우선으로 합니다.&lt;/p&gt;
+        &lt;div class=&quot;principles&quot;&gt;
+          &lt;div class=&quot;principle&quot;&gt;&lt;span&gt;1.&lt;/span&gt;&lt;span&gt;이해가 자동화보다 먼저&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;principle&quot;&gt;&lt;span&gt;2.&lt;/span&gt;&lt;span&gt;기록하고 공유하는 습관&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;principle&quot;&gt;&lt;span&gt;3.&lt;/span&gt;&lt;span&gt;작게 만들고 꾸준히 개선&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;principle&quot;&gt;&lt;span&gt;4.&lt;/span&gt;&lt;span&gt;팀과의 유기적인 소통&lt;/span&gt;&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;section id=&quot;skills&quot;&gt;
+  &lt;div class=&quot;sec-inner&quot;&gt;
+    &lt;div class=&quot;sec-head&quot;&gt;
+      &lt;h2&gt;Skills&lt;/h2&gt;
+      &lt;span class=&quot;label&quot;&gt;02 — Expertise&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;skill-list&quot;&gt;
+      &lt;div class=&quot;skill&quot;&gt;
+        &lt;button class=&quot;skill-btn&quot; aria-expanded=&quot;false&quot;&gt;&lt;span class=&quot;name&quot;&gt;Linux&lt;/span&gt;&lt;span class=&quot;sign&quot;&gt;+&lt;/span&gt;&lt;/button&gt;
+        &lt;div class=&quot;skill-body&quot;&gt;&lt;ul class=&quot;skill-body-inner&quot;&gt;
+          &lt;li&gt;Ubuntu 서버 구축 및 운영, 계정·권한·서비스 관리&lt;/li&gt;
+          &lt;li&gt;Bash 쉘 스크립트를 활용한 점검·운영 업무 자동화&lt;/li&gt;
+          &lt;li&gt;KISA 가이드 기반 시스템 하드닝 및 취약점 점검&lt;/li&gt;
+        &lt;/ul&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;skill&quot;&gt;
+        &lt;button class=&quot;skill-btn&quot; aria-expanded=&quot;false&quot;&gt;&lt;span class=&quot;name&quot;&gt;AWS&lt;/span&gt;&lt;span class=&quot;sign&quot;&gt;+&lt;/span&gt;&lt;/button&gt;
+        &lt;div class=&quot;skill-body&quot;&gt;&lt;ul class=&quot;skill-body-inner&quot;&gt;
+          &lt;li&gt;EC2 · VPC · S3 · IAM 등 핵심 서비스 기반 인프라 구성&lt;/li&gt;
+          &lt;li&gt;보안 그룹, 서브넷 설계 등 네트워크 중심의 클라우드 아키텍처 학습&lt;/li&gt;
+          &lt;li&gt;NCA(네이버 클라우드) 자격 보유 — 멀티 클라우드 관점의 이해&lt;/li&gt;
+        &lt;/ul&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;skill&quot;&gt;
+        &lt;button class=&quot;skill-btn&quot; aria-expanded=&quot;false&quot;&gt;&lt;span class=&quot;name&quot;&gt;Docker&lt;/span&gt;&lt;span class=&quot;sign&quot;&gt;+&lt;/span&gt;&lt;/button&gt;
+        &lt;div class=&quot;skill-body&quot;&gt;&lt;ul class=&quot;skill-body-inner&quot;&gt;
+          &lt;li&gt;Dockerfile 작성 및 컨테이너 이미지 빌드&lt;/li&gt;
+          &lt;li&gt;컨테이너 기반 개발·배포 환경 구성&lt;/li&gt;
+        &lt;/ul&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;skill&quot;&gt;
+        &lt;button class=&quot;skill-btn&quot; aria-expanded=&quot;false&quot;&gt;&lt;span class=&quot;name&quot;&gt;Kubernetes&lt;/span&gt;&lt;span class=&quot;sign&quot;&gt;+&lt;/span&gt;&lt;/button&gt;
+        &lt;div class=&quot;skill-body&quot;&gt;&lt;ul class=&quot;skill-body-inner&quot;&gt;
+          &lt;li&gt;Pod · Deployment · Service 등 핵심 리소스 이해&lt;/li&gt;
+          &lt;li&gt;컨테이너 오케스트레이션 및 클러스터 운영 학습 중&lt;/li&gt;
+        &lt;/ul&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;skill&quot;&gt;
+        &lt;button class=&quot;skill-btn&quot; aria-expanded=&quot;false&quot;&gt;&lt;span class=&quot;name&quot;&gt;Networking&lt;/span&gt;&lt;span class=&quot;sign&quot;&gt;+&lt;/span&gt;&lt;/button&gt;
+        &lt;div class=&quot;skill-body&quot;&gt;&lt;ul class=&quot;skill-body-inner&quot;&gt;
+          &lt;li&gt;TCP/IP · DNS · 라우팅 등 네트워크 기본기&lt;/li&gt;
+          &lt;li&gt;SSH 기반 원격 접속·전송 구조에 대한 실습 경험&lt;/li&gt;
+          &lt;li&gt;방화벽 · 보안 그룹 설정을 통한 접근 제어&lt;/li&gt;
+        &lt;/ul&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;skill&quot;&gt;
+        &lt;button class=&quot;skill-btn&quot; aria-expanded=&quot;false&quot;&gt;&lt;span class=&quot;name&quot;&gt;Python&lt;/span&gt;&lt;span class=&quot;sign&quot;&gt;+&lt;/span&gt;&lt;/button&gt;
+        &lt;div class=&quot;skill-body&quot;&gt;&lt;ul class=&quot;skill-body-inner&quot;&gt;
+          &lt;li&gt;paramiko를 활용한 SSH 원격 점검 자동화 구현&lt;/li&gt;
+          &lt;li&gt;파일 처리 · 스크립트 조립 등 운영 자동화 도구 제작&lt;/li&gt;
+          &lt;li&gt;PyTorch(YOLOv5) 모델 학습 등 데이터 처리 경험&lt;/li&gt;
+        &lt;/ul&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;skill&quot;&gt;
+        &lt;button class=&quot;skill-btn&quot; aria-expanded=&quot;false&quot;&gt;&lt;span class=&quot;name&quot;&gt;ETC&lt;/span&gt;&lt;span class=&quot;sign&quot;&gt;+&lt;/span&gt;&lt;/button&gt;
+        &lt;div class=&quot;skill-body&quot;&gt;&lt;ul class=&quot;skill-body-inner&quot;&gt;
+          &lt;li&gt;Shell Script — 함수화 · 설정 분리 등 구조적인 스크립트 작성&lt;/li&gt;
+          &lt;li&gt;Git / GitHub — 버전 관리 및 협업&lt;/li&gt;
+          &lt;li&gt;SQL / MySQL — SQLD 자격 보유&lt;/li&gt;
+        &lt;/ul&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;section id=&quot;project&quot;&gt;
+  &lt;div class=&quot;sec-inner&quot;&gt;
+    &lt;div class=&quot;sec-head&quot;&gt;
+      &lt;h2&gt;Project&lt;/h2&gt;
+      &lt;span class=&quot;label&quot;&gt;03 — Works&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;project-card&quot;&gt;
+      &lt;div class=&quot;project-top&quot;&gt;
+        &lt;h3&gt;💼 취업 지원 웹 서비스&lt;br&gt;PortfoLink — 3-Tier 인프라 구축·운영&lt;/h3&gt;
+        &lt;div class=&quot;project-meta&quot;&gt;
+          2026.06 — 2026.07&lt;br&gt;팀 프로젝트 · Raspberry Pi 2B · Ubuntu 22.04
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;project-body&quot;&gt;
+        &lt;div class=&quot;project-col&quot;&gt;
+          &lt;h4&gt;Overview&lt;/h4&gt;
+          &lt;p&gt;채용 공고 열람, 지원 현황 관리, 포트폴리오 작성·공개까지 제공하는 취업 지원 웹 서비스입니다. &lt;strong&gt;라즈베리파이 한 대 위에 WEB(Nginx) — WAS(FastAPI) — DB(MariaDB) 3-tier 구조&lt;/strong&gt;를 직접 구축하고 도메인 연결부터 배포·운영까지 전 과정을 담당했습니다.&lt;/p&gt;
+          &lt;p&gt;차별화 기능으로, 회원이 포트폴리오를 HTML 파일로 업로드·편집하고 &lt;strong&gt;개인 도메인(CNAME)을 연결&lt;/strong&gt;하면 자신의 도메인으로 포트폴리오가 서빙됩니다. Nginx가 Host 헤더를 백엔드로 넘기고, 백엔드가 회원별 포트폴리오 HTML을 찾아 응답하는 구조입니다.&lt;/p&gt;
+          &lt;div class=&quot;terminal&quot;&gt;브라우저 ──&amp;gt; Nginx (:80, two.greatsounds.me)
+  ├─ /api/*               &lt;span class=&quot;dim&quot;&gt;──&amp;gt;&lt;/span&gt; FastAPI (127.0.0.1:8000) &lt;span class=&quot;dim&quot;&gt;──&amp;gt;&lt;/span&gt; MariaDB
+  ├─ /uploads/portfolio/* &lt;span class=&quot;dim&quot;&gt;──&amp;gt;&lt;/span&gt; 정적 서빙 &lt;span class=&quot;dim&quot;&gt;(no-cache)&lt;/span&gt;
+  ├─ &quot;/&quot; (개인 도메인 접속) &lt;span class=&quot;dim&quot;&gt;──&amp;gt;&lt;/span&gt; /api/portfolios/by-host
+  └─ 그 외 html/css/js     &lt;span class=&quot;dim&quot;&gt;──&amp;gt;&lt;/span&gt; WEB_ROOT 직접 서빙
+&lt;span class=&quot;ok&quot;&gt;✓&lt;/span&gt; 백엔드 health check ... &lt;span class=&quot;ok&quot;&gt;OK&lt;/span&gt;
+&lt;span class=&quot;ok&quot;&gt;✓&lt;/span&gt; nginx -t &amp;amp; restart ... &lt;span class=&quot;ok&quot;&gt;OK&lt;/span&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;project-col&quot;&gt;
+          &lt;h4&gt;What I Built&lt;/h4&gt;
+          &lt;div class=&quot;phase&quot;&gt;
+            &lt;div class=&quot;ph-title&quot;&gt;&lt;span&gt;01&lt;/span&gt;&lt;span&gt;인프라 구축 &amp;amp; 배포 자동화&lt;/span&gt;&lt;/div&gt;
+            &lt;p&gt;Nginx 설치·서버 블록 생성·정적 파일 배포·리버스 프록시 설정을 멱등(idempotent) 쉘 스크립트로 자동화. start_all / restart_all / stop_all / clean_all 등 서비스 전체 생명주기를 스크립트로 관리&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;phase&quot;&gt;
+            &lt;div class=&quot;ph-title&quot;&gt;&lt;span&gt;02&lt;/span&gt;&lt;span&gt;백엔드 API &amp;amp; 인증&lt;/span&gt;&lt;/div&gt;
+            &lt;p&gt;FastAPI + MariaDB 기반 REST API 구현. httpOnly 쿠키에 JWT를 담는 인증 설계(1GB RAM 환경을 고려해 Redis 세션 대신 선택), 로테이션 파일 로깅과 로그 관제 스크립트로 4xx/5xx 실시간 모니터링&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;phase&quot;&gt;
+            &lt;div class=&quot;ph-title&quot;&gt;&lt;span&gt;03&lt;/span&gt;&lt;span&gt;크롤러 &amp;amp; 알림 자동화&lt;/span&gt;&lt;/div&gt;
+            &lt;p&gt;잡코리아 공고 크롤러를 crontab(매일) + 로그인 트리거(BackgroundTasks) 두 경로로 운영. crawl_log 테이블을 락으로 활용한 중복 실행 방지·쿨다운 설계, 신규 공고를 디스코드 봇으로 자동 알림&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;h4 style=&quot;margin-top:28px;&quot;&gt;What I Learned&lt;/h4&gt;
+          &lt;p&gt;저사양 서버 한 대에서 WEB·WAS·DB 전 계층을 직접 구축·운영하며, &lt;strong&gt;리버스 프록시·DNS·로그 관제·멱등 스크립트 설계&lt;/strong&gt; 등 인프라 운영의 전체 흐름을 손으로 익혔습니다. 제약(1GB RAM, HTTP 전용)을 인지하고 그 안에서 근거 있는 기술 선택을 하는 경험을 했습니다.&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;tags&quot;&gt;
+        &lt;span class=&quot;tag&quot;&gt;Nginx&lt;/span&gt;
+        &lt;span class=&quot;tag&quot;&gt;FastAPI&lt;/span&gt;
+        &lt;span class=&quot;tag&quot;&gt;MariaDB&lt;/span&gt;
+        &lt;span class=&quot;tag&quot;&gt;JWT Auth&lt;/span&gt;
+        &lt;span class=&quot;tag&quot;&gt;Raspberry Pi&lt;/span&gt;
+        &lt;span class=&quot;tag&quot;&gt;Shell Script&lt;/span&gt;
+        &lt;span class=&quot;tag&quot;&gt;Crawler · Discord Bot&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;project-card&quot;&gt;
+      &lt;div class=&quot;project-top&quot;&gt;
+        &lt;h3&gt;🛡️ 시스템 보안점검&lt;br&gt;프로그램 제작&lt;/h3&gt;
+        &lt;div class=&quot;project-meta&quot;&gt;
+          2026.05 — 2026.06&lt;br&gt;개인 프로젝트 · Ubuntu 24.04 LTS
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;project-body&quot;&gt;
+        &lt;div class=&quot;project-col&quot;&gt;
+          &lt;h4&gt;Overview&lt;/h4&gt;
+          &lt;p&gt;KISA(한국인터넷진흥원)의 &lt;strong&gt;주요정보통신기반시설 기술적 취약점 분석·평가 가이드&lt;/strong&gt;를 기반으로, 리눅스 시스템의 보안 취약점 &lt;strong&gt;72개 항목을 자동으로 점검&lt;/strong&gt;하는 프로그램을 제작했습니다.&lt;/p&gt;
+          &lt;p&gt;코드 작성 자체보다 점검 대상 파일과 시스템의 동작을 이해하는 것을 목표로, 점검 결과에 조치 파일·조치 방법까지 함께 출력해 실제 운영에서 바로 활용할 수 있도록 설계했습니다.&lt;/p&gt;
+          &lt;div class=&quot;terminal&quot;&gt;========================================
+        Linux 보안 점검 스크립트
+========================================
+[U-01] root 계정 원격 접속 제한 ... &lt;span class=&quot;bad&quot;&gt;[취약]&lt;/span&gt;
+       &lt;span class=&quot;dim&quot;&gt;조치 파일: /etc/ssh/sshd_config&lt;/span&gt;
+       &lt;span class=&quot;dim&quot;&gt;조치 방법: PermitRootLogin no 로 변경&lt;/span&gt;
+[U-02] 패스워드 최소 길이 설정 ... &lt;span class=&quot;ok&quot;&gt;[양호]&lt;/span&gt;
+[U-03] 계정 잠금 임계값 설정 ... &lt;span class=&quot;ok&quot;&gt;[양호]&lt;/span&gt;
+========================================
+점검 완료 | 양호: 2 | 취약: 1 | 총 72개
+========================================&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;project-col&quot;&gt;
+          &lt;h4&gt;Development Phases&lt;/h4&gt;
+          &lt;div class=&quot;phase&quot;&gt;
+            &lt;div class=&quot;ph-title&quot;&gt;&lt;span&gt;v1&lt;/span&gt;&lt;span&gt;개별 파일 점검&lt;/span&gt;&lt;/div&gt;
+            &lt;p&gt;항목별 쉘 스크립트로 텍스트 비교, stat 기반 권한 점검, 파일 존재 확인 로직 구현&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;phase&quot;&gt;
+            &lt;div class=&quot;ph-title&quot;&gt;&lt;span&gt;v2&lt;/span&gt;&lt;span&gt;통합 함수화&lt;/span&gt;&lt;/div&gt;
+            &lt;p&gt;점검 로직을 TXT_COMP · PERM_CHK · FILE_EXT 타입별 공통 함수로 통합하고, 점검 항목을 cfg 설정 파일로 분리해 유지보수성 개선&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;phase&quot;&gt;
+            &lt;div class=&quot;ph-title&quot;&gt;&lt;span&gt;v3&lt;/span&gt;&lt;span&gt;파이썬 원격 점검&lt;/span&gt;&lt;/div&gt;
+            &lt;p&gt;paramiko 기반 SSH 연결로 로컬에서 cfg와 스크립트를 조립해 원격 서버에 전송·실행하고, 날짜별 리포트(report_YYYYMMDD)를 자동 생성. 다수 서버 일괄 점검 구조로 확장&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;h4 style=&quot;margin-top:28px;&quot;&gt;What I Learned&lt;/h4&gt;
+          &lt;p&gt;반복되는 점검 코드를 함수와 설정으로 분리하는 구조화 과정, 그리고 &quot;실행 위치가 원격 서버&quot;라는 제약을 스크립트 조립·전송 방식으로 해결하며 &lt;strong&gt;자동화 도구를 설계하는 사고방식&lt;/strong&gt;을 익혔습니다.&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;tags&quot;&gt;
+        &lt;span class=&quot;tag&quot;&gt;Shell Script&lt;/span&gt;
+        &lt;span class=&quot;tag&quot;&gt;Python&lt;/span&gt;
+        &lt;span class=&quot;tag&quot;&gt;Paramiko · SSH&lt;/span&gt;
+        &lt;span class=&quot;tag&quot;&gt;Ubuntu 24.04&lt;/span&gt;
+        &lt;span class=&quot;tag&quot;&gt;KISA Guide&lt;/span&gt;
+        &lt;span class=&quot;tag&quot;&gt;Security Automation&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;section id=&quot;certs&quot;&gt;
+  &lt;div class=&quot;sec-inner&quot;&gt;
+    &lt;div class=&quot;sec-head&quot;&gt;
+      &lt;h2&gt;Certifications &amp;amp; Awards&lt;/h2&gt;
+      &lt;span class=&quot;label&quot;&gt;04 — Recognitions&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;rows&quot;&gt;
+      &lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;date&quot;&gt;2026.06.19&lt;/span&gt;&lt;span class=&quot;title&quot;&gt;NCA (Naver Cloud Platform Certified Associate)&lt;/span&gt;&lt;span class=&quot;org&quot;&gt;네이버 클라우드 플랫폼&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;date&quot;&gt;2026.06.12&lt;/span&gt;&lt;span class=&quot;title&quot;&gt;정보처리기사&lt;/span&gt;&lt;span class=&quot;org&quot;&gt;한국산업인력공단&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;date&quot;&gt;2025.06.27&lt;/span&gt;&lt;span class=&quot;title&quot;&gt;SQL 개발자 (SQLD)&lt;/span&gt;&lt;span class=&quot;org&quot;&gt;한국데이터산업진흥원&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;date&quot;&gt;2025.01.21&lt;/span&gt;&lt;span class=&quot;title&quot;&gt;캡스톤디자인 경연대회 최우수상&lt;/span&gt;&lt;span class=&quot;org&quot;&gt;덕성여자대학교&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;section id=&quot;experience&quot;&gt;
+  &lt;div class=&quot;sec-inner&quot;&gt;
+    &lt;div class=&quot;sec-head&quot;&gt;
+      &lt;h2&gt;Experience&lt;/h2&gt;
+      &lt;span class=&quot;label&quot;&gt;05 — Journey&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;rows&quot;&gt;
+      &lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;date&quot;&gt;2026.05 — 2026.09&lt;/span&gt;&lt;span class=&quot;title&quot;&gt;양주시 클라우드 엔지니어 부트캠프&lt;/span&gt;&lt;span class=&quot;org&quot;&gt;Linux · AWS · Docker · K8s · 보안&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;date&quot;&gt;2024.09 — 2025.02&lt;/span&gt;&lt;span class=&quot;title&quot;&gt;코테이토 10기&lt;/span&gt;&lt;span class=&quot;org&quot;&gt;IT 연합동아리&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;date&quot;&gt;2024.03 — 2024.08&lt;/span&gt;&lt;span class=&quot;title&quot;&gt;코테이토 9기&lt;/span&gt;&lt;span class=&quot;org&quot;&gt;IT 연합동아리&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;section class=&quot;contact&quot; id=&quot;contact&quot;&gt;
+  &lt;div class=&quot;sec-inner&quot;&gt;
+    &lt;span class=&quot;label contact-say&quot;&gt;Say hi:&lt;/span&gt;&lt;br&gt;
+    &lt;a class=&quot;contact-email&quot; href=&quot;mailto:greatsounds613@gmail.com&quot;&gt;greatsounds613@gmail.com&lt;/a&gt;
+    &lt;div class=&quot;contact-grid&quot;&gt;
+      &lt;div class=&quot;contact-links&quot;&gt;
+        &lt;span class=&quot;label&quot; style=&quot;margin-bottom:6px;&quot;&gt;Links&lt;/span&gt;
+        &lt;a href=&quot;https://github.com/haydenCho&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;GitHub ↗&lt;/a&gt;
+        &lt;a href=&quot;https://haydencho.tistory.com&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Tistory ↗&lt;/a&gt;
+        &lt;a href=&quot;https://www.linkedin.com/in/eun-sol-cho-322162331&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;LinkedIn ↗&lt;/a&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;contact-loc&quot;&gt;
+        &lt;span class=&quot;label&quot;&gt;Korea · Local Time&lt;/span&gt;
+        &lt;div class=&quot;time&quot; id=&quot;local-time&quot;&gt;— (GMT+9)&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;footer-bar&quot;&gt;
+      &lt;span&gt;© 2026 Eunsol Cho&lt;/span&gt;
+      &lt;span&gt;Cloud &amp;amp; Infra Engineer&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;script&gt;
+  // Intro typing — 히어로 문구를 한 글자씩 입력한 뒤 페이지 공개
+  (function(){
+    var intro = document.getElementById('intro');
+    if(!intro) return;
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      intro.remove();
+      return;
+    }
+    document.body.classList.add('intro-lock');
+    var hero = document.querySelector('.hero');
+    hero.classList.add('hero-pre');
+
+    var steps = [
+      {el: document.getElementById('intro-l1'), text: 'Hello,', delayAfter: 350},
+      {el: document.getElementById('intro-l2'), text: &quot;I'm Eunsol Cho&quot;, delayAfter: 900}
+    ];
+    var cursor = document.createElement('span');
+    cursor.className = 'type-cursor';
+    var finished = false;
+    var timer = null;
+
+    function finish(){
+      if(finished) return;
+      finished = true;
+      clearTimeout(timer);
+      // 남은 글자를 전부 채우고 종료 (건너뛰기 대응)
+      steps.forEach(function(s){ s.el.textContent = s.text; });
+      cursor.remove();
+      window.removeEventListener('click', finish);
+      window.removeEventListener('keydown', finish);
+      // 1) 인트로 텍스트 먼저 지우고 → 2) 배경 걷어내며 → 3) 히어로 떠오르기
+      intro.classList.add('leaving');
+      setTimeout(function(){
+        intro.classList.add('done');
+        hero.classList.add('hero-enter');
+        document.body.classList.remove('intro-lock');
+        window.dispatchEvent(new Event('intro:done'));
+        intro.addEventListener('transitionend', function(e){
+          if(e.target === intro){ intro.remove(); }
+        });
+      }, 250);
+    }
+
+    function typeStep(stepIdx, charIdx){
+      if(finished) return;
+      var step = steps[stepIdx];
+      if(!step){
+        timer = setTimeout(finish, 400);
+        return;
+      }
+      step.el.appendChild(cursor);
+      if(charIdx &lt; step.text.length){
+        step.el.insertBefore(document.createTextNode(step.text[charIdx]), cursor);
+        timer = setTimeout(function(){ typeStep(stepIdx, charIdx + 1); }, 65);
+      }else{
+        timer = setTimeout(function(){ typeStep(stepIdx + 1, 0); }, step.delayAfter);
+      }
+    }
+
+    // 클릭이나 키 입력으로 건너뛰기
+    window.addEventListener('click', finish);
+    window.addEventListener('keydown', finish);
+    timer = setTimeout(function(){ typeStep(0, 0); }, 400);
+  })();
+
+  // Custom overlay scrollbar — 콘텐츠 위에 떠 있어 공간을 차지하지 않음
+  (function(){
+    var thumb = document.getElementById('scrollbar-thumb');
+    var MIN_H = 40;
+
+    function metrics(){
+      var sh = document.documentElement.scrollHeight;
+      var ch = window.innerHeight;
+      return {sh: sh, ch: ch, h: Math.max(ch * ch / sh, MIN_H)};
+    }
+    function update(){
+      var m = metrics();
+      if(m.sh &lt;= m.ch + 1){ thumb.style.display = 'none'; return; }
+      thumb.style.display = 'block';
+      thumb.style.height = m.h + 'px';
+      thumb.style.top = (m.ch - m.h) * (window.scrollY / (m.sh - m.ch)) + 'px';
+    }
+
+    var dragging = false, startY = 0, startScroll = 0;
+    thumb.addEventListener('pointerdown', function(e){
+      dragging = true;
+      startY = e.clientY;
+      startScroll = window.scrollY;
+      thumb.setPointerCapture(e.pointerId);
+      thumb.classList.add('dragging');
+      e.preventDefault();
+    });
+    window.addEventListener('pointermove', function(e){
+      if(!dragging) return;
+      var m = metrics();
+      var ratio = (m.sh - m.ch) / (m.ch - m.h);
+      // scroll-behavior:smooth를 우회해 드래그를 1:1로 따라오게 함
+      window.scrollTo({top: startScroll + (e.clientY - startY) * ratio, behavior: 'instant'});
+    });
+    window.addEventListener('pointerup', function(){
+      dragging = false;
+      thumb.classList.remove('dragging');
+    });
+
+    window.addEventListener('scroll', update, {passive:true});
+    window.addEventListener('resize', update);
+    update();
+  })();
+
+  // Skills accordion
+  document.querySelectorAll('.skill-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var skill = btn.parentElement;
+      var body = skill.querySelector('.skill-body');
+      var isOpen = skill.classList.contains('open');
+      document.querySelectorAll('.skill.open').forEach(function(s){
+        s.classList.remove('open');
+        s.querySelector('.skill-body').style.maxHeight = null;
+        s.querySelector('.skill-btn').setAttribute('aria-expanded','false');
+      });
+      if(!isOpen){
+        skill.classList.add('open');
+        body.style.maxHeight = body.scrollHeight + 'px';
+        btn.setAttribute('aria-expanded','true');
+      }
+    });
+  });
+
+  // Scroll reveal — 섹션이 뷰포트에 들어오면 서서히 나타남 (히어로 제외)
+  // 인트로가 있는 동안은 관찰을 미뤄서, 오버레이 뒤에서 미리 재생되지 않게 함
+  var revealTargets = document.querySelectorAll('.sec-inner');
+  revealTargets.forEach(function(el){ el.classList.add('reveal'); });
+  function startReveal(){
+    var revealObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, {threshold:0.12});
+    revealTargets.forEach(function(el){ revealObserver.observe(el); });
+  }
+  if(document.getElementById('intro')){
+    window.addEventListener('intro:done', startReveal, {once:true});
+  }else{
+    startReveal();
+  }
+
+  // Local time (GMT+9)
+  function updateTime(){
+    var now = new Date().toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit', hour12:false, timeZone:'Asia/Seoul'});
+    document.getElementById('local-time').textContent = now + ' (GMT+9)';
+  }
+  updateTime();
+  setInterval(updateTime, 30000);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+</code></pre>
+</li>
+<li>login.html<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;Login | Eunsol Cho&lt;/title&gt;
+&lt;link rel=&quot;stylesheet&quot; as=&quot;style&quot; crossorigin href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css&quot;&gt;
+&lt;style&gt;
+  :root{
+    --bg:#e8e8e6; --panel:#f4f4f2; --ink:#111111; --ink-soft:#3a3a3a;
+    --gray:#8a8a88; --line:#c9c9c6;
+    --font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font);
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .card{width:100%;max-width:380px;background:var(--panel);
+    border:1px solid var(--line);padding:44px 36px;}
+  .label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gray);}
+  .card h1{font-size:32px;font-weight:800;letter-spacing:-.02em;margin:12px 0 32px;}
+  .field{margin-bottom:18px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:8px;}
+  .field input{width:100%;padding:12px 14px;font-family:inherit;font-size:14px;
+    border:1px solid var(--line);background:#fff;color:var(--ink);outline:none;transition:border-color .2s;}
+  .field input:focus{border-color:var(--ink);}
+  button{width:100%;margin-top:12px;padding:13px;font-family:inherit;font-size:13px;
+    font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    background:var(--ink);color:var(--panel);border:none;cursor:pointer;transition:opacity .2s;}
+  button:hover{opacity:.8;}
+  .msg{margin-top:16px;font-size:13px;color:#c0392b;text-align:center;min-height:1em;}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;card&quot;&gt;
+    &lt;span class=&quot;label&quot;&gt;Eunsol Cho — Portfolio&lt;/span&gt;
+    &lt;h1&gt;Login&lt;/h1&gt;
+    &lt;form action=&quot;login.jsp&quot; method=&quot;post&quot;&gt;
+      &lt;div class=&quot;field&quot;&gt;
+        &lt;label for=&quot;username&quot;&gt;아이디&lt;/label&gt;
+        &lt;input type=&quot;text&quot; id=&quot;username&quot; name=&quot;username&quot; required autofocus&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;field&quot;&gt;
+        &lt;label for=&quot;password&quot;&gt;비밀번호&lt;/label&gt;
+        &lt;input type=&quot;password&quot; id=&quot;password&quot; name=&quot;password&quot; required&gt;
+      &lt;/div&gt;
+      &lt;button type=&quot;submit&quot;&gt;로그인&lt;/button&gt;
+    &lt;/form&gt;
+    &lt;div class=&quot;msg&quot; id=&quot;msg&quot;&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;script&gt;
+    // 로그인 실패 시 login.jsp가 ?error=1 을 붙여 이 페이지로 리다이렉트
+    if (new URLSearchParams(location.search).get('error') === '1') {
+      document.getElementById('msg').textContent = '아이디 또는 비밀번호가 올바르지 않습니다.';
+    }
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+</code></pre>
+</li>
+</ul>
+</li>
+<li>login.jsp 준비
+<ul>
+<li>login.jsp<pre><code class="language-html">&lt;%@ page contentType=&quot;text/html; charset=UTF-8&quot; %&gt;
+&lt;%@ page import=&quot;java.sql.*&quot; %&gt;
+&lt;%
+    // ─────────────────────────────────────────────
+    //  MariaDB 준비 (사전 1회)
+    //  CREATE DATABASE portfolio;
+    //  CREATE TABLE users (
+    //      username VARCHAR(50) PRIMARY KEY,
+    //      password VARCHAR(255) NOT NULL
+    //  );
+    //  INSERT INTO users VALUES ('admin', '1234');
+    //
+    //  JDBC 드라이버(mariadb-java-client-x.x.x.jar)를
+    //  Tomcat의 WEB-INF/lib 또는 lib 폴더에 넣어야 합니다.
+    // ─────────────────────────────────────────────
+
+    request.setCharacterEncoding(&quot;UTF-8&quot;);
+    String username = request.getParameter(&quot;username&quot;);
+    String password = request.getParameter(&quot;password&quot;);
+
+    String url  = &quot;jdbc:mariadb://**172.17.0.4:**3306/portfolio&quot;;
+    String dbId = &quot;solcho&quot;;       // 실제 DB 계정으로 변경
+    String dbPw = &quot;1234&quot;;    // 실제 DB 비밀번호로 변경
+
+    boolean loginOk = false;
+
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+
+    try {
+        Class.forName(&quot;org.mariadb.jdbc.Driver&quot;);
+        conn = DriverManager.getConnection(url, dbId, dbPw);
+
+        pstmt = conn.prepareStatement(
+            &quot;SELECT username FROM users WHERE username = ? AND password = ?&quot;);
+        pstmt.setString(1, username);
+        pstmt.setString(2, password);
+
+        rs = pstmt.executeQuery();
+        loginOk = rs.next();   // 일치하는 행이 있으면 true
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        if (rs != null)    try { rs.close(); }    catch (Exception e) {}
+        if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+        if (conn != null)  try { conn.close(); }  catch (Exception e) {}
+    }
+
+    if (loginOk) {
+        session.setAttribute(&quot;username&quot;, username);
+        response.sendRedirect(&quot;portfolio.html&quot;);   // 로그인 성공 → 포트폴리오
+    } else {
+        response.sendRedirect(&quot;login.html?error=1&quot;);
+    }
+%&gt;
+</code></pre>
+</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>현재 디렉토리의 ROOT 내부에 모든 파일이 존재해야 한다
+(근데 로컬에서 만드는게 아니라 마운트 과정에서 디렉토리를 생성해도 된다)</p>
+<ul>
+<li>
+<p>파일 구조</p>
+<pre><code class="language-bash">./
+├── db
+│   └── data
+├── was
+│   ├── data
+│   │   └── &lt;strong&gt;ROOT&lt;/strong&gt;
+│   │       ├── login.html
+│   │       ├── login.jsp
+│   │       └── portfolio.html
+│   └── &lt;strong&gt;mariadb-java-client-3.3.3.jar&lt;/strong&gt;
+└── web
+    ├── conf
+    │   └── &lt;strong&gt;default.conf&lt;/strong&gt;
+    └── data
+</code></pre>
+</li>
+</ul>
+</blockquote>
+</li>
+<li>tomcat 컨테이너 실행
+<ul>
+<li><code>docker run -d --name was-sv -p 8080:8080 -v /mnt/c/study/docker/3tier-server/was/data:/usr/local/tomcat/webapps:ro tomcat</code>
+<ul>
+<li><code>/mnt/c/study/docker/3tier-server/was/data:/usr/local/tomcat/webapps**:ROOT**:ro</code>
+<ul>
+<li>위와 같이 마운트 과정에서 ROOT를 만들어도 된다</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>jar 파일 준비
+<ul>
+<li>다운로드 링크: <a href="https://repo1.maven.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.5.9/">https://repo1.maven.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.5.9/</a></li>
+</ul>
+<pre><code class="language-bash"># WSL 호스트에서 (컨테이너 밖)
+wget https://repo1.maven.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.5.9/mariadb-java-client-3.5.9.jar
+
+# 컨테이너 lib으로 복사 (was-sb = Tomcat 컨테이너 이름)
+docker cp mariadb-java-client-3.5.9.jar was-sv:/usr/local/tomcat/lib/
+
+# 드라이버 로드하려면 재시작 필요
+docker restart was-sv
+</code></pre>
+</li>
+</ol>
+<h4>mariaDB-DB 서버</h4>
+<ol>
+<li>DB 컨테이너 생성<pre><code class="language-bash">docker run -d --name db-sv \
+-e MARIADB_USER=solcho \
+-e MARIADB_PASSWORD=1234 \
+-e MARIADB_DATABASE=portfolio \
+-e MARIADB_ROOT_PASSWORD=1234 \
+-p 3306:3306 \
+-v /mnt/c/study/docker/3tier-server/db/data:/var/lib/mysql:Z \
+mariadb:latest
+</code></pre>
+</li>
+<li>DB 접속
+<ul>
+<li><code>mysql -u solcho -p -h 127.0.0.1</code></li>
+</ul>
+</li>
+<li>DB 테이블 생성 및 데이터 삽입<pre><code class="language-bash">CREATE DATABASE IF NOT EXISTS portfolio;
+CREATE TABLE users (
+    username VARCHAR(50) PRIMARY KEY,
+    password VARCHAR(255) NOT NULL
+);
+INSERT INTO users VALUES ('admin', '1234');
+</code></pre>
+</li>
+<li>(was 컨테이너와 db 컨테이너: 같은 네트워크 설정)<pre><code class="language-bash">docker network create app-net
+docker network connect app-net was-sv
+docker network connect app-net db-sv
+</code></pre>
+<ul>
+<li>jsp 파일에서 DB IP주소로 접속하지 않고 이름으로 접속할 때 설정</li>
+<li>그냥 IP 주소로 지정하면 생략해도 됨</li>
+</ul>
+</li>
+</ol>
+<h4>도커 배포</h4>
+<ol>
+<li>run.sh 작성<pre><code class="language-bash">#!/usr/bin/bash
+
+#웹서버 컨테이너
+docker run -d --name web-sv -p 80:80 -v ./web/conf:/etc/nginx/conf.d/:ro nginx
+
+#was 서버 컨테이너
+docker run -d --name was-sv -p 8080:8080 -v ./was/data:/usr/local/tomcat/webapps:ro tomcat
+
+#was 할당 IP 확인 후, 웹서버 proxy_pass 수정
+docker container inspect was-sv | grep &quot;IPAddress&quot;
+
+#vi ./web/conf/default.conf
+#proxy_pass http://172.17.0.3:8080;
+
+# nginx 재구동
+docker restart web-sv
+
+# WSL 호스트에서 (컨테이너 밖)
+wget https://repo1.maven.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.5.9/mariadb-java-client-3.5.9.jar
+
+# 컨테이너 lib으로 복사 (was-sb = Tomcat 컨테이너 이름)
+docker cp mariadb-java-client-3.5.9.jar was-sv:/usr/local/tomcat/lib/
+
+# 드라이버 로드하려면 재시작 필요
+docker restart was-sv
+
+#mariadb 컨테이너 구동
+docker run --d --name db-sv \
+-e MARIADB_USER=solcho \
+-e MARIADB_PASSWORD=1234 \
+-e MARIADB_DATABASE=portfolio \
+-e MARIADB_ROOT_PASSWORD=1234 \
+-p 3306:3306 \
+mariadb:latest
+
+echo &quot;DB 테이블 생성 및 데이터 삽입: ./db/data/init.sql&quot;
+echo &quot;DB 접속: mysql -u solcho -p -h 127.0.0.1&quot;
+</code></pre>
+</li>
+<li>컨테이너 중지 후 디렉토리 압축</li>
+</ol>
+<h3>미션) sql game을 도커로 구동하라</h3>
+<ul>
+<li>docker.yaml<pre><code class="language-bash">services:
+
+  mariadb:
+    image: mariadb:10.11
+    container_name: sqlgame_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: sqlgame1234
+      MYSQL_DATABASE: kcloud_db
+      TZ: Asia/Seoul
+    volumes:
+      - ./mariadb:/var/lib/mysql
+      - ./db/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./db/02_seed_data.sql:/docker-entrypoint-initdb.d/02_seed_data.sql:ro
+    healthcheck:
+      test: [&quot;CMD&quot;, &quot;mysqladmin&quot;, &quot;ping&quot;, &quot;-h&quot;, &quot;127.0.0.1&quot;, &quot;-u&quot;, &quot;root&quot;, &quot;-psqlgame1234&quot;]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  game:
+    build: .
+    container_name: sqlgame_app
+    restart: unless-stopped
+    # 7681은 내부 전용 — nginx가 프록시하므로 외부 노출 불필요
+    expose:
+      - &quot;7681&quot;
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: sqlgame1234
+      DB_NAME: kcloud_db
+    volumes:
+      - ./saves:/app/saves
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  web:
+    image: nginx:alpine
+    container_name: sqlgame_web
+    restart: unless-stopped
+    ports:
+      - &quot;80:80&quot;              # 랜딩페이지 포트
+    volumes:
+      - ./web:/usr/share/nginx/html:ro
+      - ./web/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - game
+</code></pre>
+</li>
+</ul>
+<h4>run.sh</h4>
+<pre><code class="language-bash"># =====================
+# sqlgame 디렉토리에서 실행
+# 개인정보는 알아서 수정
+# =====================
+
+# 1. 네트워크 생성
+docker network create app-net
+
+# 2. db 컨테이너 생성
+docker run -d --name sqlgame_db --network app-net \
+-e MARIADB_USER=solcho \
+-e MARIADB_PASSWORD=1234 \
+-e MARIADB_DATABASE=kcloud_db \
+-e MARIADB_ROOT_PASSWORD=1234 \
+-p 3306:3306 \
+mariadb:latest
+
+# 3. app 이미지 빌드(뭔지 모르겠음)
+docker build -t sqlgame_app .
+
+# 4. app 컨테이너 생성
+docker run -d --name sqlgame_app --network app-net \
+-e DB_HOST=sqlgame_db \
+-e DB_USER=solcho \
+-e DB_PASSWORD=1234 \
+-e DB_NAME=kcloud_db \
+-v &quot;$(pwd)/saves:/app/saves&quot; \
+sqlgame_app
+
+# 5. web 컨테이너 생성
+docker run -d --name sqlgame_web --network app-net -p 80:80 \
+-v &quot;$(pwd)/web:/usr/share/nginx/html:ro&quot; \
+-v &quot;$(pwd)/web/nginx.conf:/etc/nginx/conf.d/default.conf:ro&quot; \
+nginx:alpine
+
+echo &quot;./web/nginx.conf 설정 파일에서 프록시 패스 설정&quot;
+echo &quot;proxy_pass http://sqlgame_app:7681/;&quot;
+echo &quot;설정 후 docker restart sqlgame_web&quot;
+</code></pre>
+<h3>미션) sql-server (백엔드 서버)를 Dockerfile을 통해 만들어라</h3>
+<pre><code class="language-bash">from  python:latest
+label maintainer=&quot;solcho&quot;
+run   apt-get update &amp;&amp; apt install -y pip \
+      &amp;&amp; pip install mysql-connector-python \
+      &amp;&amp; pip install python-dotenv \
+      &amp;&amp; pip install rich
+
+# 미리 ttyd를 다운받기
+COPY  ./data/ttyd /usr/local/bin/ttyd
+RUN   chmod 755 /usr/local/bin/ttyd
+
+# 소스 파일 복제
+COPY ./data/ /usr/src/app/
+
+# 포트번호
+EXPOSE 7681
+
+CMD   [&quot;python&quot;, &quot;/usr/src/app/run_with_ttyd.sh&quot;]
+</code></pre>
+<h3>미션) 운영체제 쉘 사용(체험) 페이지 제작</h3>
+<h4>프롬프트</h4>
+<pre><code class="language-bash">## 개요
+- 다섯 개의 운영체제를 웹 사이트를 통해서 접근할 수 있도록 한다.
+- 버튼을 클릭하면 해당 운영체제가 새창으로 떠서 터미널로 접근한다
+
+## 컨테이너
+- Nginx
+- ttyd 서버
+- 운영체제 컨테이너(5개의 운영체제 각각 실행)
+    - 우분투 24.04
+    - 우분투 26.04
+    - 로키리눅스 8.9
+    - 로키리눅스 9.3
+    - 칼리리눅스 최종버전
+
+## 페이지 설명
+- login.html
+    - 아무나 나의 운영체제에 접근하면 안 되니까 운영체제 선택 전에 로그인을 하도록 한다(아이디: solcho, 비밀번호: dkaghdkagh)
+- index.html
+    - 5개의 운영체제에 해당하는 버튼을 생성하고 클릭하면 쉘 사용이 가능한 창을 띄우도록 한다
+    - 버튼에 간단한 디자인과 애니메이션을 넣는다(서비스이기 때문에 어느정도 CSS를 작성한다)
+- 쉘 사용
+    - 쉘 사용하다가 exit를 입력하면 사용 창이 삭제된다(다시 선택 창만 남도록)
+
+## 요구사항
+### 
+- Docker 실습을 위한 프로젝트이다.
+- Docker Compose를 이용하여 코드를 작성한다
+- `docker compose up` 시키면 모든 서비스가 준비될 수 있도록 구성한다
+- 아이디, 비밀번호 등 중요 정보는 .env 파일로 따로 관리하고 .env_exam으로 예시 코드를 넣어놓는다(도커 배포시에는 .env 파일 제외한다)
+- 실습 중이라 코드는 내가 작성할거니까 일단 방향만 제시하라
+</code></pre>
+<h4>파일 구조</h4>
+<pre><code class="language-bash">project/
+├─ docker-compose.yml
+├─ .env            # 실제 비밀값, .gitignore 처리
+├─ .env_exam       # 예시값 (커밋 대상)
+├─ .gitignore
+├─ nginx/
+│  ├─ default.conf # 정적파일 + 웹소켓 프록시
+│  └─ html/{login.html, index.html, term.html}
+├─ ttyd/           # 패턴 B일 때
+│  ├─ Dockerfile
+│  └─ start.sh     # OS별 ttyd 인스턴스 5개 기동
+└─ os/
+   ├─ ubuntu2404/Dockerfile
+   ├─ ubuntu2604/Dockerfile
+   ├─ rocky89/Dockerfile
+   ├─ rocky93/Dockerfile
+   └─ kali/Dockerfile
+</code></pre>
+<h4>docker compose up -d</h4>
+<p><img src="/assets/imgs/notes/docker-practice/12-1cf2ce8f-7184-4455-9495-c99dac27fd03.png" alt="{1CF2CE8F-7184-4455-9495-C99DAC27FD03}.png" loading="lazy"></p>
+<p><img src="/assets/imgs/notes/docker-practice/13-ad376bcb-9f42-4b03-bc51-422b4e181055.png" alt="{AD376BCB-9F42-4B03-BC51-422B4E181055}.png" loading="lazy"></p>

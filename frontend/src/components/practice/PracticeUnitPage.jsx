@@ -55,7 +55,8 @@ export default function PracticeUnitPage({ unit }) {
       <Link to="/" className="text-sm text-secondary hover:text-primary">
         ← 로드맵
       </Link>
-      <h1 className="mt-2 text-2xl font-extrabold text-dark">{unit.name} 실습</h1>
+      {/* unit.name 이 이미 "…(실습)" 이므로 뒤에 "실습"을 덧붙이지 않는다. */}
+      <h1 className="mt-2 text-2xl font-extrabold text-dark">{unit.name}</h1>
     </div>
   );
 
@@ -68,7 +69,13 @@ export default function PracticeUnitPage({ unit }) {
         <p className="py-16 text-center text-red-500">미션을 불러오지 못했습니다.</p>
       )}
 
+      {/* 미션이 아직 없는 실습 단원: 실습 노트를 블로그 형식으로 전체 렌더링 */}
+      {status === 'done' && missions.length === 0 && (
+        <PracticeNoteSection unit={unit} showHeading={false} />
+      )}
+
       {status === 'done' &&
+        missions.length > 0 &&
         (selected ? (
           <div>
             <MissionDetailDispatcher

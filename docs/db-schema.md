@@ -38,15 +38,34 @@
 | sort_order | INT | 로드맵 표시 순서 |
 | created_at | DATETIME | |
 
-### content (일반 학습 본문)
+### content (학습 본문 묶음)
 
 | 컬럼 | 타입 | 설명 |
 |---|---|---|
 | id | BIGINT PK | |
-| unit_id | BIGINT FK → unit.id | type='GENERAL' 단원에 연결 |
-| title | VARCHAR(200) | |
-| body | LONGTEXT | 관리자 WYSIWYG 에디터로 작성된 HTML (저장 전 sanitize) |
+| unit_id | BIGINT FK → unit.id | 단원에 연결(GENERAL·PRACTICE 공통) |
+| title | VARCHAR(200) | 단원 학습 본문의 제목 |
 | created_at / updated_at | DATETIME | |
+
+> **8단계 개선**: 기존 `body`(통짜 HTML) 컬럼을 제거하고, 실제 본문은 `content_chapter`(챕터)로 분리했습니다.
+> `content` 는 단원당 1행으로 제목만 갖고, 챕터들이 이 content 를 참조합니다.
+
+### content_chapter (학습 본문 챕터)
+
+| 컬럼 | 타입 | 설명 |
+|---|---|---|
+| id | BIGINT PK | |
+| content_id | BIGINT FK → content.id | |
+| title | VARCHAR(300) | 챕터 제목(원본 HTML 의 섹션 헤딩 텍스트) |
+| body | LONGTEXT | 챕터 본문 HTML (렌더링 전 sanitize) |
+| sort_order | INT | 챕터 순서(1부터) |
+| created_at / updated_at | DATETIME | |
+
+`DataInitializer`(`ContentDataInitializer`)가 `resources/content/{code}.html` 파일을 기동 시 파싱해 챕터로 만듭니다.
+분리 기준은 "파일에서 실제 섹션을 구분하는 최상위 헤딩 레벨"입니다: 파일에 `<h2>`가 2개 이상이면 h2 로,
+아니면(대부분의 이론 단원처럼 `<h2>`는 제목 1개뿐이고 섹션이 `<h3>`인 경우) `<h3>`로 나눕니다.
+각 챕터 본문은 헤딩을 h2 기준으로 승격해(예: h3→h2, h4→h3) `h2(챕터 제목)+h3(하위 섹션)`으로 통일합니다.
+파일 내용이 바뀌면(제목/본문/개수 비교) 해당 content 의 챕터를 전부 지우고 다시 만듭니다(idempotent).
 
 ### blank_question (빈칸 채우기 문제)
 
@@ -74,19 +93,21 @@
 | xp_reward | INT DEFAULT 100 | |
 | sort_order | INT | |
 
-### progress (일반 학습 진도 — 스크롤 기반)
+### chapter_progress (챕터 열람 진도)
 
 | 컬럼 | 타입 | 설명 |
 |---|---|---|
 | id | BIGINT PK | |
 | user_id | BIGINT FK → user.id | |
-| unit_id | BIGINT FK → unit.id | type='GENERAL' 단원 |
-| scroll_percent | TINYINT DEFAULT 0 | 0~100 |
-| completed | BOOLEAN DEFAULT FALSE | scroll_percent ≥ 90이면 TRUE |
-| completed_at | DATETIME NULL | |
-| updated_at | DATETIME | |
+| chapter_id | BIGINT FK → content_chapter.id | |
+| visited_at | DATETIME | 최초 방문 시각 |
 
-UNIQUE(user_id, unit_id)
+UNIQUE(user_id, chapter_id)
+
+> **8단계 개선**: 스크롤 기반 `progress` 테이블을 제거하고 `chapter_progress` 로 대체했습니다.
+> 사용자가 챕터를 열람하면 1행이 생기고(중복 방문은 무시), 단원 진도는 저장된 퍼센트 없이
+> "방문한 챕터 수 / 전체 챕터 수 × 100" 으로 조회 시점에 계산합니다.
+> 챕터 신규 방문 시 `activity_log`(잔디)도 함께 갱신합니다.
 
 ### blank_answer (사용자별 빈칸 답안 상태)
 
@@ -159,8 +180,10 @@ UNIQUE(user_id, activity_date). progress/blank_answer/mission_progress 갱신 �
 ## 관계 요약
 
 ```
-user 1─N progress, blank_answer, mission_progress, activity_log, community_post, community_comment, service_like
-unit 1─N content, blank_question, practice_mission, progress
+user 1─N chapter_progress, blank_answer, mission_progress, activity_log, community_post, community_comment, service_like
+unit 1─N content, blank_question, practice_mission
+content 1─N content_chapter
+content_chapter 1─N chapter_progress
 community_post 1─N community_comment
 community_comment 1─N community_comment (self, parent_comment_id로 답글)
 ```
@@ -172,6 +195,21 @@ community_comment 1─N community_comment (self, parent_comment_id로 답글)
 - `progress.scroll_percent` 는 뒤로 가지 않도록 갱신 시 **기존값과의 최댓값**을 유지하고, 90 이상이면 `completed=true` + `completed_at` 을 기록합니다.
 - `blank_answer` 정답 비교는 앞뒤 공백/대소문자를 무시합니다. 재제출 시 `attempts` 를 증가시킵니다. 빈칸 목록 조회 API 는 치팅 방지를 위해 정답(`answer`)을 내려주지 않고, 채점 응답에서만 정답을 노출합니다.
 - 엔티티는 FK를 JPA 연관관계 대신 `*_id` 컬럼(Long)으로 단순 매핑했습니다(1인 개발 규모에 맞춘 단순화).
+
+## 구현 메모 (8단계 반영 — 학습 콘텐츠 챕터 분리 + 진도 방식 변경)
+
+- **content.body 제거 → content_chapter 신설**: 통짜 HTML 을 챕터로 나눠 블로그 글처럼 보여준다. `content` 는 단원당 1행(제목만), 챕터가 본문을 갖는다.
+- **분리 로직(ContentDataInitializer)**: 파일을 잘라 새로 만들지 않고, 기존 `resources/content/*.html` 을 기동 시 파싱한다. 최상위 섹션 헤딩 레벨을 자동 판별(h2 ≥ 2개면 h2, 아니면 h3)해 나눈다. **지시는 "h2 기준"이었으나 이론(GENERAL) 파일 대부분이 h2 는 제목 1개뿐이고 섹션이 h3 라서, h2 로만 나누면 단원당 챕터 1개가 되어 분리 의미가 없다.** 그래서 h2 가 여러 개인 파일은 h2 로(지시대로), 그렇지 않은 파일은 h3 로 나누는 적응형 방식으로 구현했다(사용자 검토 요망). idempotent 갱신(파일↔DB 챕터 diff 후 다르면 재생성)은 유지.
+- **progress(스크롤) 제거 → chapter_progress**: 진도 = 방문 챕터/전체 챕터. `GET /api/v1/progress` 의 `generalPercent` 계산만 바뀌고 응답 shape(대시보드 소비)은 그대로 유지했다. 스크롤 저장 API(`PATCH /units/{code}/progress`)와 본문 조회 API(`GET /units/{code}/content`)는 제거했다.
+- **⚠️ 스키마 마이그레이션**: `spring.jpa.hibernate.ddl-auto=update` 는 컬럼/테이블을 **드롭하지 않는다**. 따라서 기존 DB 에는 `content.body`(NOT NULL) 컬럼과 `progress` 테이블이 잔존해, `body` 없이 INSERT 하면 실패한다. 개발/배포(포트폴리오) 규모라 **DB 볼륨을 새로 만들어(fresh)** 엔티티 기준으로 재생성하는 것으로 처리한다(초기 시드가 모두 재수행됨). 운영에서 데이터 보존이 필요하면 수동 `ALTER TABLE content DROP COLUMN body; DROP TABLE progress;` 후 챕터 재시드.
+
+## 구현 메모 (8단계 반영 — 실습 단원 노트 + 이미지)
+
+- **7개 PRACTICE 단원에 `content` 시드**: `ContentDataInitializer` SEEDS 에 `linux-practice`·`shell-practice`·`server-build-practice`·`python-practice`·`database-practice`·`docker-practice`·`k8s-practice` 를 추가했습니다. `content` 테이블은 GENERAL 전용 제약이 없어 PRACTICE `unit_id` 에도 그대로 연결됩니다(스키마 변경 없음). 조회는 기존 `GET /api/v1/units/{code}/content` 를 그대로 사용합니다.
+- 본문 HTML 은 GENERAL 과 동일하게 `backend/src/main/resources/content/{code}.html` 파일 기반입니다. `linux-practice`·`shell-practice` 는 기존 파일을 재사용하고, 나머지 5개는 `notes/`의 노션 노트를 markdown→HTML 로 변환해 새로 생성했습니다.
+- **K8s 실습 주의**: 전용 실습 노트가 없어 GENERAL `k8s` 와 동일한 "쿠버네티스 실무"(`notes/11.k8s`) 노트를 `k8s-practice` 에도 사용했습니다(내용 중복). 별도 K8s 실습 노트가 확보되면 교체 대상 — 사용자 검토 필요.
+- **이미지**: GENERAL 7개(cloud-intro·linux·shell·python·docker·security·k8s)와 PRACTICE 7개 노트의 이미지를 `frontend/public/assets/imgs/notes/{code}/` 로 복사하고 본문 `<img src>` 를 이 웹 경로로 연결(총 318장). AWS·네트워크 GENERAL 은 노트 이미지가 각각 214·75장으로 과다해 이번엔 반영하지 않았습니다(사용자 검토 대상). `.gitignore` 의 `notes/` 패턴이 이 public 자산까지 무시하던 문제를 루트 앵커(`/notes/`)로 수정했습니다.
+- **개인정보 검토 필요**: 서버 구축·데이터베이스 실습 노트 스크린샷에는 사설 IP·계정명·세션 정보 등이 노출될 수 있습니다. 지시대로 임의로 가리지 않고 원본을 유지했으니, 공개 배포 전 사용자 검토가 필요합니다.
 
 ## 구현 메모 (7단계 4/4 반영 — GENERAL 학습 콘텐츠 전체 채우기, 이후 보정)
 

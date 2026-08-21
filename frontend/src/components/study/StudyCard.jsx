@@ -14,8 +14,15 @@ export default function StudyCard({ unit }) {
   let info;
   let pending = false;
   if (isPractice) {
-    info = unit.missionCount > 0 ? `실습 미션 ${unit.missionCount}개` : '실습 준비 중';
-    pending = unit.missionCount === 0;
+    // 미션이 있으면 미션 개수, 없어도 실습 노트가 있으므로 "노트"로 안내한다(준비 중/흐림 제거).
+    if (unit.missionCount > 0) {
+      info = `실습 미션 ${unit.missionCount}개`;
+    } else if (unit.hasContent) {
+      info = '실습 노트';
+    } else {
+      info = '실습 준비 중';
+      pending = true;
+    }
   } else {
     const parts = [];
     if (unit.hasContent) parts.push('학습 콘텐츠');
@@ -26,10 +33,12 @@ export default function StudyCard({ unit }) {
 
   const ringColor = isPractice ? 'border-secondary' : 'border-primary';
   const initial = unit.name?.trim().charAt(0) ?? '?';
+  // GENERAL 은 챕터 인덱스(/study/:code), PRACTICE 는 실습 페이지(/units/:code).
+  const target = isPractice ? `/units/${unit.code}` : `/study/${unit.code}`;
 
   return (
     <Link
-      to={`/units/${unit.code}`}
+      to={target}
       className={`flex items-center gap-4 rounded-2xl border bg-white p-4 shadow-sm transition
                   hover:-translate-y-0.5 hover:shadow-md ${
                     pending ? 'border-slate-200 opacity-70' : 'border-slate-200 hover:border-primary'

@@ -18,42 +18,42 @@
   <li>데스크탑 버전 다운로드</li>
   <li>가장 최신 버전은 문제가 생길 수 있음 → 안정화된 가장 최근 버전을 다운로드 (LTS는 AS 개념 → 문제가 발생하면 지원해주겠다는 뜻)</li>
   <li>기종별 다운로드
-    <!-- image omitted: image.png (기종별 다운로드 옵션) -->
+    <img src="/assets/imgs/notes/linux-practice/01-image.png" alt="기종별 다운로드 옵션" loading="lazy">
     <ul>
       <li><strong>Intel or AMD 64-bit architecture</strong>: 일반 컴퓨터</li>
       <li><strong>ARM 64-bit architecture</strong>: ARM 보드 사용 기기</li>
     </ul>
   </li>
 </ul>
-<!-- image omitted: image%201.png (설치 버전 선택) -->
+<img src="/assets/imgs/notes/linux-practice/02-image-1.png" alt="설치 버전 선택" loading="lazy">
 
 <h3>가상 머신 만들기 (리눅스 운영체제 VM 생성하기)</h3>
 
-<!-- image omitted: image%202.png -->
-<!-- image omitted: image%203.png (VM 생성 단계 1) -->
-<!-- image omitted: image%204.png (VM 생성 단계 3) -->
-<!-- image omitted: image%205.png (VM 생성 단계 5: 100gb를 여러 개 파일로 쪼개서 저장하는 옵션이 더 유용함) -->
-<!-- image omitted: image%206.png (VM 생성 단계 2) -->
-<!-- image omitted: image%207.png (VM 생성 단계 4) -->
-<!-- image omitted: image%208.png (VM 생성 단계 6) -->
-<!-- image omitted: image%209.png (생성된 VM 화면: Edit virtual machine settings 클릭해서 셋팅 열기) -->
-<!-- image omitted: image%2010.png (설치한 우분투를 연동: 다운로드한 우분투 파일 열기) -->
-<!-- image omitted: image%2011.png (VM 화면의 Power on this virtual machine 클릭해서 가상 머신 실행, 알림 끄기) -->
+<img src="/assets/imgs/notes/linux-practice/03-image-2.png" alt="" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/04-image-3.png" alt="VM 생성 단계 1" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/05-image-4.png" alt="VM 생성 단계 3" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/06-image-5.png" alt="VM 생성 단계 5: 100gb를 여러 개 파일로 쪼개서 저장하는 옵션이 더 유용함" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/07-image-6.png" alt="VM 생성 단계 2" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/08-image-7.png" alt="VM 생성 단계 4" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/09-image-8.png" alt="VM 생성 단계 6" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/10-image-9.png" alt="생성된 VM 화면: Edit virtual machine settings 클릭해서 셋팅 열기" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/11-image-10.png" alt="설치한 우분투를 연동: 다운로드한 우분투 파일 열기" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/12-image-11.png" alt="VM 화면의 Power on this virtual machine 클릭해서 가상 머신 실행, 알림 끄기" loading="lazy">
 
 <p><strong>Ctrl + Alt로 운영체제 왔다갔다</strong> (VM 실행하면 마우스가 사라짐)</p>
 
-<!-- image omitted: image%2012.png (Download ubuntu에 커서가 있는 채로 엔터를 클릭하면 로딩 시작) -->
-<!-- image omitted: image%2013.png (로딩이 완료되면 언어 선택 창이 뜬다) -->
-<!-- image omitted: image%2014.png -->
-<!-- image omitted: image%2015.png -->
-<!-- image omitted: image%2016.png -->
-<!-- image omitted: image%2017.png (sda 설명 화면) -->
+<img src="/assets/imgs/notes/linux-practice/13-image-12.png" alt="Download ubuntu에 커서가 있는 채로 엔터를 클릭하면 로딩 시작" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/14-image-13.png" alt="로딩이 완료되면 언어 선택 창이 뜬다" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/15-image-14.png" alt="" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/16-image-15.png" alt="" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/17-image-16.png" alt="" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/18-image-17.png" alt="sda 설명 화면" loading="lazy">
 
 <p><code>sda</code> → <code>sd</code> + 알파벳(처음이라 a, 다음은 b …). 리눅스 및 유닉스 계열 운영체제에서 첫 번째로 인식된 하드디스크나 SSD 같은 저장 장치(드라이브)를 가리키는 경로명이다.</p>
 
-<!-- image omitted: image%2018.png (설치 완료. 설정에서 CD/DVD > Device status 옵션 전부 끄기, 설치가 끝나서 더이상 연결할 필요 없으니까) -->
-<!-- image omitted: image%2019.png (설치가 끝나면 위와 같이 설정을 바꿔야 함) -->
-<!-- image omitted: image%2020.png (맨 위의 파일은 4기가(VMware 사이즈를 4기가로 했음), vmdk 파일들은 100기가를 여러 개의 vmdk 파일로 나눠서 저장 ⇒ 여기저기 저장한 건 커널의 몫) -->
+<img src="/assets/imgs/notes/linux-practice/19-image-18.png" alt="설치 완료. 설정에서 CD/DVD > Device status 옵션 전부 끄기, 설치가 끝나서 더이상 연결할 필요 없으니까" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/20-image-19.png" alt="설치가 끝나면 위와 같이 설정을 바꿔야 함" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/21-image-20.png" alt="맨 위의 파일은 4기가(VMware 사이즈를 4기가로 했음), vmdk 파일들은 100기가를 여러 개의 vmdk 파일로 나눠서 저장 ⇒ 여기저기 저장한 건 커널의 몫" loading="lazy">
 
 <p>런레벨 변경: GUI → CLI</p>
 
@@ -94,7 +94,7 @@ exit</code></pre>
   <li>중간에 모든 패키지를 다운받겠냐고 물어봄 → <code>-y</code>를 붙여서 실행하면 안 물어봄</li>
 </ul>
 
-<!-- image omitted: image%2021.png (VMware 종료 옵션 화면) -->
+<img src="/assets/imgs/notes/linux-practice/22-image-21.png" alt="VMware 종료 옵션 화면" loading="lazy">
 
 <ul>
   <li><strong>Power Off</strong>: 강제종료</li>
@@ -116,7 +116,7 @@ exit</code></pre>
     </ul>
   </li>
   <li>클로드에 페이지 코드 작성 요청
-    <!-- image omitted: image%2022.png (클로드가 미리보기와 함께 파일 제공) -->
+    <img src="/assets/imgs/notes/linux-practice/23-image-22.png" alt="클로드가 미리보기와 함께 파일 제공" loading="lazy">
     <ul>
       <li>위와 같이 미리보기와 함께 파일 제공</li>
       <li>다운로드 받아서 윈도우 → 원격 서버로 파일 이동 ("다운로드"에서 터미널 열기)
@@ -140,7 +140,7 @@ grep " 22$" -r /etc/</code></pre>
     <p>→ <code>$</code>는 문자열의 끝을 의미 ⇒ 22로 끝나는 단어 탐색</p>
   </li>
   <li><code>/etc/ssh/sshd_config</code>에서 포트번호 수정하기
-    <!-- image omitted: image%2023.png (sshd_config에서 Port 주석 해제 후 2222로 설정) -->
+    <img src="/assets/imgs/notes/linux-practice/24-image-23.png" alt="sshd_config에서 Port 주석 해제 후 2222로 설정" loading="lazy">
     <ul>
       <li>원래는 port 설정이 주석 처리되어 있었음 → 기본값이 22</li>
       <li>주석을 풀고 2222로 설정</li>
@@ -159,7 +159,7 @@ sudo systemctl disable ufw  # 보안 공부 전까지는 재부팅해도 꺼놓�
     <ul>
       <li>restart도 상관없음</li>
       <li>결과
-        <!-- image omitted: image%2024.png (ssh reload 결과) -->
+        <img src="/assets/imgs/notes/linux-practice/25-image-24.png" alt="ssh reload 결과" loading="lazy">
       </li>
     </ul>
   </li>
@@ -169,7 +169,7 @@ sudo systemctl disable ufw  # 보안 공부 전까지는 재부팅해도 꺼놓�
 
 <pre><code>ssh [사용자명]@[ip주소] -p 2222</code></pre>
 
-<!-- image omitted: image%2025.png (변경된 포트로 접속 설정 화면) -->
+<img src="/assets/imgs/notes/linux-practice/26-image-25.png" alt="변경된 포트로 접속 설정 화면" loading="lazy">
 
 <h3>nginx 포트번호를 80에서 8080으로 변경하기</h3>
 
@@ -178,15 +178,15 @@ sudo systemctl disable ufw  # 보안 공부 전까지는 재부팅해도 꺼놓�
   <li>설정 파일 찾기
     <pre><code>grep -r "80" /etc/nginx
 grep "80" -r /etc/ | grep "nginx" | grep -v "#"</code></pre>
-    <!-- image omitted: image%2026.png (grep 결과) -->
+    <img src="/assets/imgs/notes/linux-practice/27-image-26.png" alt="grep 결과" loading="lazy">
     <ul>
       <li><code>/etc/nginx/sites-available/default</code> 내부에 포트번호인 80이 있는 것을 확인</li>
       <li>80도 80이지만 <strong>listen 80</strong>인 게 알아볼 수 있었던 이유!</li>
     </ul>
   </li>
   <li>설정 파일 변경
-    <!-- image omitted: image%2027.png (강사님 설명대로 주석처리) -->
-    <!-- image omitted: image%2028.png (아래는 주석 처리를 하라는데 안해도 문제는 없었음) -->
+    <img src="/assets/imgs/notes/linux-practice/28-image-27.png" alt="강사님 설명대로 주석처리" loading="lazy">
+    <img src="/assets/imgs/notes/linux-practice/29-image-28.png" alt="아래는 주석 처리를 하라는데 안해도 문제는 없었음" loading="lazy">
     <ul>
       <li><code>/etc/nginx/sites-available/default</code></li>
       <li>포트번호가 80으로 설정되어 있음 → 8080로 설정</li>
@@ -194,7 +194,7 @@ grep "80" -r /etc/ | grep "nginx" | grep -v "#"</code></pre>
   </li>
   <li>서버 reload
     <pre><code>systemctl reload nginx</code></pre>
-    <!-- image omitted: image%2029.png (reload 결과) -->
+    <img src="/assets/imgs/notes/linux-practice/30-image-29.png" alt="reload 결과" loading="lazy">
   </li>
   <li>웹 페이지 접속
     <ul>
@@ -208,14 +208,14 @@ grep "80" -r /etc/ | grep "nginx" | grep -v "#"</code></pre>
 
 <ol>
   <li>VMware Network Adapter 변경
-    <!-- image omitted: image%2030.png (NAT에서 Bridged로 변경) -->
+    <img src="/assets/imgs/notes/linux-practice/31-image-30.png" alt="NAT에서 Bridged로 변경" loading="lazy">
     <ul>
       <li>NAT에서 Bridged로 변경</li>
       <li>Bridged: 실제 공유기에 직접 연결 (NAT는 컴퓨터를 공유기로 사용)</li>
     </ul>
   </li>
   <li>네트워크 인터페이스(NIC) 재부팅
-    <!-- image omitted: image%2031.png (ifconfig 결과) -->
+    <img src="/assets/imgs/notes/linux-practice/32-image-31.png" alt="ifconfig 결과" loading="lazy">
     <ul>
       <li><code>ifconfig</code>로 ip주소가 192.168.6.128에서 192.168.100.104로 변경된 것을 확인</li>
     </ul>
@@ -223,8 +223,8 @@ grep "80" -r /etc/ | grep "nginx" | grep -v "#"</code></pre>
   <li>ip주소로 페이지 접속
     <ul>
       <li>결과
-        <!-- image omitted: image%2032.png (내 포트폴리오 페이지) -->
-        <!-- image omitted: image%2033.png (강사님 포트폴리오 페이지) -->
+        <img src="/assets/imgs/notes/linux-practice/33-image-32.png" alt="내 포트폴리오 페이지" loading="lazy">
+        <img src="/assets/imgs/notes/linux-practice/34-image-33.png" alt="강사님 포트폴리오 페이지" loading="lazy">
       </li>
     </ul>
   </li>
@@ -234,13 +234,13 @@ grep "80" -r /etc/ | grep "nginx" | grep -v "#"</code></pre>
 
 <ol>
   <li>할당된 주소 확인
-    <!-- image omitted: image%2034.png (할당된 ip 범위 확인) -->
+    <img src="/assets/imgs/notes/linux-practice/35-image-34.png" alt="할당된 ip 범위 확인" loading="lazy">
     <ul>
       <li>ip 주소가 대충 110번대까지 할당되었다는 것을 알 수 있음 → 200번대로 고정 주소를 설정하자! (나는 209번)</li>
     </ul>
   </li>
   <li>ip주소는 <code>/etc/netplan</code> 내부에서 yaml 파일로 설정되어 있음
-    <!-- image omitted: image%2035.png (netplan 디렉토리 확인) -->
+    <img src="/assets/imgs/notes/linux-practice/36-image-35.png" alt="netplan 디렉토리 확인" loading="lazy">
     <ul>
       <li>근데 yaml 파일은 직접 수정하기 좀 힘듦 → 설정을 위한 서비스가 존재함</li>
     </ul>
@@ -248,11 +248,11 @@ grep "80" -r /etc/ | grep "nginx" | grep -v "#"</code></pre>
   <li><code>nmtui</code> 명령어로 '연결 편집' 실행
     <ul>
       <li>과정
-        <!-- image omitted: image%2036.png -->
-        <!-- image omitted: image%2037.png -->
+        <img src="/assets/imgs/notes/linux-practice/37-image-36.png" alt="" loading="lazy">
+        <img src="/assets/imgs/notes/linux-practice/38-image-37.png" alt="" loading="lazy">
       </li>
       <li>설정값
-        <!-- image omitted: e142f235-b271-4511-a8aa-a346546f90eb.png -->
+        <img src="/assets/imgs/notes/linux-practice/39-e142f235-b271-4511-a8aa-a346546f90eb.png" alt="" loading="lazy">
       </li>
     </ul>
   </li>
@@ -261,11 +261,11 @@ grep "80" -r /etc/ | grep "nginx" | grep -v "#"</code></pre>
 
 <p>설정 파일(.yaml) 내부 보기</p>
 
-<!-- image omitted: image%2038.png -->
+<img src="/assets/imgs/notes/linux-practice/40-image-38.png" alt="" loading="lazy">
 
 <ul>
   <li><code>./netplan/90-NM-14f59568-5076-387a-aef6-10adfcca2e26.yaml</code>
-    <!-- image omitted: image%2039.png (netplan yaml 파일 내용) -->
+    <img src="/assets/imgs/notes/linux-practice/41-image-39.png" alt="netplan yaml 파일 내용" loading="lazy">
   </li>
 </ul>
 
@@ -275,17 +275,17 @@ grep "80" -r /etc/ | grep "nginx" | grep -v "#"</code></pre>
   <li><code>sudo vi /etc/ssh/sshd_config</code> 설정
     <ul>
       <li>Permit을 검색해서 주석을 해제하고 yes로 수정
-        <!-- image omitted: image%2040.png (수정 전) -->
-        <!-- image omitted: image%2041.png (수정 후) -->
+        <img src="/assets/imgs/notes/linux-practice/42-image-40.png" alt="수정 전" loading="lazy">
+        <img src="/assets/imgs/notes/linux-practice/43-image-41.png" alt="수정 후" loading="lazy">
       </li>
     </ul>
   </li>
   <li><code>passwd -d [계정명]</code>
-    <!-- image omitted: image%2042.png -->
+    <img src="/assets/imgs/notes/linux-practice/44-image-42.png" alt="" loading="lazy">
     <ul>
       <li>결과
-        <!-- image omitted: image%2043.png -->
-        <!-- image omitted: image%2044.png (tet1은 수동으로 수정) -->
+        <img src="/assets/imgs/notes/linux-practice/45-image-43.png" alt="" loading="lazy">
+        <img src="/assets/imgs/notes/linux-practice/46-image-44.png" alt="tet1은 수동으로 수정" loading="lazy">
       </li>
     </ul>
   </li>
@@ -302,7 +302,7 @@ grep "80" -r /etc/ | grep "nginx" | grep -v "#"</code></pre>
     <pre><code>cp /usr/bin/bash ./door.hwp
 chown root:root ~usr1/door.hwp
 chmod u+s ~usr1/door.hwp</code></pre>
-    <!-- image omitted: image%2045.png (추후 파일명을 backdoor.hwp로 바꿈) -->
+    <img src="/assets/imgs/notes/linux-practice/47-image-45.png" alt="추후 파일명을 backdoor.hwp로 바꿈" loading="lazy">
   </li>
   <li>usr1 계정
     <ul>
@@ -312,18 +312,18 @@ chmod u+s ~usr1/door.hwp</code></pre>
         </ul>
       </li>
       <li><code>id</code>
-        <!-- image omitted: image%2046.png (~usr1/backdoor.hwp) -->
-        <!-- image omitted: image%2047.png (~usr1/backdoor.hwp -p, euid = 0 확인) -->
+        <img src="/assets/imgs/notes/linux-practice/48-image-46.png" alt="~usr1/backdoor.hwp" loading="lazy">
+        <img src="/assets/imgs/notes/linux-practice/49-image-47.png" alt="~usr1/backdoor.hwp -p, euid = 0 확인" loading="lazy">
       </li>
     </ul>
   </li>
   <li><code>/etc/sudoers</code> 수정
     <ul>
       <li><code>root → ALL=(ALL:ALL) ALL</code> 아래에 <code>usr1 → ALL=(ALL:ALL) ALL</code> 추가
-        <!-- image omitted: image%2048.png -->
+        <img src="/assets/imgs/notes/linux-practice/50-image-48.png" alt="" loading="lazy">
       </li>
       <li><code>sudo su -</code>
-        <!-- image omitted: image%2049.png -->
+        <img src="/assets/imgs/notes/linux-practice/51-image-49.png" alt="" loading="lazy">
         <ul>
           <li>관리자 권한 사용이 가능한 것을 확인 가능</li>
         </ul>
@@ -355,19 +355,19 @@ chmod u+s ~usr1/door.hwp</code></pre>
 
 <ol>
   <li>서비스 실행 후 인젝션 시도 (<code>7887;bash</code>)
-    <!-- image omitted: image%2050.png (게임이 끝나고 bash가 실행된 모습) -->
+    <img src="/assets/imgs/notes/linux-practice/52-image-50.png" alt="게임이 끝나고 bash가 실행된 모습" loading="lazy">
     <ul>
       <li>게임이 끝나고 bash가 실행된 모습</li>
     </ul>
   </li>
   <li>관리자 계정으로 전환
-    <!-- image omitted: image%2051.png -->
+    <img src="/assets/imgs/notes/linux-practice/53-image-51.png" alt="" loading="lazy">
   </li>
   <li>관리자 계정으로 백도어 파일 생성
-    <!-- image omitted: image%2052.png -->
+    <img src="/assets/imgs/notes/linux-practice/54-image-52.png" alt="" loading="lazy">
   </li>
   <li>백도어를 통해 탈취하려는 계정에서 해당 파일로 쉘 실행
-    <!-- image omitted: image%2053.png -->
+    <img src="/assets/imgs/notes/linux-practice/55-image-53.png" alt="" loading="lazy">
   </li>
   <li><code>/etc/sudoers</code> 수정</li>
   <li><code>sudo su</code></li>
@@ -396,14 +396,14 @@ tar -xvzf https://github.com/vicgeralds/vitetris/archive/refs/tags/v0.59.1.tar.g
       <li>대부분의 오픈소스가 문서에 내용을 저장해놓음 → 꼭 읽어야 하는 문서는 대문자</li>
       <li>README: 사용 방법(vitetris 기준)</li>
       <li>INSTALL: 빌드 방법 (vitetris 기준)
-        <!-- image omitted: image%2054.png (INSTALL 문서 내용) -->
+        <img src="/assets/imgs/notes/linux-practice/56-image-54.png" alt="INSTALL 문서 내용" loading="lazy">
         <ul>
           <li>실행을 위해서는 configure(환경설정)을 하고 make(빌드)를 해야 함</li>
         </ul>
       </li>
     </ul>
     <p>파일 확인</p>
-    <!-- image omitted: image%2055.png -->
+    <img src="/assets/imgs/notes/linux-practice/57-image-55.png" alt="" loading="lazy">
     <ul>
       <li>make를 위한 파일: Makefile
         <ul>
@@ -423,8 +423,8 @@ tar -xvzf https://github.com/vicgeralds/vitetris/archive/refs/tags/v0.59.1.tar.g
   <li><code>make</code>로 빌드
     <ul>
       <li>결과
-        <!-- image omitted: image%2056.png -->
-        <!-- image omitted: image%2057.png -->
+        <img src="/assets/imgs/notes/linux-practice/58-image-56.png" alt="" loading="lazy">
+        <img src="/assets/imgs/notes/linux-practice/59-image-57.png" alt="" loading="lazy">
         <li>strip 명령어를 해주세요 (기본값으로 실행이 됨)</li>
         <li>게임을 시작하려면 <code>./tetris</code>를 실행하거나 make install을 해주세요
           <ul>
@@ -436,7 +436,7 @@ tar -xvzf https://github.com/vicgeralds/vitetris/archive/refs/tags/v0.59.1.tar.g
     </ul>
   </li>
   <li><code>./tetris</code>로 실행
-    <!-- image omitted: image%2058.png -->
+    <img src="/assets/imgs/notes/linux-practice/60-image-58.png" alt="" loading="lazy">
   </li>
 </ol>
 
@@ -449,8 +449,8 @@ tar -xvzf https://github.com/vicgeralds/vitetris/archive/refs/tags/v0.59.1.tar.g
 
 <h4>strip 없이 빌드해보기</h4>
 
-<!-- image omitted: image%2059.png (주석처리) -->
-<!-- image omitted: image%2060.png (실행 파일 두개를 file 명령어로 출력하면 strip 정보 확인 가능) -->
+<img src="/assets/imgs/notes/linux-practice/61-image-59.png" alt="주석처리" loading="lazy">
+<img src="/assets/imgs/notes/linux-practice/62-image-60.png" alt="실행 파일 두개를 file 명령어로 출력하면 strip 정보 확인 가능" loading="lazy">
 
 <ul>
   <li>실행 파일 텍스트로 추출하기: <code>strings tetris &gt; tetris-pre</code></li>
@@ -470,7 +470,7 @@ adduser tetris_client</code></pre>
     </ul>
   </li>
   <li><code>/etc/passwd</code> 설정 바꾸기
-    <!-- image omitted: image%2061.png -->
+    <img src="/assets/imgs/notes/linux-practice/63-image-61.png" alt="" loading="lazy">
     <ul>
       <li><code>usr/bin/bash</code> 부분을 <code>/tmp/tetris-server.sh</code>로 변경
         <ul>
@@ -500,7 +500,7 @@ adduser tetris_client</code></pre>
       <li><code>/tmp/tetris connect 192.168.100.209:9999</code>: tmp 내부의 tetris 실행파일을 실행하여 해당 주소로 연결</li>
     </ul>
     <p>파일 내부 모습</p>
-    <!-- image omitted: image%2062.png -->
+    <img src="/assets/imgs/notes/linux-practice/64-image-62.png" alt="" loading="lazy">
     <p><strong>.sh 파일은 이름만 .sh이고 실제로는 텍스트 파일</strong><br>
     → 어떤 쉘로 실행할 것인지 지정해줘야 쉘 스크립트로써의 역할을 함</p>
     <p>⇒ <code>#!/usr/bin/bash</code></p>
@@ -521,7 +521,7 @@ adduser tetris_client</code></pre>
       <li><code>chmod 755 ./tetris-server.sh</code>
         <ul>
           <li>결과
-            <!-- image omitted: image%2063.png (test.sh와 같이 실행 권한이 없어 실행파일이라고 볼 수 없음) -->
+            <img src="/assets/imgs/notes/linux-practice/65-image-63.png" alt="test.sh와 같이 실행 권한이 없어 실행파일이라고 볼 수 없음" loading="lazy">
           </li>
         </ul>
       </li>
@@ -552,10 +552,10 @@ PORT=${USER_PORT:-9999}
   <li>네트워크 연결 상태 확인
     <ul>
       <li>tet1이 5555번으로 포트를 연 상태
-        <!-- image omitted: image%2064.png -->
+        <img src="/assets/imgs/notes/linux-practice/66-image-64.png" alt="" loading="lazy">
       </li>
       <li>tet2가 5555번 포트로 연결한 상태
-        <!-- image omitted: image%2065.png -->
+        <img src="/assets/imgs/notes/linux-practice/67-image-65.png" alt="" loading="lazy">
       </li>
     </ul>
   </li>
@@ -607,7 +607,7 @@ PORT=${USER_PORT:-9999}
   <li>문제상황: Insection(삽입) 공격
     <ul>
       <li><code>/home/tet1/</code> 내부에 보안 관련 문서인 security.txt가 있다고 가정
-        <!-- image omitted: image%2066.png -->
+        <img src="/assets/imgs/notes/linux-practice/68-image-66.png" alt="" loading="lazy">
       </li>
     </ul>
   </li>
@@ -631,7 +631,7 @@ wval "/home/tet1/bin/tetris listen $PORT"</code></pre>
 
 <ul>
   <li>프로세스
-    <!-- image omitted: image%2067.png -->
+    <img src="/assets/imgs/notes/linux-practice/69-image-67.png" alt="" loading="lazy">
     <ul>
       <li>ssh는 init에서 관리</li>
     </ul>
@@ -738,7 +738,7 @@ chmod 755 /home/watchstar/bin/*</code></pre>
     <pre><code>watchstar:x:1009:1009:,,,:/home/watchstar:/home/watchstar/bin/watch-star.sh</code></pre>
   </li>
   <li>계정 실행
-    <!-- image omitted: image%2068.png -->
+    <img src="/assets/imgs/notes/linux-practice/70-image-68.png" alt="" loading="lazy">
   </li>
 </ol>
 
@@ -755,7 +755,7 @@ chmod 755 /home/watchstar/bin/*</code></pre>
 <pre><code>File 'starwars.txt' does not exist.
 파일이 실행 파일과 같은 디렉토리에 있는지 확인하세요.</code></pre>
 
-<!-- image omitted: image%2069.png -->
+<img src="/assets/imgs/notes/linux-practice/71-image-69.png" alt="" loading="lazy">
 
 <p><strong>원인 추론</strong></p>
 
@@ -783,7 +783,7 @@ const char *file_path = "/home/watchstar/bin/starwars.txt";</code></pre>
 
 <p><strong>결과</strong></p>
 
-<!-- image omitted: image%2068.png -->
+<img src="/assets/imgs/notes/linux-practice/72-image-68.png" alt="" loading="lazy">
 
 <p>제대로 잘 실행된다!</p>
 
@@ -814,7 +814,7 @@ fi</code></pre>
 
 <p>결과 (fun 계정으로도 잘 실행됨)</p>
 
-<!-- image omitted: image%2070.png -->
+<img src="/assets/imgs/notes/linux-practice/73-image-70.png" alt="" loading="lazy">
 
 <h4>시간 동기화 (time)</h4>
 
@@ -852,10 +852,10 @@ rdate time.bora.net</code></pre>
     <ul>
       <li><code>vi /etc/ssh/sshd_config</code></li>
       <li><code>/Root</code>로 관련 설정 검색
-        <!-- image omitted: image%2071.png -->
+        <img src="/assets/imgs/notes/linux-practice/74-image-71.png" alt="" loading="lazy">
         <ul>
           <li>PermitRootLogin 설정을 주석 해제하고 yes로 변경
-            <!-- image omitted: image%2072.png -->
+            <img src="/assets/imgs/notes/linux-practice/75-image-72.png" alt="" loading="lazy">
           </li>
         </ul>
       </li>
@@ -874,8 +874,8 @@ systemctl start ssh</code></pre>
     <pre><code>ssh admin@192.168.100.209</code></pre>
   </li>
   <li>관리 디렉토리에 파일 원격 복사 가능한지 확인
-    <!-- image omitted: image%2073.png -->
-    <!-- image omitted: image%2074.png -->
+    <img src="/assets/imgs/notes/linux-practice/76-image-73.png" alt="" loading="lazy">
+    <img src="/assets/imgs/notes/linux-practice/77-image-74.png" alt="" loading="lazy">
   </li>
 </ol>
 
@@ -888,14 +888,14 @@ systemctl start ssh</code></pre>
     <pre><code>git clone https://github.com/nginx/nginx.git</code></pre>
     <ul>
       <li>수업에서는 wget로 다운받고 압축 해제
-        <!-- image omitted: image%2075.png -->
+        <img src="/assets/imgs/notes/linux-practice/78-image-75.png" alt="" loading="lazy">
       </li>
     </ul>
   </li>
   <li>README.md로 설치과정 찾아보기
     <ul>
       <li><code>/config</code>로 빌드 과정 검색
-        <!-- image omitted: image%2076.png -->
+        <img src="/assets/imgs/notes/linux-practice/79-image-76.png" alt="" loading="lazy">
         <ul>
           <li><code>auto/configure</code>로 빌드하는 것 확인</li>
         </ul>
@@ -905,13 +905,13 @@ systemctl start ssh</code></pre>
   <li>필요 라이브러리 확인하기
     <ul>
       <li><code>auto/configure</code>로 설치하려고 하면 아래와 같은 에러 발생
-        <!-- image omitted: image%2077.png -->
+        <img src="/assets/imgs/notes/linux-practice/80-image-77.png" alt="" loading="lazy">
         <ul>
           <li>PCRE: 정규식(RE) 관련 라이브러리</li>
         </ul>
       </li>
       <li>README.md에서 필요한 라이브러리 검색
-        <!-- image omitted: image%2078.png -->
+        <img src="/assets/imgs/notes/linux-practice/81-image-78.png" alt="" loading="lazy">
         <ul>
           <li><code>/dependency</code>로 검색</li>
           <li>dependency(의존성): 설치나 실행에 반드시 필요한 모듈 혹은 라이브러리</li>
@@ -928,23 +928,23 @@ apt install libpcre3-dev zlib1g-dev libssl-dev -y</code></pre>
   </li>
   <li>빌드 설정파일 다운받기
     <pre><code>auto/configure</code></pre>
-    <!-- image omitted: image%2079.png -->
+    <img src="/assets/imgs/notes/linux-practice/82-image-79.png" alt="" loading="lazy">
     <ul>
       <li>Makefile과 objs 디렉토리 생성됨</li>
     </ul>
   </li>
   <li>서버 빌드하기
     <pre><code>make</code></pre>
-    <!-- image omitted: image%2080.png -->
+    <img src="/assets/imgs/notes/linux-practice/83-image-80.png" alt="" loading="lazy">
     <ul>
       <li>objs 내의 파일들을 이용해서 빌드</li>
     </ul>
   </li>
   <li>실행 파일 확인
-    <!-- image omitted: image%2081.png -->
+    <img src="/assets/imgs/notes/linux-practice/84-image-81.png" alt="" loading="lazy">
   </li>
   <li>버전 확인
-    <!-- image omitted: image%2082.png -->
+    <img src="/assets/imgs/notes/linux-practice/85-image-82.png" alt="" loading="lazy">
     <ul>
       <li>기존 버전(1.24.0)과 최신 버전(1.31.1)</li>
     </ul>
@@ -968,7 +968,7 @@ cd nginx-release-1.31.0</code></pre>
   <li>README.md로 설치과정 찾아보기
     <ul>
       <li><code>/config</code>로 빌드 과정 검색
-        <!-- image omitted: image%2076.png -->
+        <img src="/assets/imgs/notes/linux-practice/86-image-76.png" alt="" loading="lazy">
         <ul>
           <li><code>auto/configure</code>로 빌드하는 것 확인</li>
         </ul>
@@ -978,13 +978,13 @@ cd nginx-release-1.31.0</code></pre>
   <li>필요 라이브러리 확인하기
     <ul>
       <li><code>auto/configure</code>로 설치하려고 하면 아래와 같은 에러 발생
-        <!-- image omitted: image%2077.png -->
+        <img src="/assets/imgs/notes/linux-practice/87-image-77.png" alt="" loading="lazy">
         <ul>
           <li>PCRE: 정규식(RE) 관련 라이브러리</li>
         </ul>
       </li>
       <li>README.md에서 필요한 라이브러리 검색
-        <!-- image omitted: image%2078.png -->
+        <img src="/assets/imgs/notes/linux-practice/88-image-78.png" alt="" loading="lazy">
         <ul>
           <li><code>/dependency</code>로 검색</li>
           <li>dependency(의존성): 설치나 실행에 반드시 필요한 모듈 혹은 라이브러리</li>
@@ -1003,26 +1003,26 @@ apt install libpcre3-dev zlib1g-dev libssl-dev -y</code></pre>
     <pre><code>auto/configure --prefix=/home/solcho/nginx</code></pre>
     <ul>
       <li><code>--prefix</code>: 설치 경로 설정
-        <!-- image omitted: image%2079.png -->
+        <img src="/assets/imgs/notes/linux-practice/89-image-79.png" alt="" loading="lazy">
         <li>Makefile과 objs 디렉토리 생성됨</li>
       </li>
     </ul>
   </li>
   <li>서버 빌드하기
     <pre><code>make</code></pre>
-    <!-- image omitted: image%2080.png -->
+    <img src="/assets/imgs/notes/linux-practice/90-image-80.png" alt="" loading="lazy">
     <ul>
       <li>objs 내의 파일들을 이용해서 빌드</li>
     </ul>
   </li>
   <li>실행 파일 확인
-    <!-- image omitted: image%2083.png -->
+    <img src="/assets/imgs/notes/linux-practice/91-image-83.png" alt="" loading="lazy">
     <ul>
       <li>nginx 디렉토리가 만들어진 것도 확인할 수 있다!</li>
     </ul>
   </li>
   <li>버전 확인
-    <!-- image omitted: image%2082.png -->
+    <img src="/assets/imgs/notes/linux-practice/92-image-82.png" alt="" loading="lazy">
     <ul>
       <li>기존 버전(1.24.0)과 최신 버전(1.31.1)</li>
     </ul>
@@ -1036,35 +1036,35 @@ apt install libpcre3-dev zlib1g-dev libssl-dev -y</code></pre>
 
 <h4>nginx 구동 원리</h4>
 
-<!-- image omitted: image%2084.png -->
+<img src="/assets/imgs/notes/linux-practice/93-image-84.png" alt="" loading="lazy">
 
 <ul>
   <li>nginx 프로세스를 여러 개로 나눔
     <ul>
       <li>이전에는 전부 root 권한으로 구동 → nginx를 통해 루트 계정에 해킹하는 경우가 많았음 ⇒ 방지하고자 여러 개로 나눠서 하나만 root 권한</li>
       <li>나머지 프로세스는 www-data가 구동
-        <!-- image omitted: image%2085.png -->
+        <img src="/assets/imgs/notes/linux-practice/94-image-85.png" alt="" loading="lazy">
       </li>
     </ul>
   </li>
   <li><code>/etc/nginx/nginx/conf</code>
     <ul>
       <li>유저 정보
-        <!-- image omitted: image%2086.png -->
+        <img src="/assets/imgs/notes/linux-practice/95-image-86.png" alt="" loading="lazy">
         <ul>
           <li>user와 프로세스 개수를 정할 수 있음</li>
           <li>프로세스 개수는 많을수록 좋지만 컴퓨터 성능에 따라 너무 많아지면 오히려 성능이 떨어진다</li>
         </ul>
       </li>
       <li>수동 설치한 nginx의 conf 파일
-        <!-- image omitted: image%2087.png -->
+        <img src="/assets/imgs/notes/linux-practice/96-image-87.png" alt="" loading="lazy">
         <ul>
           <li>유저가 설정되어 있지 않음</li>
           <li><code>user solcho</code>로 수정</li>
         </ul>
       </li>
       <li>서버 위치
-        <!-- image omitted: image%2088.png -->
+        <img src="/assets/imgs/notes/linux-practice/97-image-88.png" alt="" loading="lazy">
         <ul>
           <li>기본값은 <code>root html</code></li>
           <li>안전하게 가고 싶으면 절대주소로 수정 → 수정하지 않으면 로딩 안 됨</li>
@@ -1087,13 +1087,13 @@ sbin/nginx -s stop
 
 <p>nginx 서버가 실행되고 있는데 웹 페이지가 403 에러메세지와 함께 로딩되지 않음.</p>
 
-<!-- image omitted: image%2089.png -->
+<img src="/assets/imgs/notes/linux-practice/98-image-89.png" alt="" loading="lazy">
 
 <h4>사실 수집</h4>
 
 <ul>
   <li>서버 점검
-    <!-- image omitted: image%2090.png -->
+    <img src="/assets/imgs/notes/linux-practice/99-image-90.png" alt="" loading="lazy">
     <ul>
       <li>서버가 제대로 열려있는 것을 확인</li>
     </ul>
@@ -1113,13 +1113,13 @@ sbin/nginx -s stop
   <li>nginx.conf 설정 문제
     <ul>
       <li>nginx 구동 원리
-        <!-- image omitted: image%2084.png -->
+        <img src="/assets/imgs/notes/linux-practice/100-image-84.png" alt="" loading="lazy">
         <ul>
           <li>nginx 프로세스를 여러 개로 나눔
             <ul>
               <li>이전에는 전부 root 권한으로 구동 → nginx를 통해 루트 계정에 해킹하는 경우가 많았음 ⇒ 방지하고자 여러 개로 나눠서 하나만 root 권한</li>
               <li>나머지 프로세스는 www-data가 구동
-                <!-- image omitted: image%2085.png -->
+                <img src="/assets/imgs/notes/linux-practice/101-image-85.png" alt="" loading="lazy">
               </li>
             </ul>
           </li>
@@ -1135,12 +1135,12 @@ sbin/nginx -s stop
   <li><code>/etc/nginx/nginx/conf</code>
     <ul>
       <li>유저 정보
-        <!-- image omitted: image%2086.png -->
+        <img src="/assets/imgs/notes/linux-practice/102-image-86.png" alt="" loading="lazy">
         <ul>
           <li>user와 프로세스 개수를 정할 수 있음</li>
           <li>프로세스 개수는 많을수록 좋지만 컴퓨터 성능에 따라 너무 많아지면 오히려 성능이 떨어진다</li>
           <li>수동 설치한 nginx의 conf 파일
-            <!-- image omitted: image%2087.png -->
+            <img src="/assets/imgs/notes/linux-practice/103-image-87.png" alt="" loading="lazy">
             <ul>
               <li>유저가 설정되어 있지 않음</li>
               <li><code>user solcho</code>로 수정</li>
@@ -1149,7 +1149,7 @@ sbin/nginx -s stop
         </ul>
       </li>
       <li>서버 위치
-        <!-- image omitted: image%2088.png -->
+        <img src="/assets/imgs/notes/linux-practice/104-image-88.png" alt="" loading="lazy">
         <ul>
           <li>기본값은 <code>root html</code></li>
           <li>절대주소로 수정 (<code>/var/www/html</code>)</li>
@@ -1168,11 +1168,11 @@ sbin/nginx -s stop
 
 <h4>결과 관찰</h4>
 
-<!-- image omitted: image%2091.png -->
+<img src="/assets/imgs/notes/linux-practice/105-image-91.png" alt="" loading="lazy">
 
 <p>설정한대로 solcho 계정으로 4개의 프로세스 생성.</p>
 
-<!-- image omitted: image%2092.png -->
+<img src="/assets/imgs/notes/linux-practice/106-image-92.png" alt="" loading="lazy">
 
 <p>웹서비스 로딩 확인.</p>
 

@@ -1,0 +1,2338 @@
+<h2>파이썬(실습)</h2>
+<p>날짜: 6월 8 → 6월 16
+종류: 실습</p>
+<h3>⚠️ 에러 메세지</h3>
+<h5>대입 연산자 에러</h5>
+<pre><code class="language-bash">&gt;&gt;&gt; a+b=c
+  File &quot;&lt;stdin&gt;&quot;, line 1
+    a+b=c
+    ^^^
+**SyntaxError: cannot assign to expression here. Maybe you meant '==' instead of '='?**
+</code></pre>
+<pre><code class="language-bash">&gt;&gt;&gt; 10 = a + b
+  File &quot;&lt;stdin&gt;&quot;, line 1
+    10 = a + b
+    ^^
+**SyntaxError: cannot assign to literal here. Maybe you meant '==' instead of '='?**
+</code></pre>
+<h5>타입 에러</h5>
+<pre><code class="language-bash">&gt;&gt;&gt; print(str1 / str2)
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+**TypeError: unsupported operand type(s) for /: 'str' and 'str'**
+&gt;&gt;&gt; print(str2*3)
+파이썬파이썬파이썬
+&gt;&gt;&gt; print(str2/3)
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+**TypeError: unsupported operand type(s) for /: 'str' and 'int'**
+&gt;&gt;&gt; print(str2-3)
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+**TypeError: unsupported operand type(s) for -: 'str' and 'int'**
+&gt;&gt;&gt; print(str2+3)
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+**TypeError: can only concatenate str (not &quot;int&quot;) to str**
+</code></pre>
+<ul>
+<li><code>stdin</code>은 <strong>표준 입력</strong>(Standard Input)을 의미</li>
+</ul>
+<h5>리스트 에러</h5>
+<pre><code class="language-bash">&gt;&gt;&gt; fruies[0]
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+**NameError: name 'fruies' is not defined. Did you mean: 'fruits'?**
+</code></pre>
+<ul>
+<li>리스트 이름 틀림 / 리스트 정의 안 함</li>
+</ul>
+<pre><code class="language-bash">&gt;&gt;&gt; fruits[5]
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+**IndexError: list index out of range**
+</code></pre>
+<ul>
+<li>범위 에러</li>
+</ul>
+<pre><code class="language-bash">&gt;&gt;&gt; fruits.append(&quot;watermelon&quot;, &quot;strawberry&quot;)
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+**TypeError: list.append() takes exactly one argument (2 given)**
+</code></pre>
+<ul>
+<li>인자 에러
+<ul>
+<li>append는 한 개씩만 추가 가능하다</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-bash">&gt;&gt;&gt; sorted_fruits = fruits.sorted()
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+**AttributeError: 'list' object has no attribute 'sorted'. Did you mean: 'sort'?**
+</code></pre>
+<ul>
+<li>sorted() 문법 에러
+<ul>
+<li>sort()와 사용 방법이 다르다(sort()는 리스트 메소드, sorted()는 내장 함수)</li>
+</ul>
+</li>
+</ul>
+<h5>문법 에러</h5>
+<pre><code class="language-bash">&gt;&gt;&gt;   str3=&quot;???&quot;
+  File &quot;&lt;stdin&gt;&quot;, line 1
+    str3=&quot;???&quot;
+**IndentationError: unexpected indent**
+</code></pre>
+<ul>
+<li>들여쓰기 에러</li>
+</ul>
+<pre><code class="language-bash">&gt;&gt;&gt; intro = &quot;==자기소개==\n이름:&quot; + name+ &quot;\n나이:&quot; + str(age)
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+**NameError: name 'name' is not defined**
+</code></pre>
+<ul>
+<li>변수 정의 안 함</li>
+</ul>
+<pre><code class="language-bash">root@ubuntu-pure:/home/solcho/python# python delivery.py 
+  File &quot;/home/solcho/python/delivery.py&quot;, line 7
+    weight = int(input(&quot;무게(g): &quot;)
+                ^
+**SyntaxError: '(' was never closed**
+</code></pre>
+<ul>
+<li>문법 에러 - 괄호 안 닫음</li>
+</ul>
+<pre><code class="language-bash">root@ubuntu-pure:/home/solcho/python# python delivery.py 
+  File &quot;/home/solcho/python/delivery.py&quot;, line 15
+    print(f&quot;** 배송비 ==&gt; {price}원)
+          ^
+**SyntaxError: unterminated f-string literal (detected at line 15)**
+</code></pre>
+<ul>
+<li>문법 에러 - f스트링 문법 에러
+<ul>
+<li>인데 사실은 쌍따옴표 안 닫음 에러</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-bash">root@ubuntu-pure:/home/solcho/python# python delivery.py 
+== 택배를 보내기 위한 정보를 입력하세요==
+받는 사람: rl^H^CTraceback (most recent call last):
+  File &quot;/home/solcho/python/delivery.py&quot;, line 5, in &lt;module&gt;
+    name = input(&quot;받는 사람: &quot;) 
+           ^^^^^^^^^^^^^^^^^^^^
+**KeyboardInterrupt**
+</code></pre>
+<ul>
+<li><code>ctrl + C</code> 강제 종료 ⇒ KeyboardInterrupt 에러</li>
+</ul>
+<h3>파이썬 실행</h3>
+<ol>
+<li>스크립트<pre><code class="language-bash">$ python3
+Python 3.12.3 (main, Mar 23 2026, 19:04:32) [GCC 13.3.0] on linux
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt;
+&gt;&gt;&gt;
+</code></pre>
+</li>
+<li>소스 코드
+<ul>
+<li><code>python [파일명]</code></li>
+</ul>
+</li>
+</ol>
+<p>파이썬 파일은 권한 변경 필요 없이 python으로 바로 실행 가능하다!
++) 인터프리터 언어 → 실행 파일을 만드는 게 아니기 때문에 실행 환경에도 언어 해석기가 있어야 함(설치되어 있어야 함)</p>
+<h3>입출력 실습</h3>
+<ol>
+<li>택배 배송 정보 입력하기
+주제: 택배 정보를 입력받아 배송비와 함께 출력하는 프로그램
+설명: 엄마의 심부름으로 난생이는 편의점에서 택배를 보내려 합니다. 택배를 보낼 때, 받는 사람과 주소 를 입력하고 택배의 무게를 입력합니다. 택배 무게는 그램(g)당 5원이며, 자동으로 계산됩니다.
+<ul>
+<li>내 코드<pre><code class="language-python">#!/usr/bin/bash
+
+# 값 입력받기
+print(&quot;== 택배를 보내기 위한 정보를 입력하세요==&quot;)
+name = input(&quot;받는 사람: &quot;)
+addr = input(&quot;주소: &quot;)
+weight = int(input(&quot;무게(g): &quot;))
+
+# 배송비 계산
+price = weight * 5
+
+# 값 출력하기
+print(&quot;** 받는 사람 ==&gt;&quot;, name)
+print(&quot;** 주소 ==&gt;&quot;, addr)
+print(f&quot;** 배송비 ==&gt; {price} 원&quot;)
+</code></pre>
+</li>
+<li>강사님 코드<pre><code class="language-python">#!/usr/bin/bash
+
+pay = 5
+print(&quot;== 택배를 보내기 위한 정보를 입력하세요==&quot;)
+
+# 값 입력받기
+name = input(&quot;받는 사람: &quot;)
+addr = input(&quot;주소: &quot;)
+weight = int(input(&quot;무게(g): &quot;))
+
+# 값 출력하기
+print(&quot;** 받는 사람 ==&gt;&quot;, name)
+print(&quot;** 주소 ==&gt;&quot;, addr)
+print(&quot;** 배송비 ==&gt;&quot;, weight*pay, &quot;원&quot;)
+</code></pre>
+</li>
+</ul>
+</li>
+<li>숫자를 입력하는 계산기 만들기
+사용자가 키보드로 2개의 숫자를 입력하면 두 숫자의 덧셈, 뺄셈, 곱셈, 나눗셈,
+나머지, 제곱을 계산하는 계산기
+<ul>
+<li>내 코드<pre><code class="language-python">#!/usr/bin/bash
+
+# 숫자 입력 받기
+num1 = int(input(&quot;숫자1 ==&gt; &quot;))
+num2 = int(input(&quot;숫자2 ==&gt; &quot;))
+
+# 값 출력하기
+print(&quot;\n==값 출력==&quot;)
+print(f&quot;{num1} + {num2} = {num1+num2}&quot;)    # 덧셈
+print(f&quot;{num1} - {num2} = {num1-num2}&quot;)    # 뺄셈
+print(f&quot;{num1} * {num2} = {num1*num2}&quot;)    # 곱셈
+print(f&quot;{num1} / {num2} = {num1/num2}&quot;)    # 나눗셈
+print(f&quot;{num1} % {num2} = {num1%num2}&quot;)    # 나눗셈(나머지)
+print(f&quot;{num1} ** {num2} = {num1**num2}&quot;)  # 10 제곱
+</code></pre>
+</li>
+</ul>
+</li>
+</ol>
+<h3>BMI 계산기</h3>
+<ol>
+<li>조건
+<ul>
+<li>체질량지수(BMI) = 체중(kg) / (신장(m) * 신장(m))</li>
+<li>출력문<pre><code>이름:   
+신장:
+체중: 
+홍길동의 BMI 지수는 20입니다.
+</code></pre>
+</li>
+</ul>
+</li>
+<li>코드<pre><code class="language-python"># 입력받기
+name = input(&quot;이름: &quot;)
+height = int(input(&quot;신장(cm): &quot;))/100  # 신장은 m 단위라 100 나누기
+weight = int(input(&quot;체중(kg): &quot;))
+
+# BMI 계산
+bmi = weight / (height * height)
+
+# 출력
+print(f&quot;{name}의 BMI 지수는 {bmi:.2f}입니다.&quot;)
+</code></pre>
+</li>
+<li>코드 수정
+<ul>
+<li><code>#!/usr/bin/python3</code> 추가
+<ul>
+<li>없거나 bash로 해도 python3로 실행하면 실행됨(당연함 python으로 실행했음)</li>
+<li>만약 일반 실행 파일처럼 <code>./bmi.py</code>라고 실행하면 실행이 안 됨
+⇒ 파이썬으로 읽을라고 항상 적어주기</li>
+</ul>
+</li>
+<li>신장과 체중을 애초에 float으로 받아야 함</li>
+<li>신장 제곱 → 제곱 연산자로 간단하게 표현<pre><code class="language-python">#!/usr/bin/python3
+
+# 입력받기
+name = input(&quot;이름: &quot;)
+height = int(input(&quot;신장(cm): &quot;))/100  # 신장은 m 단위라 100 나누기
+weight = float(input(&quot;체중(kg): &quot;))
+
+# BMI 계산
+bmi = weight / (height ** 2)
+
+# 출력
+print(f&quot;{name}의 BMI 지수는 {bmi:.2f}입니다.&quot;)
+</code></pre>
+</li>
+</ul>
+</li>
+</ol>
+<h3>편의점 하루 매출 계산하기</h3>
+<ul>
+<li>주제: 오늘 구입 또는 판매한 물건의 총 매출을 계산하는 프로그램</li>
+<li>상황: 편의점에서는 물품을 본사에서 구입하면 물품값을 지불하고, 물품이 손님에게 판매되면 물품값을 받는다. 이때 편의점에서는 본사에서 구입한 물품의 가격에 일부 이익을 붙여서 손님에게 판매한다.</li>
+</ul>
+<p><strong>코드</strong></p>
+<pre><code class="language-python">#!/usr/bin/python3
+
+# 변수
+buy = 0
+sell = 0
+total = 0
+
+# 구입
+buy += (900 * 10)
+buy += (3500 * 5)
+
+# 판매
+sell += (1800 * 2)
+sell += (4000 * 4)
+sell += (1500 * 1)
+sell += (2000 * 4)
+sell += (1800 * 5)
+
+# 출력
+total = sell - buy
+print(f&quot;오늘 총 매출액은 {total} 원입니다&quot;)
+</code></pre>
+<ul>
+<li><strong>예제 코드</strong><pre><code class="language-python">total = 0
+
+# 구매
+total -= 900*10
+total -= 3500*5
+
+# 판매
+total += 1800*2
+total += 4000*4
+total += 1500
+total += 2000*4
+total += 1800*5
+
+# 출력
+print(&quot;오늘 총 매출액은 &quot;, total, &quot;원입니다&quot;)
+</code></pre>
+</li>
+</ul>
+<h3>기말 평균 학점 구하기</h3>
+<ul>
+<li>성적표를 참고하여 난생이의 평균 학점을 구해보자
+<img src="/assets/imgs/notes/python-practice/01-image.png" alt="image.png" loading="lazy"></li>
+<li>내 코드(그냥 값만)<pre><code class="language-python">#!/usr/bin/python3
+
+# 점수 계산
+score = 0
+score = ((3 * 3.5) + (2 * 4.0) + 4.5) / 6
+
+# 출력
+print(f&quot;평균 학점: {score:.2f}&quot;)
+</code></pre>
+</li>
+<li>내 코드(딕셔너리)<pre><code class="language-python">#!/usr/bin/python3
+
+# 성적표
+scoreDic = {&quot;파이썬&quot;:[3, 3.5], &quot;모바일&quot;:[2, 4.0], &quot;엑셀&quot;:[1, 4.5]}
+
+# 점수 계산
+grade = 0
+credit = 0
+for score in scoreDic.values():
+    grade += score[0] * score[1]
+    credit += score[0]
+avg_grade = grade/credit
+
+# 출력
+print(f&quot;평균 학점: {avg_grade:.2f}&quot;)
+</code></pre>
+</li>
+<li>예제<pre><code class="language-python">#!/usr/bin/python3
+
+# 성적표
+python = 3
+mobile = 2
+excel = 1
+A = 4.5
+A0 = 4.0
+B = 3.5
+
+# 점수 계산
+score = 0
+score = ((python * B) + (mobile * A0) + (excel * A)) / (python + mobile + excel)
+
+# 출력
+print(f&quot;평균 학점: {score:.2f}&quot;)
+</code></pre>
+</li>
+</ul>
+<h3>운세 제조기</h3>
+<ul>
+<li>기존에 있는 운세(명언)을 2개로 쪼개서 리스트에 저장한 다음 랜덤 함수로 인덱스를 뽑아 새로운 운세를 조합한다.</li>
+<li>코드<pre><code class="language-python">#!/usr/bin/python3
+import random
+
+# 문장 리스트
+preList = [
+    &quot;오늘 새로운 사람을 만난다면,&quot;,
+    &quot;망설이고 있는 일이 있다면,&quot;,
+    &quot;오늘 빨간색 옷을 입는다면,&quot;,
+    &quot;오래된 친구에게 연락한다면,&quot;,
+    &quot;평소보다 일찍 잠자리에 든다면,&quot;,
+    &quot;오늘 남쪽 방향으로 이동한다면,&quot;,
+    &quot;식사를 천천히 즐긴다면,&quot;,
+    &quot;작은 친절을 베푼다면,&quot;,
+    &quot;오늘 물을 충분히 마신다면,&quot;,
+    &quot;미루던 정리정돈을 한다면,&quot;,
+    &quot;하늘을 올려다보는 시간을 갖는다면,&quot;,
+    &quot;오늘 일기를 쓴다면,&quot;,
+    &quot;좋아하는 음악을 크게 튼다면,&quot;,
+    &quot;평소 가지 않던 길로 출근한다면,&quot;,
+    &quot;오늘 계획을 세우고 움직인다면,&quot;,
+    &quot;누군가의 말을 끝까지 들어준다면,&quot;,
+    &quot;오늘 창가 자리에 앉는다면,&quot;,
+    &quot;달콤한 것을 하나 먹는다면,&quot;,
+    &quot;억지로 웃어보는 연습을 한다면,&quot;,
+    &quot;오늘 하루를 감사하며 마무리한다면,&quot;,
+    &quot;오늘 아침 일찍 산책을 한다면,&quot;,
+    &quot;읽다 멈춘 책을 다시 펼친다면,&quot;,
+    &quot;오늘 처음 보는 메뉴에 도전한다면,&quot;,
+    &quot;가족에게 먼저 안부를 전한다면,&quot;,
+    &quot;오늘 스마트폰을 잠시 내려놓는다면,&quot;,
+    &quot;작은 목표 하나를 종이에 적는다면,&quot;,
+    &quot;오늘 낯선 장소에 들른다면,&quot;,
+    &quot;칭찬을 아끼지 않는다면,&quot;,
+    &quot;오늘 일을 미루지 않고 바로 시작한다면,&quot;,
+    &quot;잠들기 전 깊게 숨을 들이쉰다면,&quot;,
+]
+postList = [
+    &quot;그 인연이 당신의 삶을 바꿀 귀인이다.&quot;,
+    &quot;지금이 바로 시작할 최적의 타이밍이다.&quot;,
+    &quot;중요한 자리에서 강한 인상을 남긴다.&quot;,
+    &quot;뜻밖의 좋은 소식을 함께 나누게 된다.&quot;,
+    &quot;내일 아침 놀라운 아이디어가 떠오른다.&quot;,
+    &quot;기대하지 않았던 행운이 따라온다.&quot;,
+    &quot;몸과 마음의 균형이 회복된다.&quot;,
+    &quot;그 선함이 배가 되어 돌아온다.&quot;,
+    &quot;오후부터 집중력이 크게 올라간다.&quot;,
+    &quot;막혀 있던 운이 시원하게 뚫린다.&quot;,
+    &quot;복잡했던 마음이 저절로 정리된다.&quot;,
+    &quot;스스로도 몰랐던 진짜 원하는 것을 발견한다.&quot;,
+    &quot;오늘 하루가 유독 신나게 흘러간다.&quot;,
+    &quot;소소하지만 기분 좋은 발견을 하게 된다.&quot;,
+    &quot;퇴근 후 뿌듯함이 하루를 마무리한다.&quot;,
+    &quot;당신의 신뢰가 더욱 단단해진다.&quot;,
+    &quot;햇살만큼 밝은 소식이 찾아온다.&quot;,
+    &quot;기분이 풀리면서 좋은 흐름이 시작된다.&quot;,
+    &quot;그 미소가 진짜 행운을 불러들인다.&quot;,
+    &quot;내일은 더 좋은 하루가 기다리고 있다.&quot;,
+    &quot;머릿속이 맑아지고 하루가 상쾌하게 열린다.&quot;,
+    &quot;오랫동안 찾던 답이 그 안에 있다.&quot;,
+    &quot;새로운 취향이 생겨 삶이 더 풍요로워진다.&quot;,
+    &quot;따뜻한 기운이 온종일 당신을 감싼다.&quot;,
+    &quot;비워낸 만큼 더 소중한 것이 채워진다.&quot;,
+    &quot;그 한 줄이 오늘의 가장 큰 성취가 된다.&quot;,
+    &quot;그곳에서 오래 기억될 순간을 만나게 된다.&quot;,
+    &quot;당신의 말 한마디가 누군가의 하루를 구한다.&quot;,
+    &quot;작은 실행이 큰 변화의 시작이 된다.&quot;,
+    &quot;깊은 잠과 함께 내일의 행운이 준비된다.&quot;,
+]
+
+# 랜덤으로 인덱스 추출
+idx1= random.randint(0, 29)
+idx2= random.randint(0, 29)
+
+# 문장 조합
+result = preList[idx1] + &quot; &quot; + postList[idx2]
+print(f&quot;오늘의 운세 ==&gt; {result}&quot;)
+</code></pre>
+</li>
+<li>결과
+<ul>
+<li><code>식사를 천천히 즐긴다면, 내일은 더 좋은 하루가 기다리고 있다.</code></li>
+<li><code>미루던 정리정돈을 한다면, 기분이 풀리면서 좋은 흐름이 시작된다.</code></li>
+<li><code>오늘 일기를 쓴다면, 복잡했던 마음이 저절로 정리된다.</code></li>
+<li><code>오늘 처음 보는 메뉴에 도전한다면, 소소하지만 기분 좋은 발견을 하게 된다.</code></li>
+<li><code>칭찬을 아끼지 않는다면, 당신의 말 한마디가 누군가의 하루를 구한다.</code></li>
+</ul>
+</li>
+</ul>
+<h5>🛠️ 트러블슈팅</h5>
+<pre><code class="language-python">Traceback (most recent call last):
+  File &quot;/home/solcho/python/wisdom.py&quot;, line 76, in &lt;module&gt;
+    result = preList[idx1] + &quot; &quot; + postList[idx2]
+             ~~~~~~~^^^^^^
+IndexError: list index out of range
+</code></pre>
+<ul>
+<li>인덱스 에러 발생</li>
+<li><code>idx1= random.randint(0, 30)</code>에서 randint 함수는 시작값과 끝값을 모두 포함한다
+⇒ 30개니까 29로 해야 함</li>
+</ul>
+<h3>PC방 나이 제한 검사하기</h3>
+<ul>
+<li>주제: 밤 10시에 나이를 입력하고 출입 가능 여부를 체크하는 프로그램</li>
+<li>PC방은 밤 10시가 넘으면 청소년은 출입할 수 없다</li>
+<li>출력 형식<pre><code class="language-python">나이를 입력 ==&gt; **17**
+집에 갈 시간이네요! or 즐거운 시간 보내세요!
+협조 감사합니다. 
+</code></pre>
+</li>
+<li>코드<pre><code class="language-python">#!/usr/bin/python3
+
+# 나이 입력받기
+age = int(input(&quot;나이를 입력 ==&gt; &quot;))
+
+# 나이 확인하기(조건문)
+if age &gt;= 20 :    # 만약 20세 이상이라면 성인
+    print(&quot;즐거운 시간 보내세요!&quot;)
+else:
+    print(&quot;집에 갈 시간이네요!&quot;)
+
+# 협조문 출력
+print(&quot;협조 감사합니다.&quot;)
+</code></pre>
+<ul>
+<li>원래 협조문을 청소년일 때만 출력하도록 했는데, 항상 출력하는 것으로 변경
+<ul>
+<li>실제로 경찰이 신분증을 확인하는 컨셉</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3>가위바위보</h3>
+<ul>
+<li>주제: 가위, 바위, 보 게임을 통해서 컴퓨터와 대결하는 프로그램</li>
+<li>출력 형식<pre><code class="language-python">나의 가위/바위/보 ==&gt; **가위**
+컴퓨터의 가위/바위/보 ==&gt; 바위
+이겼습니다^^ or 졌습니다... or 비겼습니다!
+</code></pre>
+</li>
+<li>교재 코드(<code>random.choice([&quot;가위&quot;, &quot;바위&quot;, &quot;보&quot;])</code> 사용)<pre><code class="language-python">#!/usr/bin/python3
+import random
+
+gameList = [&quot;가위&quot;, &quot;바위&quot;, &quot;보&quot;]
+
+# 나의 가위바위보 입력받기
+mine = input(&quot;나의 가위/바위/보 ==&gt; &quot;)
+
+# 컴퓨터의 가위바위보 결정하기
+com = **random.choice([&quot;가위&quot;, &quot;바위&quot;, &quot;보&quot;])**
+print(f&quot;컴퓨터의 가위/바위/보 ==&gt; {com}&quot;)
+
+# 조건문 - 승패 결정하기
+if mine == &quot;가위&quot;:
+    if com == &quot;가위&quot;:
+        print(&quot;비겼습니다!&quot;)
+    elif com == &quot;바위&quot;:
+        print(&quot;졌습니다...&quot;)
+    else:
+        print(&quot;이겼습니다^^&quot;)
+elif mine == &quot;바위&quot;:
+    if com == &quot;가위&quot;:
+        print(&quot;이겼습니다^^&quot;)
+    elif com == &quot;바위&quot;:
+        print(&quot;비겼습니다!&quot;)
+    else:
+        print(&quot;졌습니다...&quot;)
+elif mine == &quot;보&quot;:
+    if com == &quot;가위&quot;:
+        print(&quot;졌습니다...&quot;)
+    elif com == &quot;바위&quot;:
+        print(&quot;이겼습니다^^&quot;)
+    else:
+        print(&quot;비겼습니다!&quot;)
+else:
+    print(f&quot;{mine}은 잘못된 입력값입니다.&quot;)
+</code></pre>
+</li>
+<li>내 코드<pre><code class="language-python"># game.py
+
+#!/usr/bin/python3
+import random
+
+gameList = [&quot;가위&quot;, &quot;바위&quot;, &quot;보&quot;]
+
+# 나의 가위바위보 입력받기
+mine = input(&quot;나의 가위/바위/보 ==&gt; &quot;)
+
+# 컴퓨터의 가위바위보 결정하기
+com_idx = (random.randint(0, 10000)%3)
+com = gameList[com_idx]
+print(f&quot;컴퓨터의 가위/바위/보 ==&gt; {com}&quot;)
+
+# 조건문 - 승패 결정하기
+if mine == &quot;가위&quot;:
+    if com == &quot;가위&quot;:
+        print(&quot;비겼습니다!&quot;)
+    elif com == &quot;바위&quot;:
+        print(&quot;졌습니다...&quot;)
+    else:
+        print(&quot;이겼습니다^^&quot;)
+elif mine == &quot;바위&quot;:
+    if com == &quot;가위&quot;:
+        print(&quot;이겼습니다^^&quot;)
+    elif com == &quot;바위&quot;:
+        print(&quot;비겼습니다!&quot;)
+    else:
+        print(&quot;졌습니다...&quot;)
+elif mine == &quot;보&quot;:
+    if com == &quot;가위&quot;:
+        print(&quot;졌습니다...&quot;)
+    elif com == &quot;바위&quot;:
+        print(&quot;이겼습니다^^&quot;)
+    else:
+        print(&quot;비겼습니다!&quot;)
+else:
+    print(f&quot;{mine}은 잘못된 입력값입니다.&quot;)
+</code></pre>
+</li>
+<li>내 코드(인덱스값으로 비교+에러 처리)<pre><code class="language-python"># game_plus.py
+
+#!/usr/bin/python3
+import random
+
+gameList = [&quot;가위&quot;, &quot;바위&quot;, &quot;보&quot;]
+
+# 에러 처리
+try:
+    # 나의 가위바위보 입력받기
+    mine = input(&quot;나의 가위/바위/보 ==&gt; &quot;)
+    mine_idx = gameList.index(mine)
+
+    # 컴퓨터의 가위바위보 결정하기
+    com_idx = (random.randint(0, 10000)%3)
+    com = gameList[com_idx]
+    print(f&quot;컴퓨터의 가위/바위/보 ==&gt; {com}&quot;)
+
+    # 조건문 - 승패 결정하기
+    if mine_idx == com_idx:
+        print(&quot;비겼습니다!&quot;)
+    elif (mine_idx == (com_idx + 1)) or ((mine_idx == 0) and (com_idx == 2)):
+        print(&quot;이겼습니다^^&quot;)
+    else:
+        print(&quot;졌습니다...&quot;)
+except ValueError as e:
+    print(f&quot;{mine}은 잘못된 입력입니다&quot;)
+</code></pre>
+</li>
+<li>결과
+<img src="/assets/imgs/notes/python-practice/02-image-1.png" alt="image.png" loading="lazy"></li>
+</ul>
+<h5>🛠️ 트러블슈팅</h5>
+<ul>
+<li>더 나은 방법이 없나 생각하던 중, gameList를 이용하여 가위, 바위, 보 문자열 비교가 아니라 숫자 비교를 해보기로 함</li>
+<li>코드<pre><code class="language-python"># game_other.py
+gameList = [&quot;가위&quot;, &quot;바위&quot;, &quot;보&quot;]
+
+# 나의 가위바위보 입력받기
+**mine_val = input(&quot;나의 가위/바위/보 ==&gt; &quot;)
+mine = gameList.index(mine_val)**
+
+# 컴퓨터의 가위바위보 결정하기
+com = (random.randint(0, 10000)%3)
+print(f&quot;컴퓨터의 가위/바위/보 ==&gt; **{gameList[com]}**&quot;)
+
+# 조건문 - 승패 결정하기
+if mine == 0:
+    if com == 0:
+        print(&quot;비겼습니다!&quot;)
+    elif com == 1:
+        print(&quot;졌습니다...&quot;)
+    else:
+        print(&quot;이겼습니다^^&quot;)
+</code></pre>
+</li>
+</ul>
+<p><strong>문제</strong></p>
+<ul>
+<li>이렇게 하면 사용자가 입력한 값으로 인덱스를 찾기 때문에, 잘못된 값을 입력했을 때 ValueError 에러가 발생함 ⇒ 예외 처리를 할 수 없기 때문에 이전 방식이 나은 것 같다.</li>
+</ul>
+<p><strong>해결방안</strong></p>
+<ul>
+<li>try-except 문을 이용하면 에러 처리를 할 수 있긴 하다</li>
+<li>예제 코드<pre><code class="language-python">try:
+    num = int(input(&quot;숫자 입력: &quot;))
+    result = 10 / num
+except ValueError as e:
+    print(f&quot;입력 오류 발생: {e}&quot;)
+except ZeroDivisionError as e:
+    print(f&quot;수학적 오류 발생: {e}&quot;)
+</code></pre>
+</li>
+</ul>
+<p><strong>최종 코드</strong></p>
+<pre><code class="language-python">#!/usr/bin/python3
+import random
+
+gameList = [&quot;가위&quot;, &quot;바위&quot;, &quot;보&quot;]
+
+try:
+    # 나의 가위바위보 입력받기
+    mine_val = input(&quot;나의 가위/바위/보 ==&gt; &quot;)
+    mine = gameList.index(mine_val)
+
+    # 컴퓨터의 가위바위보 결정하기
+    com = (random.randint(0, 1000)%3)
+    print(f&quot;컴퓨터의 가위/바위/보 ==&gt; {gameList[com]}&quot;)
+
+    # 조건문 - 승패 결정하기
+    if mine == 0:
+        if com == 0:
+            print(&quot;비겼습니다!&quot;)
+        elif com == 1:
+            print(&quot;졌습니다...&quot;)
+        else:
+            print(&quot;이겼습니다^^&quot;)
+    elif mine == 1:
+        if com == 0:
+            print(&quot;이겼습니다^^&quot;)
+        elif com == 1:
+            print(&quot;비겼습니다!&quot;)
+        else:
+            print(&quot;졌습니다...&quot;)
+    else:
+        if com == 0:
+            print(&quot;졌습니다...&quot;)
+        elif com == 1:
+            print(&quot;이겼습니다^^&quot;)
+        else:
+            print(&quot;비겼습니다!&quot;)
+except ValueError as e:
+    print(f&quot;{mine_val}은 잘못된 입력입니다&quot;)
+</code></pre>
+<hr />
+<h3>가위바위보 확장</h3>
+<ul>
+<li>가위바위보를 10회 수행하여, 몇 대 몇인지 출력하자</li>
+<li>코드<pre><code class="language-python">#!/usr/bin/python3
+''' ==================
+가위바위보 게임 확장
+- 10번 수행
+- 몇대몇인지 출력하기
+===================='''
+import random
+
+**GAME_ROUND = 10**
+gameList = (&quot;가위&quot;, &quot;바위&quot;, &quot;보&quot;)
+**my_win = 0
+com_win = 0**
+
+# 10회 반복: for문
+**for i in range(GAME_ROUND):**
+    # 나의 가위바위보 입력받기
+    mine = input(&quot;나의 가위/바위/보 ==&gt; &quot;)
+
+    # 컴퓨터의 가위바위보 결정하기
+    com_idx = (random.randint(0, 10000)%3)
+    com = gameList[com_idx]
+    print(f&quot;컴퓨터의 가위/바위/보 ==&gt; {com}&quot;)
+
+    # 조건문 - 승패 결정하기
+    if mine == &quot;가위&quot;:
+        if com == &quot;가위&quot;:
+            print(&quot;비겼습니다!&quot;)
+        elif com == &quot;바위&quot;:
+            print(&quot;졌습니다...&quot;)
+            **com_win += 1**
+        else:
+            print(&quot;이겼습니다^^&quot;)
+            **my_win += 1**
+    elif mine == &quot;바위&quot;:
+        if com == &quot;가위&quot;:
+            print(&quot;이겼습니다^^&quot;)
+            **my_win += 1**
+        elif com == &quot;바위&quot;:
+            print(&quot;비겼습니다!&quot;)
+        else:
+            print(&quot;졌습니다...&quot;)
+            **com_win += 1**
+    elif mine == &quot;보&quot;:
+        if com == &quot;가위&quot;:
+            print(&quot;졌습니다...&quot;)
+            **com_win += 1**
+        elif com == &quot;바위&quot;:
+            print(&quot;이겼습니다^^&quot;)
+            **my_win += 1**
+        else:
+            print(&quot;비겼습니다!&quot;)
+    else:
+        print(f&quot;{mine}은 잘못된 입력값입니다.&quot;)
+
+**print(f&quot;컴: {com_win}&quot;)
+print(f&quot;나: {my_win}&quot;)
+print(f&quot;비김: {GAME_ROUND-com_win-my_win}&quot;)**
+</code></pre>
+</li>
+</ul>
+<h3>학생 줄 세우기</h3>
+<ul>
+<li>A, B, C, D, E 다섯 명의 학생들에게 도시락을 나눠주려고 합니다. 다섯 명의 학생들이 도시락을 받기 위해 순서대로 줄을 서려면 총 몇 가지의 경우의 수가 나올까요?</li>
+<li>이런 경우 팩토리얼 함수를 사용하면 쉽게 해결된다
+<ul>
+<li>팩토리얼(Factorial): 1부터 n까지 숫자의 곱을 의미한다.</li>
+<li>팩토리얼은 기호로 !를 사용합니다. 예로 5!은 1×2×3×4×5로 계산되어 120이 된다.</li>
+</ul>
+</li>
+<li>내 코드<pre><code class="language-python">#!/usr/bin/python3
+COUNT_STUDENT = 5  # 학생 수
+result = 1         # 결과
+
+# 경우의 수 계산: 팩토리얼
+for i in range(1, COUNT_STUDENT+1):
+     result *= i
+
+# 경우의 수 출력
+print(f&quot;A, B, C, D, E 학생들을 순서대로 세우는 경우의 수 : {result}&quot;)
+</code></pre>
+</li>
+<li>살짝 수정한 내 코드<pre><code class="language-python">#!/usr/bin/python3
+COUNT_STUDENT = 5  # 학생 수
+result = 1         # 결과
+
+# 경우의 수 계산: 팩토리얼
+for i in range(**COUNT_STUDENT**):
+     result *= (**i + 1**)
+
+# 경우의 수 출력
+print(f&quot;A, B, C, D, E 학생들을 순서대로 세우는 경우의 수 : {result}&quot;)
+</code></pre>
+<ul>
+<li>클로드: 두 개의 코드는 성능면에서는 완전히 동일한 코드지만 가독성이 1번이 좋다
+<ul>
+<li>성능: 곱셈 N번 + 덧셈 N번 / 곱셈 N번 인데, 덧셈 N번은 실질적으로 차이가 없다</li>
+<li>가독성: 범위 지정 + 바로 곱셈만 하는 게 직관적이다</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3>구구단</h3>
+<ul>
+<li>2, 3, 4 단 / 5, 6, 7 단 / 8, 9 단 3줄 출력</li>
+<li>내 코드(지저분함)<pre><code class="language-python">// goo.py
+#!/usr/bin/python3
+
+line = 1
+
+for i in range(1, 30, 1):
+    for j in range(3 * line - 1, 3 * line + 2, 1):
+        if i % 10 == 0:
+            line += 1
+            break
+        if j % 10 == 0:
+            break
+        print(f&quot;{j} X {i%10} = {j*(i%10)}&quot;, end=&quot;\t&quot;)
+    print(&quot;&quot;)
+</code></pre>
+</li>
+<li>수업 코드<pre><code class="language-python">// goo_simple.py
+#!/usr/bin/python3
+
+for i in range(2, 10, 3):
+    for j in range(1, 10, 1):
+        print(f&quot;{i} X {j} = {j*i}&quot;, end=&quot;\t&quot;)
+        print(f&quot;{i+1} X {j} = {j*(i+1)}&quot;, end=&quot;\t&quot;)
+        if (i+2) &lt;= 9:
+            print(f&quot;{i+2} X {j} = {j*(i+2)}&quot;)
+        else:
+            print(&quot;&quot;)
+    print(&quot;&quot;)
+</code></pre>
+<ul>
+<li>첫번째 for문이 단 → 한번에 3단씩만 출력한다면 증가값을 3으로 두면 됨</li>
+<li>단계마다 3개의 단을 출력 ⇒ print문이 3개</li>
+<li>10단은 출력X ⇒ if문으로 조건 걸어주기</li>
+</ul>
+</li>
+</ul>
+<h4>추가 연습</h4>
+<ul>
+<li>문제 1: 구구단에서 막힌 <strong>&quot;여러 열 동시 출력 + 조건 분기&quot;</strong> 를 직접 연장한 문제</li>
+<li>문제 2: 중첩 루프를 <strong>좌표 기반으로 사고하는 훈련</strong>(코테에서 많이 나옴)</li>
+</ul>
+<h5>문제 1. 곱셈표 변형 출력</h5>
+<p>아래 조건으로 곱셈표를 출력해.</p>
+<pre><code>[조건]
+- N을 입력받음
+- N×N 크기의 곱셈표를 출력
+- 단, 두 수의 곱이 N을 초과하면 그 자리는 &quot;  -&quot; 출력
+- 헤더(1행, 1열) 포함
+
+N = 5 출력 예시:
+
+   |  1  2  3  4  5
+---+----------------
+ 1 |  1  2  3  4  5
+ 2 |  2  4  -  -  -
+ 3 |  3  -  -  -  -
+ 4 |  4  -  -  -  -
+ 5 |  5  -  -  -  -
+</code></pre>
+<blockquote>
+<p>포인트: 중첩 루프 + 조건 분기 + 문자열 정렬(<code>rjust</code>, <code>f-string</code> 너비 지정)</p>
+</blockquote>
+<hr />
+<h5>문제 2. 달팽이 숫자 배열</h5>
+<p>N을 입력받아 1~N²을 달팽이(시계방향 나선형) 순서로 채운 2D 배열을 출력해.</p>
+<pre><code>N = 4 출력 예시:
+
+ 1  2  3  4
+12 13 14  5
+11 16 15  6
+10  9  8  7
+</code></pre>
+<blockquote>
+<p>포인트: 방향 전환 로직(우→하→좌→상), 경계 조건, 2D 리스트 초기화</p>
+</blockquote>
+<hr />
+<h5>문제 3. 별찍기</h5>
+<p><img src="/assets/imgs/notes/python-practice/03-image-2.png" alt="image.png" loading="lazy"></p>
+<p><img src="/assets/imgs/notes/python-practice/04-image-3.png" alt="image.png" loading="lazy"></p>
+<pre><code class="language-python">
+</code></pre>
+<h3>주사위 3개 동시에 던져 동일한 숫자 나오기</h3>
+<ul>
+<li>내 코드<pre><code class="language-python">#!/usr/bin/python3
+import random
+
+count = 0
+
+while True:
+    dice1 = random.randint(1, 6*6*6) % 6
+    dice2 = random.randint(1, 6*6*6) % 6
+    dice3 = random.randint(1, 6*6*6) % 6
+
+    count += 1
+
+    if dice1 == dice2 == dice3:
+        print(f&quot;3개 주사위는 모두 {dice1}입니다.&quot;)
+        print(f&quot;같은 숫자가 나오기까지 {count}번 던졌습니다.&quot;)
+        break
+</code></pre>
+</li>
+</ul>
+<h3>별 찍기</h3>
+<p><img src="/assets/imgs/notes/python-practice/05-image-4.png" alt="image.png" loading="lazy"></p>
+<p><img src="/assets/imgs/notes/python-practice/04-image-3.png" alt="image.png" loading="lazy"></p>
+<pre><code class="language-python">
+</code></pre>
+<h3>가위바위보 확장 - 리스트 활용</h3>
+<ul>
+<li>두 대의 컴퓨터끼리 가위바위보 게임을 10000번 시키고 최종적으로 누가 더 많이 이겼는지 결과를 확인</li>
+<li>내 코드<pre><code class="language-python">#!/usr/bin/python3
+import random
+
+gameList = [&quot;가위&quot;, &quot;바위&quot;, &quot;보&quot;]
+**resultList = [0, 0, 0]**
+
+for _ in range(10000):
+    # 컴퓨터1의 가위바위보 결정하기
+    com_idx1 = (random.randint(0, 10000)%3)
+    com1 = gameList[com_idx1]
+
+    # 컴퓨터2의 가위바위보 결정하기
+    com_idx2 = (random.randint(0, 10000)%3)
+    com2 = gameList[com_idx2]
+
+    # 조건문 - 승패 결정하기
+    if com1 == &quot;가위&quot;:
+        if com2 == &quot;보&quot;:
+            **resultList[0] += 1**
+        elif com2 == &quot;바위&quot;:
+            resultList[1] += 1
+        else:
+            resultList[2] += 1
+    elif com1 == &quot;바위&quot;:
+        if com2 == &quot;가위&quot;:
+            resultList[0] += 1
+        elif com2 == &quot;보&quot;:
+            resultList[1] += 1
+        else:
+            resultList[2] += 1
+    elif com1 == &quot;보&quot;:
+        if com2 == &quot;바위&quot;:
+            resultList[0] += 1
+        elif com2 == &quot;가위&quot;:
+            resultList[1] += 1
+        else:
+            resultList[2] += 1
+
+print(f&quot;컴퓨터 1이 이긴 횟수: **{resultList[0]}**&quot;)
+print(f&quot;컴퓨터 2이 이긴 횟수: {resultList[1]}&quot;)
+print(f&quot;비긴 횟수: {resultList[2]}&quot;)
+
+</code></pre>
+</li>
+</ul>
+<h3>가수 정보를 딕셔너리에 저장하고 출력하기</h3>
+<ul>
+<li>딕셔너리 구조를 활용해서 가수그룹의 이름, 구성원수, 데뷔 프로그램, 대표곡을 저장</li>
+<li>저장된 딕셔너리를 모두 출력</li>
+<li>내 코드<pre><code class="language-python">#!/usr/bin/python3
+
+singerDict = {&quot;이름&quot;:&quot;트와이스&quot;, &quot;구성원수&quot;: 9, &quot;데뷰&quot;:&quot;서바이벌 식스틴&quot;, &quot;대표곡&quot;:&quot;CRY FOR ME&quot;}
+
+for k, v in singerDict.items():
+    print(f&quot;{k} ==&gt; {v}&quot;)
+</code></pre>
+</li>
+<li>예제 코드<pre><code class="language-python">#!/usr/bin/python3
+
+singerDict = {}
+
+singerDict[&quot;이름&quot;] = &quot;트와이스&quot;
+singerDict[&quot;구성원수&quot;] = 9
+singerDict[&quot;데뷰&quot;] = &quot;서바이벌 식스틴&quot;
+singerDict[&quot;대표곡&quot;] = &quot;CRY FOR ME&quot;
+
+for k, v in singerDict.items():
+    print(f&quot;{k} ==&gt; {v}&quot;)
+</code></pre>
+<ul>
+<li>빈 딕셔너리를 만들고 저장하는 과정을 작성하라는 의미였다…</li>
+</ul>
+</li>
+</ul>
+<h3>편의점 재고 관리하기</h3>
+<ul>
+<li>편의점 물품의 재고를 관리하는 코드</li>
+<li>사용자가 편의점 물품과 재고량를 입력
+<ul>
+<li>딕셔너리에 키를 물품으로, 재고량을 값으로 저장</li>
+</ul>
+</li>
+<li>재고량이 있는 물품을 검색</li>
+<li>내 코드<pre><code class="language-python">#!/usr/bin/python3
+
+storeDict = {}
+
+while True:
+    item = input(&quot;입력 물품 ==&gt; &quot;)
+    if item == &quot;z&quot;:
+        break
+    count = int(input(&quot;재고량 ==&gt; &quot;))
+    storeDict[item] = count
+
+print(&quot;*** 물품의 재고량 확인 ***&quot;)
+
+while True:
+    find_item = input(&quot;찾을 물품 ==&gt; &quot;)
+    if find_item == &quot;&quot;:
+        break
+    elif find_item in storeDict:
+        print(f&quot;{storeDict[find_item]} 개 남았어요&quot;)
+    else:
+        print(&quot;그 물품은 없어요&quot;)
+
+</code></pre>
+</li>
+</ul>
+<h3>함수를 사용한 계산기 구현</h3>
+<ul>
+<li>내 코드<pre><code class="language-python">#!/usr/bin/bash
+
+## 함수 정의
+# 값 출력하기
+def operator(n1, n2, op):
+    match op:
+        case &quot;+&quot;:
+            print(f&quot;{n1} {op} {n2} = {n1 + n2}&quot;)
+        case &quot;-&quot;:
+            print(f&quot;{n1} {op} {n2} = {n1 - n2}&quot;)
+        case &quot;*&quot;:
+            print(f&quot;{n1} {op} {n2} = {n1 * n2}&quot;)
+        case &quot;/&quot;:
+            print(f&quot;{n1} {op} {n2} = {n1 / n2}&quot;)
+        case _:
+            print(&quot;잘못된 입력값&quot;)
+
+# 연산자 입력 받기
+op = input(&quot;계산 입력( +, -, *, / ): &quot;)
+
+# 숫자 입력 받기
+num1 = int(input(&quot;첫 번째 숫자 입력: &quot;))
+num2 = int(input(&quot;두 번째 숫자 입력: &quot;))
+
+# 함수 호출
+operator(num1, num2, op)
+</code></pre>
+</li>
+<li>예제 코드<pre><code class="language-python">#!/usr/bin/bash
+
+## 함수 정의
+# 값 출력하기
+def calc(n1, n2, op):
+    result = 0
+    match op:
+        case &quot;+&quot;:
+            result = n1 + n2
+        case &quot;-&quot;:
+            result = n1 - n2
+        case &quot;*&quot;:
+            result = n1 * n2
+        case &quot;/&quot;:
+            result = n1 / n2
+        case _:
+            print(&quot;잘못된 입력값&quot;)
+    return result
+
+# 연산자 입력 받기
+op = input(&quot;계산 입력( +, -, *, / ): &quot;)
+
+# 숫자 입력 받기
+num1 = int(input(&quot;첫 번째 숫자 입력: &quot;))
+num2 = int(input(&quot;두 번째 숫자 입력: &quot;))
+
+# 함수 호출
+result = calc(num1, num2, op)
+print(f&quot;## 계산기: {num1} {op} {num2} = {result}&quot;)
+</code></pre>
+</li>
+</ul>
+<h2>미션</h2>
+<h3>미션) 카지노- 주사위</h3>
+<ul>
+<li>경기 규칙
+<ul>
+<li>플레이어는 300코인을 가지고 시작한다</li>
+<li>베팅할 때마다 베팅 금액이 10코인씩 증가(10코인 이상)</li>
+<li>돈을 다 잃거나 0을 입력할 때까지 계속 게임
+<ul>
+<li>세 개의 주사위의 합이 13 이상이면 플레이어가 승(원금회수)(우선순위3)</li>
+<li>만약 세 개의 숫자가 같다면 *2배 승(우선순위2)</li>
+<li>만약 세 개가 모두 “1”이면 *4배 승 ⇒ 합이 3(우선순위1)
+→ 우선순위대로 안 하면 제대로 동작X</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>출력 형식<pre><code>$$베팅액: 10코인$$ 베팅하시겠습니까? (y/n)
+첫 번째 주사위: 4
+$$베팅액: 20코인$$ 베팅하시겠습니까? (y/n)
+두 번째 주사위: 4
+$$베팅액: 30코인$$ 베팅하시겠습니까? (y/n)
+세 번째 주사위: 1
+=================================
+주사위합: 9 ==&gt; ☆★☆패배☆★☆
+주사위합: 15 ==&gt; ☆★☆승리☆★☆ 
+플레이어 코인 현황: 240 코인
+=================================
+=================================
+플레이어 코인 현황: -30
+YOU DIED......
+=================================
+</code></pre>
+</li>
+<li>코드<pre><code class="language-python">#!/usr/bin/python
+import random
+
+# 변수 선언
+go = &quot;&quot;      # 베팅 여부(y, n)
+coin = 300   # 코인
+
+# 게임: 반복문
+while coin &gt;= 0:
+    # 주사위
+    dice = [0, 0, 0]
+    # 베팅액 초기화
+    betting_sum = 0
+
+    # 베팅(3번): 반복문
+    for i in range(1, 4, 1):
+        # 입력값 받기
+        go = input(f&quot;\n$$베팅액: {i*10}$$ 베팅하시겠습니까? (y/n) &quot;)
+        # 만약 n을 입력받으면 break + 코인 빼기 
+        if go == &quot;n&quot;:
+            break
+        # 만약 y를 입력받으면 주사위 출력
+        elif go == &quot;y&quot;:
+            betting_sum += i*10
+            dice[i-1] = random.randint(1, 6*6*6)%6 + 1
+            print(f&quot;{i}번째 주사위: {dice[i-1]}&quot;)
+    # 만약 중간에 포기했다면 다이 + 코인 빼기
+    if go == &quot;n&quot;:
+        coin -= betting_sum
+        print(&quot;=================================&quot;)
+        print(&quot;DIE ==&gt; ☆★☆패배☆★☆&quot;)
+        print(f&quot;플레이어 코인 현황: {coin}&quot;)
+        print(&quot;=================================&quot;)
+        continue
+    # 추가 조건1: 세 개가 모두 1이면(합이 3이면) 4배 승
+    if sum(dice)==3:
+        coin += betting_sum * 4
+        print(&quot;=================================&quot;)
+        print(f&quot;1 1 1 ==&gt; ☆★☆4배승!☆★☆&quot;)
+        print(f&quot;플레이어 코인 현황: {coin}&quot;)
+        print(&quot;=================================&quot;)
+        continue
+    # 추가 조건2: 세 개의 숫자가 같다면 2배 승
+    elif dice[0] == dice[1] == dice[2]:
+        coin += betting_sum * 2
+        print(&quot;=================================&quot;)
+        print(f&quot;{dice[0]} {dice[1]} {dice[2]} ==&gt; ☆★☆2배승!☆★☆&quot;)
+        print(f&quot;플레이어 코인 현황: {coin}&quot;)
+        print(&quot;=================================&quot;)
+        continue
+    # 만약 주사위 합이 12 이상이라면 승리 + 코인 더하기
+    elif sum(dice) &gt;= 12:
+        coin += betting_sum
+        print(&quot;=================================&quot;)
+        print(f&quot;주사위합: {sum(dice)} ==&gt; ☆★☆승리☆★☆&quot;)
+        print(f&quot;플레이어 코인 현황: {coin}&quot;)
+        print(&quot;=================================&quot;)
+        continue
+    # 만약 주사위 합이 12 미만이라면 패배 + 코인 빼기
+    else:
+        coin -= betting_sum
+        print(&quot;=================================&quot;)
+        print(f&quot;주사위합: {sum(dice)} ==&gt; ☆★☆패배☆★☆&quot;)
+        print(f&quot;플레이어 코인 현황: {coin}&quot;)
+        print(&quot;=================================&quot;)
+    # 코인이 없으면 다이
+    if coin &lt; 0:
+        print(&quot;=================================&quot;)
+        print(f&quot;플레이어 코인 현황: {coin}&quot;)
+        print(&quot;YOU DIED......&quot;)
+        print(&quot;=================================&quot;)
+</code></pre>
+</li>
+<li>최적화(함수 사용)<pre><code class="language-python">#!/usr/bin/python
+import random
+
+# 변수 선언
+go = &quot;&quot;      # 베팅 여부(y, n)
+coin = 300   # 코인
+
+# 함수 정의
+def roll_dice():
+    return random.randint(1, 6)
+
+def print_result(msg, coin):
+    print(&quot;=================================&quot;)
+    print(msg)
+    print(f&quot;플레이어 코인 현황: {coin}&quot;)
+    print(&quot;=================================&quot;)
+
+def decision(coin, betting_sum, dice):
+    # 추가 조건1: 세 개가 모두 1이면(합이 3이면) 4배 승
+    if sum(dice)==3:
+        coin += betting_sum * 4
+        print_result(f&quot;1 1 1 ==&gt; ☆★☆4배승!☆★☆&quot;, coin)
+    # 추가 조건2: 세 개의 숫자가 같다면 2배 승
+    elif dice[0] == dice[1] == dice[2]:
+        coin += betting_sum * 2
+        print_result(f&quot;{dice[0]} {dice[1]} {dice[2]} ==&gt; ☆★☆2배승!☆★☆&quot;, coin)
+    # 만약 주사위 합이 12 이상이라면 승리 + 코인 더하기
+    elif sum(dice) &gt;= 14:
+        coin += betting_sum
+        print_result(f&quot;주사위합: {sum(dice)} ==&gt; ☆★☆승리☆★☆&quot;, coin)
+    # 만약 주사위 합이 13 이하라면 패배 + 코인 빼기
+    else:
+        coin -= betting_sum
+        print_result(f&quot;주사위합: {sum(dice)} ==&gt; ☆★☆패배☆★☆&quot;, coin)
+    return coin
+
+# 게임: 반복문
+while coin &gt;= 0:
+    # 주사위
+    dice = [0, 0, 0]
+    # 베팅액 초기화
+    betting_sum = 0
+
+    # 베팅(3번): 반복문
+    for i in range(1, 4, 1):
+        # 입력값 받기
+        go = input(f&quot;\n$$베팅액: {i*10}$$ 베팅하시겠습니까? (y/n) &quot;)
+        # 만약 n을 입력받으면 break + 코인 빼기 
+        if go == &quot;n&quot;:
+            break
+        # 만약 y를 입력받으면 주사위 출력
+        elif go == &quot;y&quot;:
+            betting_sum += i*10
+            dice[i-1] = roll_dice()
+            print(f&quot;{i}번째 주사위: {dice[i-1]}&quot;)
+    # 만약 중간에 포기했다면 다이 + 코인 빼기
+    if go == &quot;n&quot;:
+        coin -= betting_sum
+        print_result(&quot;DIE ==&gt; ☆★☆패배☆★☆&quot;, coin)
+        continue
+    # 게임 결과 판단
+    coin = decision(coin, betting_sum, dice)
+    # 코인이 없으면 다이
+    if coin &lt; 0:
+        print(&quot;YOU DIED......&quot;)
+
+</code></pre>
+</li>
+</ul>
+<h3>미션) 로또 당첨</h3>
+<ul>
+<li>
+<p>당첨 번호: 1, 2, 15, 28, 39, 45</p>
+</li>
+<li>
+<p>random.randint 함수만 사용</p>
+</li>
+<li>
+<p>생성된 당첨 번호는 중복될 수 없다(1~45)</p>
+</li>
+<li>
+<p>로또 1장: 1000원(천원)</p>
+</li>
+<li>
+<p>당첨 기준</p>
+<ul>
+<li>3개: 5000원(오천원)</li>
+<li>4개: 50000원(오만원)</li>
+<li>5개: 1000000원(백만원)</li>
+<li>6개: 당첨(25억원)</li>
+</ul>
+</li>
+<li>
+<p><strong>내 코드</strong></p>
+<pre><code class="language-python">#!/usr/bin/python3
+import random
+
+# 당첨 번호 리스트
+lottoList = {1, 2, 15, 28, 39, 45}
+
+## 전역변수 정의
+myLotto = set()    # 추첨 번호 리스트(셋)
+buy_money = 0      # 지출 비용
+win_money = 0       # 당첨금
+
+## 함수 선언
+def print_win():
+    print(&quot;================================&quot;)
+    print(f&quot;축★☆★당첨★☆★하&quot;)
+    print(f&quot;사용 금액: {buy_money}&quot;)
+    print(f&quot;총 상금: {win_money}&quot;)
+    print(f&quot;총 수익: {win_money-buy_money}&quot;)
+    print(f&quot;{buy_money//1000}번 시도 ...&quot;)
+    print(&quot;================================&quot;)
+
+## 로또 뽑기: 반복문
+while True:
+    # 만약 당첨된다면 break
+    if myLotto == lottoList:
+        break
+
+    # 값 지불
+    buy_money += 1000
+    myLotto = set()
+
+    # 추첨 번호가 6개가 될때까지 반복(len()&lt;6)
+    while len(myLotto)&lt;6:
+        # 로또 번호 뽑고 리스트에 추가
+        lotto_num = random.randint(1, 45)
+        myLotto.add(lotto_num)
+
+    ## 당첨 여부 확인하기
+    same_count = len(myLotto &amp; lottoList)
+    if same_count == 6:
+        win_money += 2500000000
+        print_win()
+        break
+    elif same_count == 5:
+        win_money += 1500000
+        print(f&quot;맞은 개수: {same_count} | 총 사용 금액: {buy_money}&quot;)
+    elif same_count == 4:
+        win_money += 50000
+        print(f&quot;맞은 개수: {same_count} | 총 사용 금액: {buy_money}&quot;)
+    elif same_count == 3:
+        win_money += 5000
+        print(f&quot;맞은 개수: {same_count} | 총 사용 금액: {buy_money}&quot;)
+    else:
+        print(&quot;당첨 실패!&quot;)
+</code></pre>
+</li>
+</ul>
+<p><strong>결과</strong></p>
+<p><img src="/assets/imgs/notes/python-practice/07-image-5.png" alt="image.png" loading="lazy"></p>
+<h3>미션) 자리 바꾸기 - 악성코드 시그니처 유사율 계산 프로그램</h3>
+<h5>소스코드 형식</h5>
+<pre><code class="language-python">악성코드 = &quot;가나다라마바사아자차카타파하&quot;
+keySet = set()
+codeDic = {&quot;가&quot;: 1, &quot;나&quot;, 1 ...}
+
+이름: 
+안경: +4%
+전공, 유사전공, 비전공: 0, 2, 4%
+악성코드 비교 문자열 생성: &quot;20글자&quot;
+
+==&gt; 유사율 높은 순서대로 출력
+</code></pre>
+<pre><code class="language-python">이름
+안경(0:안 씀, 1: 씀)
+전공(0: 전공, 1: 유사전공, 2: 비전공)
+문자열(한글 20글자)
+</code></pre>
+<h5>유사율 알고리즘(문자열)</h5>
+<p>https://www.dbpia.co.kr/journal/detail?nodeId=T13702073</p>
+<p>https://dcollection.sookmyung.ac.kr/public_resource/pdf/000000059018_20260615132108.pdf</p>
+<ul>
+<li>문자열 1과 문자열 2의 유사율
+<ul>
+<li><code>교집합%합집합</code>
+<ul>
+<li>여기서 교집합과 합집합은 겹치는 문자의 개수를 의미하는 게 아님
+<ul>
+<li>문자 개수로만 하면 중복 문자가 반영X</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>(교집합 최솟값)/(합집합 최대값)</code>
+<ul>
+<li>예시
+<ol>
+<li>빈도수 맵(딕셔너리) 만들기
+<ul>
+<li>단어 A (&quot;바나나&quot;) → {'바': 1, '나': 2}</li>
+<li>단어 B (&quot;바나나나나나&quot;) → {'바': 1, '나': 5}</li>
+</ul>
+</li>
+<li>교집합 합산 (최소 개수 기준)
+<ul>
+<li>두 단어에 공통으로 존재하는 글자만 찾아서, 둘 중 더 작은 개수를 선택해 누적
+<ul>
+<li>'바'는 A에 1개, B에 1개 -&gt; 둘 중 최소값은 1</li>
+<li>'나'는 A에 2개, B에 5개 -&gt; 둘 중 최소값은 2</li>
+</ul>
+</li>
+<li>교집합 총합: 1 + 2 = 3</li>
+</ul>
+</li>
+<li>합집합 합산 (최대 개수 기준)
+<ul>
+<li>두 단어에 한 번이라도 등장한 모든 글자를 찾아서, 둘 중 더 큰 개수를 선택해 누적
+<ul>
+<li>'바'의 최대값은 1</li>
+<li>'나'의 최대값은 5</li>
+</ul>
+</li>
+<li>합집합 총합: 1 + 5 = 6</li>
+</ul>
+</li>
+<li>최종 유사율 계산
+<ul>
+<li>교집합 총합(3) ÷ 합집합 총합(6) = 0.5 (50%)</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h5>유사율 가중치 부과</h5>
+<ol>
+<li>덧셈
+<ul>
+<li>0.5 + 0.04 …</li>
+</ul>
+</li>
+<li>곱셈
+<ul>
+<li>0.5 * 1.04(1 + 0.04)</li>
+</ul>
+</li>
+<li><strong>우선순위 + 덧셈</strong>
+<ul>
+<li>0.5 + 0.04*3 …</li>
+</ul>
+</li>
+</ol>
+<ul>
+<li><strong>로직 코드(<code>similarity.py</code>)</strong><pre><code class="language-python">#!/usr/bin/python3
+''' ========================================================================
+## 데이터 파일 구조
+경로: ./data/
+파일 이름: [이름].txt
+구조: 
+    이름
+    안경(0: 안 씀, 1: 씀)
+    전공(0: 전공(IT), 1: 유사 전공(공과 대학), 2: 비전공)
+    악성 코드(한글 20글자)
+
+## 문자열 유사율 알고리즘 ##
+(교집합 최솟값)/(합집합 최대값)
+- 겹치는 문자 개수를 카운트
+- 하나의 문자가 반복되는 경우도 반영 (겹치는 문자가 반복되는 경우도 반영 )
+    ex) A) 가나다라라라 - B) 마라라
+        겹치는 문자는 &quot;라&quot; 한 글자이지만 &quot;라&quot;가 두번 겹침 
+        =&gt; A에는 &quot;라&quot;가 3번, B에는 &quot;라&quot;가 2번 -&gt; 2번 겹침(교집합의 최솟값)
+
+## 항목별 가중치 부과 ##
+우선순위: 1. 악성코드 일치율(유사율) / 2. 전공 / 3. 안경
+최종 유사율 = 일치율 * 3 + 전공 * 2 + 안경
+
+======================================================================== '''
+
+# 변수 선언
+virus_code = &quot;가나다라마바사안녕하세요반갑습니다가나다&quot;  # 강사님 코드 예시
+codeSet = set(virus_code)
+codeDic = {}
+my_code = &quot;&quot;
+myDic = {}
+informList = []    # [이름, 안경, 전공, 악성코드]
+interMin = 0
+unionMax = 0
+
+# 악성 코드 딕셔너리
+for key in virus_code:
+    if key in codeDic:
+        codeDic[key] += 1
+    else:
+        codeDic[key] = 1
+
+# 내 파일 읽기
+with open('./data/조은솔.txt', 'r', encoding='utf-8') as file:
+          lines = file.readlines()
+          for line in lines:
+              informList.append(line.split()[0])
+
+# 내 문자열 딕셔너리
+my_code = informList[3]
+for key in my_code:
+    if key in myDic:
+        myDic[key] += 1
+    else:
+        myDic[key] = 1
+
+## 유사율 정리
+# 유사율 우선순위: 악성코드(*3), 전공(*2), 안경(*1)
+result = 0
+# 안경(0: 안 씀, 1: 씀(%4))
+if informList[1] == '1':
+    result += 0.04
+
+# 전공(0: 전공, 1: 유사전공(%2), 2: 비전공(%4))
+if informList[2] == '1':
+    result += 0.02 * 2
+elif informList[2] == '2':
+    result += 0.04 * 2
+
+## 악성코드
+# 문자열 유사율 계산: (교집합 최솟값) / (합집합 최대값)
+mySet = set(my_code)
+
+# 교집합
+interKeySet = codeSet &amp; mySet
+_codeFreq = 0
+_myFreq = 0
+for key in interKeySet:
+    _codeFreq = codeDic[key]
+    _myFreq = myDic[key]
+    interMin += _codeFreq if _codeFreq &lt;= _myFreq else _myFreq
+
+# 합집합
+unionKeySet = codeSet | mySet
+_codeFreq = 0
+_myFreq = 0
+for key in unionKeySet:
+    if key in codeDic:
+        _codeFreq = codeDic[key]
+    if key in myDic:
+        _myFreq = myDic[key]
+    unionMax += _codeFreq if _codeFreq &gt;= _myFreq else _myFreq
+
+# 연산
+_result = interMin/unionMax
+
+# 최종 유사율
+result += _result * 3
+
+print(&quot;최종 유사율: &quot;, result)
+
+</code></pre>
+</li>
+<li><strong>전체 코드(<code>similarity_c.py</code>)</strong><pre><code class="language-python">#!/usr/bin/python3
+''' ==============================================
+기존 로직 코드였던 similarity_c.py을 확장
+1. data 디렉토리 내부의 모든 txt 파일 순회
+2. 유사율이 높은 순서대로 정렬 
+3. 결과를 result_rank.txt로 저장 
+==============================================='''
+import os
+
+# 변수 선언
+virus_code = &quot;가나다라마바사안녕하세요반갑습니다가나다&quot;
+codeSet = set(virus_code)
+codeDic = {}
+results = []  # [(이름, 유사율), ...]
+
+# 악성 코드 딕셔너리
+for key in virus_code:
+    if key in codeDic:
+        codeDic[key] += 1
+    else:
+        codeDic[key] = 1
+
+# 순위를 저장할 파일
+resultFile = open(&quot;./result_rank.txt&quot;, &quot;w&quot;)
+
+# ./data/ 폴더 내 모든 학생 파일 읽기
+data_dir = './data'
+
+for filename in os.listdir(data_dir):
+    if not filename.endswith('.txt'):
+        continue
+
+    name = filename.replace('.txt', '')
+    filepath = os.path.join(data_dir, filename)
+
+    informList = []    # [이름, 안경, 전공, 악성코드]
+    interMin = 0
+    unionMax = 0
+
+    # 내 파일 읽기
+    with open(filepath, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+        for line in lines:
+            informList.append(line.split()[0])
+
+    # 내 문자열 딕셔너리
+    my_code = informList[3]
+    myDic = {}
+    for key in my_code:
+        if key in myDic:
+            myDic[key] += 1
+        else:
+            myDic[key] = 1
+
+    ## 유사율 정리
+    # 유사율 우선순위: 악성코드(*3), 전공(*2), 안경(*1)
+    result = 0
+
+    # 안경(0: 안 씀, 1: 씀(%4))
+    if informList[1] == '1':
+        result += 0.04
+
+    # 전공(0: 전공, 1: 유사전공(%2), 2: 비전공(%4))
+    if informList[2] == '1':
+        result += 0.02 * 2
+    elif informList[2] == '2':
+        result += 0.04 * 2
+
+    ## 악성코드
+    # 문자열 유사율 계산: (교집합 최솟값) / (합집합 최대값)
+    mySet = set(my_code)
+
+    # 교집합 
+    interKeySet = codeSet &amp; mySet
+    _codeFreq = 0
+    _myFreq = 0
+    for key in interKeySet:
+        _codeFreq = codeDic[key]
+        _myFreq = myDic[key]
+        interMin += min(_codeFreq, _myFreq)   # 최솟값
+
+    # 합집합
+    unionKeySet = codeSet | mySet
+    _codeFreq = 0
+    _myFreq = 0
+    for key in unionKeySet:
+        if key in codeDic:
+            _codeFreq = codeDic[key]
+        if key in myDic:
+            _myFreq = myDic[key]
+        unionMax += max(_codeFreq, _myFreq)   # 최대값
+
+    # 연산
+    _result = interMin / unionMax
+
+    # 최종 유사율
+    result += _result * 3
+
+    results.append((name, result))
+
+# 유사율 높은 순 정렬
+results.sort(key=lambda x: x[1], reverse=True)
+
+# 출력
+resultFile.writelines(f&quot;{'순위':&lt;5} {'이름':&lt;12} {'유사율'}\n&quot;)
+resultFile.writelines(&quot;-&quot; * 30 + &quot;\n&quot;)
+for rank, (name, score) in enumerate(results, start=1):
+    resultFile.writelines(f&quot;{rank:&lt;7} {name:&lt;12} {score:.3}\n&quot;)
+resultFile.close()
+
+</code></pre>
+</li>
+<li><strong>전체 코드+해시값(<code>similarity_plus.py</code>)</strong><pre><code class="language-python">#!/usr/bin/python3
+''' ==============================================
+기존 로직 코드였던 similarity_c.py을 확장
+1. data 디렉토리 내부의 모든 txt 파일 순회
+2. 유사율이 높은 순서대로 정렬 
+3. 결과를 result_rank.txt로 저장 
+==============================================='''
+import os
+
+# 변수 선언
+virus_code = &quot;가나다라마바사안녕하세요반갑습니다가나다&quot;
+codeSet = set(virus_code)
+codeDic = {}
+results = []  # [(이름, 유사율), ...]
+
+# 악성 코드 딕셔너리
+for key in virus_code:
+    if key in codeDic:
+        codeDic[key] += 1
+    else:
+        codeDic[key] = 1
+
+# 순위를 저장할 파일
+resultFile = open(&quot;./result_rank.txt&quot;, &quot;w&quot;)
+
+# ./data/ 폴더 내 모든 학생 파일 읽기
+data_dir = './data'
+
+for filename in os.listdir(data_dir):
+    if not filename.endswith('.txt'):
+        continue
+
+    name = filename.replace('.txt', '')
+    filepath = os.path.join(data_dir, filename)
+
+    informList = []    # [이름, 안경, 전공, 악성코드]
+    interMin = 0
+    unionMax = 0
+
+    # 내 파일 읽기
+    with open(filepath, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+        for line in lines:
+            informList.append(line.split()[0])
+
+    # 내 문자열 딕셔너리
+    my_code = informList[3]
+    myDic = {}
+    for key in my_code:
+        if key in myDic:
+            myDic[key] += 1
+        else:
+            myDic[key] = 1
+
+    ## 유사율 계산
+    # 항목별 우선순위: 악성코드(*3), 전공(*2), 안경(*1)
+    result = 0
+
+    # 안경(0: 안 씀, 1: 씀(%4))
+    if informList[1] == '1':
+        result += 0.04
+
+    # 전공(0: 전공, 1: 유사전공(%2), 2: 비전공(%4))
+    if informList[2] == '1':
+        result += 0.02 * 2
+    elif informList[2] == '2':
+        result += 0.04 * 2
+
+    ## 악성코드
+    # 문자열 유사율 계산: (교집합 최솟값) / (합집합 최대값)
+    mySet = set(my_code)
+
+    # 교집합 
+    interKeySet = codeSet &amp; mySet
+    _codeFreq = 0
+    _myFreq = 0
+    for key in interKeySet:
+        _codeFreq = codeDic[key]
+        _myFreq = myDic[key]
+        interMin += min(_codeFreq, _myFreq)   # 최솟값
+
+    # 합집합
+    unionKeySet = codeSet | mySet
+    _codeFreq = 0
+    _myFreq = 0
+    for key in unionKeySet:
+        if key in codeDic:
+            _codeFreq = codeDic[key]
+        if key in myDic:
+            _myFreq = myDic[key]
+        unionMax += max(_codeFreq, _myFreq)   # 최대값
+
+    # 연산
+    _result = interMin / unionMax
+
+    # 최종 유사율
+    result += round(_result, 2) * 3
+    # 유사율이 겹칠 경우를 위한 해시값 
+    result = round(result, 2)
+    result = str(result) + &quot;-&quot; + str(abs(hash(name)))
+
+    results.append((name, result))
+
+# 유사율 높은 순 정렬
+results.sort(key=lambda x: x[1], reverse=True)
+
+# 출력
+resultFile.writelines(f&quot;{'순위':&lt;5} {'이름':&lt;12} {'유사율'}\n&quot;)
+resultFile.writelines(&quot;-&quot; * 30 + &quot;\n&quot;)
+for rank, (name, score) in enumerate(results, start=1):
+    resultFile.writelines(f&quot;{rank:&lt;7} {name:&lt;12} {score}\n&quot;)
+resultFile.close()
+
+</code></pre>
+</li>
+</ul>
+<h3>미션) 자리 바꾸기 - 유사율 중복 제거</h3>
+<blockquote>
+<h5>유사율이 중복된다면?</h5>
+<hr />
+<p>전공, 안경, 문자열까지 전부 똑같은 값을 작성한 학생들은 유사율도 같을 것
+⇒ 어떻게 순위를 정해야 할까?</p>
+</blockquote>
+<ol>
+<li>이름 순서
+<ol>
+<li>유사율이 같은 경우 이름순서로 정렬(어차피 유사율이 같다는 건 전공, 안경 수준이 같다는 것 ⇒ 그냥 이름 순서로 해도 될 것 같음)</li>
+</ol>
+</li>
+<li><strong>해시값</strong>
+<ol>
+<li>이름의 해시값을 이용하면 겹칠 일이 없지 않을까?</li>
+<li>[유사율]+[해시값]
+⇒ 유사율로 먼저 정렬하고, 같은 경우 해시값으로 정렬</li>
+</ol>
+</li>
+</ol>
+<h3>미션) 자리 바꾸기 - 사용자 정보 입력받기</h3>
+<p>원래 컨셉 ⇒ 테트리스, 스타워즈 계정처럼 계정 로그인 쉘로 정보 받아서 파일 생성</p>
+<ul>
+<li>쉘 스크립트 작성해야 함 … (샤갈……)</li>
+</ul>
+<blockquote>
+<h4>수정 사항</h4>
+<hr />
+</blockquote>
+<ul>
+<li>
+<p>[x]  강사님 코드를 파일로 만들고 읽어들이기</p>
+</li>
+<li>
+<p>[x]  출력문 - 이름 옆에 입력값도 출력하기</p>
+</li>
+<li>
+<p>[x]  for문을 while 문으로 바꿔서 실시간으로 값이 추가되는 것을 확인하기</p>
+</li>
+<li>
+<p>[x]  학생들 입력 끝나면 결과 실시간으로 확인할 수 있도록 수정하기</p>
+</li>
+<li>
+<p>[x]  학생들 입력을 bash로 받기(추후 계정을 만들어서 입력만 받도록 할 예정)</p>
+</li>
+<li>
+<p>[x]  출력 보기 좋게 꾸미기</p>
+</li>
+<li>
+<p><strong>ANSI 코드</strong></p>
+<ul>
+<li>https://velog.io/@octo__/ANSI-color-code
+<img src="/assets/imgs/notes/python-practice/08-image-6.png" alt="image.png" loading="lazy"></li>
+</ul>
+<pre><code class="language-python"># 스타일 정의
+RESET         = '\033[0m'
+BOLD          = '\033[1m'
+BRIGHT_YELLOW = '\033[93m'  # 1위 - 금색
+YELLOW        = '\033[33m'  # 2~3위 - 노란색
+WHITE         = '\033[97m'  # 나머지 - 흰색
+BG_BLUE       = '\033[44m'  # 헤더 배경 - 청색
+
+# 헤더 (배경 청색)
+resultFile.write(BG_BLUE + BOLD + pad('순위', 8) + pad('이름', 12) + pad('안경', 8) + pad('전공', 8) + pad('입력값', 40) + '유사율' + RESET + '\n')
+
+# 데이터
+for rank, (name, score, glasses, major, my_code) in enumerate(results, start=1):
+    if rank == 1:
+        style = BOLD + BRIGHT_YELLOW
+    elif rank &lt;= 3:
+        style = YELLOW
+    else:
+        style = WHITE
+    resultFile.write(style + pad(str(rank), 8) + pad(name, 12) + pad(glasses, 8) + pad(major, 8) + pad(my_code, 40) + str(score) + RESET + '\n')
+</code></pre>
+</li>
+</ul>
+<h4>코드</h4>
+<h5>similarity_final.py</h5>
+<pre><code class="language-python">#!/usr/bin/python3
+''' ==============================================
+기존 로직 코드였던 similarity_c.py을 확장
+1. data 디렉토리 내부의 모든 txt 파일 순회
+2. 유사율이 높은 순서대로 정렬 
+3. 결과를 result_rank.txt로 저장 
+==============================================='''
+import os
+import time
+
+# 스타일 정의
+RESET         = '\033[0m'
+BOLD          = '\033[1m'
+BRIGHT_YELLOW = '\033[93m'  # 1위 - 금색
+YELLOW        = '\033[33m'  # 2~3위 - 노란색
+WHITE         = '\033[97m'  # 나머지 - 흰색
+BG_BLUE       = '\033[44m'  # 헤더 배경 - 청색
+
+# 변수 선언
+with open(&quot;./code.txt&quot;, &quot;r&quot;) as file:
+    virus_code = file.readline()
+codeSet = set(virus_code)
+codeDic = {}
+results = []  # [(이름, 유사율), ...]
+
+# 악성 코드 딕셔너리
+for key in virus_code:
+    if key in codeDic:
+        codeDic[key] += 1
+    else:
+        codeDic[key] = 1
+
+# ./data/ 폴더 내 모든 학생 파일 읽기
+data_dir = './data'
+
+# 이미 처리한 파일
+processed = []
+
+def pad(text, width):
+    # 한글은 2칸, 영문은 1칸으로 계산
+    length = sum(2 if ord(c) &gt; 127 else 1 for c in text)
+    return text + ' ' * (width - length)
+
+while True:
+    for filename in os.listdir(data_dir):
+        if not filename.endswith('.txt'):
+            continue
+        if filename in processed:
+            continue
+
+        name = filename.replace('.txt', '')
+        filepath = os.path.join(data_dir, filename)
+
+        informList = []    # [이름, 안경, 전공, 악성코드]
+        interMin = 0
+        unionMax = 0
+
+        # 내 파일 읽기
+        with open(filepath, 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+            for line in lines:
+                if line.strip():
+                    informList.append(line.split()[0])
+        # 파일이 완성되지 않았으면 건너뜀 (4줄 미만이면 아직 작성 중)
+        if len(informList) &lt; 4:
+            continue
+
+        # 내 문자열 딕셔너리
+        my_code = informList[3]
+        myDic = {}
+        for key in my_code:
+            if key in myDic:
+                myDic[key] += 1
+            else:
+                myDic[key] = 1
+
+        ## 유사율 계산
+        # 항목별 우선순위: 악성코드(*3), 전공(*2), 안경(*1)
+        result = 0
+
+        # 안경(0: 안 씀, 1: 씀(%4))
+        glasses = informList[1]
+        if glasses == '1':
+            result += 0.04
+
+        # 전공(0: 전공, 1: 유사전공(%2), 2: 비전공(%4))
+        major = informList[2]
+        if major == '1':
+            result += 0.02 * 2
+        elif major == '2':
+            result += 0.04 * 2
+
+        ## 악성코드
+        # 문자열 유사율 계산: (교집합 최솟값) / (합집합 최대값)
+        mySet = set(my_code)
+
+        # 교집합 
+        interKeySet = codeSet &amp; mySet
+        _codeFreq = 0
+        _myFreq = 0
+        for key in interKeySet:
+            _codeFreq = codeDic[key]
+            _myFreq = myDic[key]
+            interMin += min(_codeFreq, _myFreq)   # 최솟값
+
+        # 합집합
+        unionKeySet = codeSet | mySet
+        _codeFreq = 0
+        _myFreq = 0
+        for key in unionKeySet:
+            if key in codeDic:
+                _codeFreq = codeDic[key]
+            if key in myDic:
+                _myFreq = myDic[key]
+            unionMax += max(_codeFreq, _myFreq)   # 최대값
+
+        # 연산
+        _result = interMin / unionMax
+
+        # 최종 유사율
+        result += round(_result, 2) * 3
+
+        results.append((name, result, glasses, major, my_code))
+        processed.append(filename)
+
+        # 유사율 높은 순 정렬
+        results.sort(key=lambda x: x[1], reverse=True)
+
+        # 출력
+        with open(&quot;./result_rank.txt&quot;, &quot;w&quot;) as resultFile:
+            resultFile.write(BG_BLUE + BOLD + pad('순위', 8) + pad('이름', 12) + pad('유사율', 12) + pad('안경', 8) + pad('전공', 8) + pad('입력값', 60) + RESET + '\n')
+            # resultFile.write(&quot;-&quot; * 100 + &quot;\n&quot;)
+            for rank, (name, score, glasses, major, my_code) in enumerate(results, start=1):
+                    if rank == 1:
+                        style = BOLD + BRIGHT_YELLOW
+                    elif rank &lt;= 3:
+                        style = YELLOW
+                    else:
+                        style = WHITE
+                    resultFile.write(style + pad(str(rank), 8) + pad(name, 12) + pad(str(round(score,2)),12)  + pad(glasses, 8) + pad(major, 8) + pad(my_code, 40) + RESET + '\n')
+
+    time.sleep(1)
+</code></pre>
+<h5>student.sh</h5>
+<pre><code class="language-java">#!/usr/bin/bash
+
+# 정보 입력 받기
+read -p &quot;이름: &quot; name
+filePath=&quot;./data/$name.txt&quot;
+echo &quot;$name&quot; &gt; $filePath
+
+read -p &quot;안경 유무(0: 안 씀, 1: 씀): &quot; glasses
+echo &quot;$glasses&quot; &gt;&gt; $filePath
+
+read -p &quot;전공 유무(0: IT, 1: 공대, 2: 비전공): &quot; major
+echo &quot;$major&quot; &gt;&gt; $filePath
+
+read -p &quot;문자열을 입력하세요(30자): &quot; str
+str=&quot;${str// /}&quot;
+echo &quot;$str&quot; &gt;&gt; $filePath
+
+watch -n 1 -c cat ./result_rank.txt
+</code></pre>
+<h3>가상환경 사용하기</h3>
+<h4>가상환경 사용하고 배포하기</h4>
+<ol>
+<li>파이썬 패키지 관리자 설치 - <code>apt-get install python3-pip</code></li>
+<li>가상환경 패키지 설치 - <code>apt install python3.12-venv</code></li>
+<li>프로젝트 생성 - <code>mkdir myPrj &amp;&amp; cd myPrj</code></li>
+<li>가상환경 생성 - <code>python -m venv .venv</code></li>
+<li>가상환경 진입 - <code>source ./.venv/bin/activate</code></li>
+<li>코딩 작업</li>
+<li>배포 목록 작성 - <code>pip freeze &gt; requirements.txt</code></li>
+<li>가상환경 나가기 - <code>deactivate</code></li>
+</ol>
+<h4>가상환경 도입하기</h4>
+<ol>
+<li>프로젝트 생성 - <code>mkdir myPj &amp;&amp; cd myPj</code></li>
+<li>가상환경 생성 - <code>python -m venv myvenv</code></li>
+<li>가상환경 진입 - <code>source ./myvenv/bin/activate</code></li>
+<li>파일 가져오기 - <code>cp ./myPrj/requirements.txt ./</code></li>
+<li>설치 패키지 목록 확인 및 설치 - <code>pip install -r requirements.txt</code></li>
+<li>설치 확인 - <code>pip list</code></li>
+</ol>
+<h3>비밀번호 유효성 검사</h3>
+<ul>
+<li>입력한 비밀번호가 비밀번호 규칙에 맞으면 생성되고, 규칙에 맞지 않으면 다시 생성하도록 메시지를 출력하는 프로그램</li>
+<li>규칙
+<ul>
+<li>8자 이상</li>
+<li>영어와 숫자만 허용</li>
+</ul>
+</li>
+<li>코드
+<ul>
+<li>내 코드<pre><code class="language-python">#!/usr/bin/python3
+
+## 실행부: while
+while True:
+    # 비밀번호 입력받기
+    passwd = input(&quot;새로운 비밀번호를 입력하세요 : &quot;)
+
+    # 유효성 검사
+    if (passwd.isalnum()) and (len(passwd) &gt;= 8):
+        print(&quot;Good~ 비밀번호가 올바르게 생성되었어요 &quot;)
+        break
+    else:
+        print(&quot;오류! 비밀번호가 규칙에 맞지 않습니다 \n&quot;)
+</code></pre>
+</li>
+</ul>
+<pre><code class="language-python">#!/usr/bin/python3
+## 함수 선언부
+**def check_passwd(passwd):
+    if (passwd.isalnum()) and (len(passwd) &gt;= 8):
+        return True
+    else:
+        return False**
+
+## 실행부: while
+while True:
+    # 비밀번호 입력받기
+    passwd = input(&quot;새로운 비밀번호를 입력하세요 : &quot;)
+
+    # 유효성 검사
+    if check_passwd(passwd):
+        print(&quot;Good~ 비밀번호가 올바르게 생성되었어요 &quot;)
+        break
+    else:
+        print(&quot;오류! 비밀번호가 규칙에 맞지 않습니다 \n&quot;)
+</code></pre>
+</li>
+</ul>
+<h3>미션) /etc/passwd 파일 검사</h3>
+<ul>
+<li>/etc/passwd 파일 읽고 아래 점검 내용에 대해 점검
+<ol>
+<li>“:0:0:” 문자열이 발견되면, sec_report.txt 파일에 해당라인을 다음과 같이 작성
+<ol>
+<li><code>[관리자 권한 확인] ~~ 읽은 라인 ~~</code></li>
+</ol>
+</li>
+<li>마지막 문자열에서, <code>/bash, /false, /nologin</code> 이외의 문자열이 발견되면 다음과 같이 작성
+<ol>
+<li><code>[특수 쉘 권한 확인] ~~ 읽은 라인 ~~</code></li>
+</ol>
+</li>
+</ol>
+</li>
+<li>코드
+<ul>
+<li>sys.argv로 로그 파일명 인자로 받아서 생성하기<pre><code class="language-python">#!/usr/bin/python3
+**import sys
+
+if (len(sys.argv) &lt; 2):
+    print(&quot;사용법: run.py 경로_이름&quot;)
+    sys.exit()
+
+name = sys.argv[1]**
+
+shellList = [&quot;bash&quot;, &quot;false&quot;, &quot;nologin&quot;]
+
+passwdFile = open(&quot;/etc/passwd&quot;, &quot;r&quot;)
+passwdLine = passwdFile.readlines()
+logFile = open(**name**, &quot;w&quot;)
+
+for line in passwdLine:
+    # 탐색(:0:0:)
+    if line.find(&quot;:0:0:&quot;) != -1:
+        logFile.writelines(f&quot;[관리자 권한 확인 ] {line}&quot;)
+
+    # 탐색(! /bash, /false, /nologin)
+    shellVal = line.split(&quot;:&quot;)[-1].split(&quot;/&quot;)[-1].split()[0]
+
+    if shellVal not in shellList:
+        logFile.writelines(f&quot;[특수 쉘 권한 확인 ] {line}&quot;)
+
+passwdFile.close()
+</code></pre>
+</li>
+</ul>
+<pre><code class="language-python">#!/usr/bin/python3
+
+shellList = [&quot;bash&quot;, &quot;false&quot;, &quot;nologin&quot;]
+
+passwdFile = open(&quot;/etc/passwd&quot;, &quot;r&quot;)
+passwdLine = passwdFile.readlines()
+logFile = open(&quot;./sec_report.txt&quot;, &quot;w&quot;)
+
+for line in passwdLine:
+    # 탐색(:0:0:)
+    if line.find(&quot;:0:0:&quot;) != -1:
+        logFile.writelines(f&quot;[관리자 권한 확인 ] {line}&quot;)
+
+    # 탐색(! /bash, /false, /nologin)
+    shellVal = line.split(&quot;:&quot;)[-1].split(&quot;/&quot;)[-1].split()[0]
+
+    if shellVal not in shellList:
+        logFile.writelines(f&quot;[특수 쉘 권한 확인 ] {line}&quot;)
+
+passwdFile.close()
+</code></pre>
+</li>
+<li>결과
+<img src="/assets/imgs/notes/python-practice/09-image-7.png" alt="image.png" loading="lazy"></li>
+</ul>
+<h3>초미니 프로젝트)  쉘 스크립트를 이용한 보안점검</h3>
+<ul>
+<li>사용 라이브러리: 파라미코(paramiko)</li>
+</ul>
+<h5>로직 이해</h5>
+<ol>
+<li>개별 cfg 파일을 읽고 함수를 통해 점검하는 쉘 스크립트를 작성</li>
+<li>cfg 파일을 순회하며 cfg 파일과 쉘스크립트를 조립하여 점검
+<ol>
+<li>cfg 파일과 쉘스크립트를 조립</li>
+<li>조립한 코드를 원격 서버로 전송</li>
+<li>원격 서버 환경에서 전송한 스크립트로 점검</li>
+<li>점검 결과를 출력하고 레포트로 작성</li>
+</ol>
+</li>
+</ol>
+<p>기존의 쉘스크립트에서 돌리던 반복문을 파이썬 코드에서 실행!
+⇒ 코드를 실행하는 곳은 원격 서버이기 때문에 로컬에서 코드를 조합해서 보내야 함
+⇒ 그러려면 쉘 스크립트가 조합이 된 상태로 보내져야 함</p>
+<h4>과정</h4>
+<ol>
+<li>IP, ID, PW를 인자로 입력받는다
+<ul>
+<li><code>sys.argv[]</code></li>
+</ul>
+</li>
+<li>두 파일 모두 읽는다
+<ul>
+<li><code>with open</code></li>
+</ul>
+</li>
+<li>스크립트 내용 중 source 명령어를 cfg 파일 내용으로 치환</li>
+<li>SSH 연결 및 실행
+<ul>
+<li>스크립트 내에서 작성한 구문과 정확히 일치해야 함</li>
+</ul>
+</li>
+<li>완성 스크립트 작성(전송)
+<ul>
+<li>파일 저장명 : 시간 정보 포함(report_20260616.txt)</li>
+</ul>
+</li>
+<li>가상환경 배포
+<ul>
+<li><code>pip freeze &gt; requirement.txt</code></li>
+</ul>
+</li>
+</ol>
+<h5>쉘스크립트(run.sh)</h5>
+<pre><code class="language-java">#!/usr/bin/bash
+# ======================================
+# 보안 점검 프로그램
+# 결과를 report_YYYYMMDD.txt로 저장
+# ======================================
+
+# == 결과 리포트 이름 ==
+CURRENT=$(date +&quot;%Y%m%d&quot;)
+REPORT=&quot;./report/report_${CURRENT}&quot;
+
+# == 디렉토리 보장 ==
+mkdir -p ./report
+
+# == 변수 정의 ==
+ID=&quot;&quot;		# 점검 번호
+TYPE=&quot;&quot;		# 점검 타입
+TITLE=&quot;&quot;	# 점검 타이틀
+DESC=&quot;&quot;		# 점검 내용
+FILE=&quot;&quot;		# 점검 파일 경로
+CHK_CODE=&quot;&quot;	# 점검 비교 내용(예. &quot;PermitPootLogin yes&quot;)
+CHK_CMD=&quot;&quot;	# 점검 명령어
+OP=&quot;&quot;		# 비교 연산자
+SECU=&quot;&quot;		# 양호라면 출력할 문자열
+INSECU=&quot;&quot;	# 취약이라면 출력할 문자열
+HELP=&quot;&quot;		# 취약일 때 문제를 해결할 방법 출력
+RESULT=&quot;&quot;	# 점검 결과: 양호, 취약
+
+# == 함수 정의 ==
+# 파일 추출값 비교
+compare_txt_comp() {
+    VALUE=$(eval &quot;$CHK_CMD&quot;)
+
+    if [[ &quot;$OP&quot; =~ ^(-ge|-le|-gt|-lt)$ ]] &amp;&amp; [ -z &quot;$VALUE&quot; ]; then
+        echo &quot;[$ID] $INSECU&quot;
+        echo -e &quot;\t$HELP&quot;
+    elif [ &quot;$VALUE&quot; $OP &quot;$CHK_CODE&quot; ]; then
+        echo &quot;[$ID] $SECU&quot;
+    else
+        echo &quot;[$ID] $INSECU&quot;
+        echo -e &quot;\t$HELP&quot;
+    fi
+}
+
+# 권한 비교
+compare_perm_chk() {
+    STAT=$(eval &quot;$CHK_CMD&quot;)
+
+    if [ -z &quot;$STAT&quot; ]; then
+        echo &quot;[$ID] $INSECU&quot;
+        echo -e &quot;\t$HELP&quot;
+    elif [ &quot;$STAT&quot; $OP &quot;$CHK_CODE&quot; ]; then
+        echo &quot;[$ID] $SECU&quot;
+    else
+        echo &quot;[$ID] $INSECU&quot;
+        echo -e &quot;\t$HELP&quot;
+    fi
+}
+
+# 파일 존재 여부 확인
+check_file_ext() {
+    if [ &quot;$CHK_CMD&quot; ]; then
+        echo &quot;[$ID] $SECU&quot;
+    else
+        echo &quot;[$ID] $INSECU&quot;
+        echo -e &quot;\t$HELP&quot;
+    fi
+}
+
+**# == 반복문-&gt; 개별 파일 읽기 ==
+source $file
+
+# 타입별 함수 호출
+case $TYPE in
+TXT_COMP) compare_txt_comp | tee -a $REPORT ;;
+PERM_CHK) compare_perm_chk | tee -a $REPORT ;;
+FILE_EXT) check_file_ext | tee -a $REPORT ;;
+esac**
+</code></pre>
+<h5>파이썬 파일(run.py)</h5>
+<pre><code class="language-python">#!/usr/bin/python3
+import paramiko
+import sys
+import glob
+
+## IP, ID, PW를 입력받는다
+ip_addr = sys.argv[1]
+login_id = sys.argv[2]
+login_passwd = sys.argv[3]
+
+**for cfg_path in sorted(glob.glob('./cfg/*.cfg')):**
+    ## 두 파일 모두 읽기
+    with open(cfg_path, 'r', encoding='utf-8') as f_cfg:
+        cfg_content = f_cfg.read()
+
+    with open('./run.sh', 'r', encoding='utf-8') as f_script:
+        script_content = f_script.read()
+
+    ## 스크립트 내용 중 source 명령어를 cfg 파일 내용으로 치환
+    # (스크립트 내에 작성된 구문과 정확히 일치해야 함)
+    final_script = script_content.replace(**'source $file'**, cfg_content)
+
+    ## SSH 연결 및 실행
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    try:
+        client.connect(ip_addr , username=login_id , password=login_passwd)
+
+        stdin, stdout, stderr = client.exec_command('bash')
+
+        ## 완성된 스크립트 작성
+        stdin.write(final_script)
+        stdin.channel.shutdown_write()
+
+        print(stdout.read().decode(&quot;utf-8&quot;))
+    except Exception as e:
+        print(f&quot;[!] 접속 실패 ({ip_addr}): {e}&quot;)
+    finally:
+        client.close()
+</code></pre>
+<h5>requirements.txt</h5>
+<pre><code class="language-python">bcrypt==5.0.0
+cffi==2.0.0
+cryptography==49.0.0
+invoke==3.0.3
+paramiko==5.0.0
+pycparser==3.0
+PyNaCl==1.6.2
+</code></pre>
+<h2>⚠️ 에러 메세지</h2>
+<p><a href="%EC%97%90%EB%9F%AC%20%EB%AA%A8%EC%9D%8C%20(3)%2038b2e080218f80da9036f53b7b688b40.csv">에러 모음 (3)</a></p>

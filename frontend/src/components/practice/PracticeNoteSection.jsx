@@ -1,30 +1,38 @@
 import { useEffect, useState } from 'react';
-import { getContent } from '../../api/content';
+import { getChapters, getChapter } from '../../api/chapters';
 import NoteArticle from '../learn/NoteArticle';
 
 /**
- * 미션 풀이 화면(실습 창) 하단에 노출하는 실습 노트(블로그 글 형태).
- * - content 테이블은 GENERAL 전용이 아니므로 PRACTICE 단원 code 로도 그대로 조회된다.
- * - 같은 단원의 여러 미션이 노트를 공통으로 보므로 미션이 아니라 unit 단위로 한 번만 불러온다.
- * - 학습 진도(LearnSection)와 달리 스크롤 진도를 기록하지 않는다(실습 진도는 미션 완료로만 집계).
- * - 노트가 없는 단원(아직 콘텐츠를 안 채운 실습)은 조용히 아무것도 보여주지 않는다.
+ * 실습 노트(블로그 글 형태). 8단계에서 content 가 챕터로 분리되었으므로,
+ * 챕터 목록을 받아 각 챕터 본문을 이어붙여 한 흐름으로 보여준다(실습 UX 는 기존과 동일한 단일 스크롤).
+ * - content 는 GENERAL 전용이 아니므로 PRACTICE 단원 code 로도 그대로 조회된다.
+ * - 노트가 없는 단원은 조용히 아무것도 보여주지 않는다.
  */
-export default function PracticeNoteSection({ unit }) {
-  const [content, setContent] = useState(null);
+export default function PracticeNoteSection({ unit, showHeading = true }) {
+  const [bodies, setBodies] = useState([]);
   const [status, setStatus] = useState('loading'); // loading | done | empty | error
 
   useEffect(() => {
     let alive = true;
     setStatus('loading');
-    getContent(unit.code)
-      .then((data) => {
-        if (!alive) return;
-        setContent(data);
-        setStatus('done');
+    getChapters(unit.code)
+      .then((chapters) => {
+        if (!alive) return [];
+        if (!chapters || chapters.length === 0) {
+          setStatus('empty');
+          return [];
+        }
+        return Promise.all(chapters.map((c) => getChapter(unit.code, c.sortOrder)));
       })
-      .catch((err) => {
-        if (!alive) return;
-        setStatus(err.message?.includes('콘텐츠') ? 'empty' : 'error');
+      .then((details) => {
+        if (!alive || !details) return;
+        if (details.length > 0) {
+          setBodies(details.map((d) => ({ id: d.id, body: d.body })));
+          setStatus('done');
+        }
+      })
+      .catch(() => {
+        if (alive) setStatus('error');
       });
     return () => {
       alive = false;
@@ -34,9 +42,11 @@ export default function PracticeNoteSection({ unit }) {
   if (status !== 'done') return null;
 
   return (
-    <div className="mt-10 border-t border-slate-200 pt-8">
-      <h2 className="mb-4 text-lg font-bold text-dark">실습 노트</h2>
-      <NoteArticle html={content.body} />
+    <div className={showHeading ? 'mt-10 border-t border-slate-200 pt-8' : ''}>
+      {showHeading && <h2 className="mb-4 text-lg font-bold text-dark">실습 노트</h2>}
+      {bodies.map((b) => (
+        <NoteArticle key={b.id} html={b.body} />
+      ))}
     </div>
   );
 }

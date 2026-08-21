@@ -194,34 +194,49 @@ Response `data`:
 
 | Method | Path | 인증 | 설명 |
 |---|---|---|---|
-| GET | `/api/v1/units/{code}/content` | 🔓 | 일반 학습 본문(HTML) 조회 |
-| PATCH | `/api/v1/units/{code}/progress` | 🔒 | 스크롤 진도 저장(upsert) |
+| GET | `/api/v1/units/{unitCode}/chapters` | 🔓 | 단원 챕터 목록(본문 제외) — 8단계 |
+| GET | `/api/v1/units/{unitCode}/chapters/{sortOrder}` | 🔓 | 챕터 본문 + 이전/다음 — 8단계 |
+| POST | `/api/v1/chapters/{chapterId}/visit` | 🔒 | 챕터 열람 기록(upsert) + 잔디 — 8단계 |
 | GET | `/api/v1/progress` | 🔒 | 로그인 사용자의 GENERAL 단원별 진도 요약 |
 | GET | `/api/v1/units/{code}/blanks` | 🔓 | 빈칸 문제 목록(로그인 시 이전 답안 포함) |
 | POST | `/api/v1/blanks/{id}/answer` | 🔒 | 빈칸 답안 제출/채점 |
 
-### GET `/api/v1/units/{code}/content`
+> **8단계 개선**: 통짜 본문 조회(`GET /units/{code}/content`)와 스크롤 저장(`PATCH /units/{code}/progress`)을
+> 제거하고, 학습 본문을 **챕터**로 나눴습니다. 진도는 "방문한 챕터 수 / 전체 챕터 수" 로 계산합니다.
 
-Response `data`: `{ "id":1, "unitCode":"linux", "title":"...", "body":"<h2>...</h2>..." }`
-- `body` 는 HTML. 프론트는 렌더링 전 DOMPurify 로 sanitize 한다.
-- 콘텐츠가 없으면 404(`message`: "등록된 학습 콘텐츠가 없습니다.").
+### GET `/api/v1/units/{unitCode}/chapters`
 
-### PATCH `/api/v1/units/{code}/progress`
+Response `data`: `[ { "id":1, "title":"패러다임의 전환", "sortOrder":1 }, ... ]`
+- `sortOrder` 오름차순. 콘텐츠가 없는 단원은 빈 배열.
 
-Request: `{ "scrollPercent": 0~100 }`
-Response `data`: `{ "unitCode":"linux", "scrollPercent":92, "completed":true }`
-- 진도는 뒤로 가지 않도록 기존값과 **최댓값**을 유지한다.
-- `scrollPercent >= 90` 이면 `completed=true` 및 `completed_at` 기록(한 번 완료되면 유지).
+### GET `/api/v1/units/{unitCode}/chapters/{sortOrder}`
+
+Response `data`:
+```json
+{ "id":1, "unitCode":"cloud-intro", "title":"패러다임의 전환", "sortOrder":1,
+  "body":"<h2>...</h2>...",
+  "prev": null,
+  "next": { "sortOrder":2, "title":"온프레미스와 클라우드" } }
+```
+- `body` 는 HTML. 프론트는 렌더링 전 DOMPurify 로 sanitize 하고, h2/h3 를 스캔해 목차를 만든다.
+- `prev`/`next` 는 없으면 `null`(`{ sortOrder, title }`).
+- 존재하지 않는 단원/챕터면 404.
+
+### POST `/api/v1/chapters/{chapterId}/visit`
+
+- 로그인 사용자가 챕터를 열람했음을 기록. 이미 기록이 있으면 무시(upsert).
+- **신규 방문일 때만** `activity_log`(잔디)를 갱신한다.
+- Response `data`: `null`. 존재하지 않는 챕터면 404.
 
 ### GET `/api/v1/progress`
 
 Response `data` (GENERAL 단원만):
 ```json
-[ { "unitCode":"linux", "type":"GENERAL", "generalPercent":92, "blankPercent":60 } ]
+[ { "unitCode":"linux", "type":"GENERAL", "generalPercent":75, "blankPercent":60 } ]
 ```
-- `generalPercent` = `progress.scroll_percent`.
+- **`generalPercent` = 방문한 챕터 수 / 전체 챕터 수 × 100** (8단계 변경, 저장된 값 아님).
 - `blankPercent` = 해당 단원 빈칸 문제 중 맞힌 비율(맞힌 수 / 전체 수 × 100).
-- PRACTICE 단원은 포함하지 않는다(5단계 mission_progress 예정).
+- 응답 shape 은 이전과 동일(대시보드가 그대로 소비). PRACTICE 단원은 포함하지 않는다.
 
 ### GET `/api/v1/units/{code}/blanks`
 
@@ -360,4 +375,17 @@ Response `data`: `{ "totalCount": 3, "likedByMe": false }`
 
 ---
 
-> 이후 단계(나머지 실습 유형, 배포 전 마무리 등)의 엔드포인트는 해당 단계 구현 시 이 문서에 추가합니다.
+## 8단계: 실습 단원 노트 (신규 엔드포인트 없음)
+
+8단계에서 7개 PRACTICE 단원(`linux-practice`, `shell-practice`, `server-build-practice`,
+`python-practice`, `database-practice`, `docker-practice`, `k8s-practice`)에 **실습 노트 콘텐츠**를
+`content` 테이블에 시드했습니다. 새 API 는 없고 기존 콘텐츠 API 를 그대로 재사용합니다.
+
+- 챕터 API(`GET /api/v1/units/{code}/chapters`)는 **type 과 무관**하게 동작하므로, PRACTICE 단원 code 로도
+  실습 노트 챕터를 반환합니다(예: `docker-practice`). (8단계 후반 개선으로 통짜 `content` 조회는 챕터로 대체됨.)
+- 프론트: 리눅스 실습(미션 있음)은 미션 풀이 화면 하단에, 미션이 없는 6개 실습 단원은 "실습 기능 준비 중"
+  안내와 함께, 챕터 본문들을 이어붙여 블로그 형식으로 렌더링합니다(`PracticeNoteSection`, `missionCount === 0` 분기).
+- 이미지: 노트 이미지는 `frontend/public/assets/imgs/notes/{code}/` 로 복사되어 본문 `<img src>` 가
+  이 웹 경로를 가리킵니다. 인증 불필요(🔓, 비로그인 열람 허용) — 기존 콘텐츠 API 정책과 동일.
+
+> 이후 단계(나머지 실습 유형의 인터랙티브 기능, HTTPS 등)의 엔드포인트는 해당 단계 구현 시 이 문서에 추가합니다.

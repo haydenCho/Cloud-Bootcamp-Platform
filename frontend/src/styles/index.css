@@ -122,8 +122,17 @@ body {
   .learn-content h4 {
     @apply mb-2 mt-4 text-base font-semibold text-dark;
   }
+  .learn-content h5 {
+    @apply mb-1 mt-3 text-sm font-semibold text-dark/90;
+  }
+  .learn-content h6 {
+    @apply mb-1 mt-3 text-sm font-semibold text-dark/70;
+  }
   .learn-content p {
     @apply mb-4;
+  }
+  .learn-content hr {
+    @apply my-6 border-0 border-t border-slate-200;
   }
   .learn-content blockquote {
     @apply mb-4 border-l-4 border-secondary/40 bg-secondary/5 py-2 pl-4 italic text-dark/80;
@@ -153,8 +162,14 @@ body {
   .learn-content pre code {
     @apply bg-transparent p-0 text-slate-100;
   }
+  /* 실습/이론 노트는 사진이 설명을 실제로 보조하도록 이미지를 크게, 가운데, 여백을 넉넉히 준다.
+     스크린샷이 본문에 파묻히지 않게 블록 배치 + 옅은 배경/그림자로 시각적으로 분리한다. */
   .learn-content img {
-    @apply mb-4 max-w-full rounded-lg border border-slate-200;
+    @apply mx-auto my-6 block h-auto max-w-full rounded-lg border border-slate-200 bg-slate-50 shadow-sm;
+  }
+  /* 리스트 항목 안에 들어간 이미지는 마커/들여쓰기와 어긋나지 않게 위아래 여백만 살짝 준다. */
+  .learn-content li > img {
+    @apply my-3;
   }
   .learn-content a {
     @apply text-secondary underline hover:text-primary;

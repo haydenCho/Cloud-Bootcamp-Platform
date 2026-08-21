@@ -28,10 +28,21 @@ public class AuthController {
 
     private final AuthService authService;
     private final long refreshMaxAgeSeconds;
+    private final boolean cookieSecure;
+    private final String cookieSameSite;
+    private final String cookieDomain;
 
-    public AuthController(AuthService authService, JwtTokenProvider tokenProvider) {
+    public AuthController(
+            AuthService authService,
+            JwtTokenProvider tokenProvider,
+            @org.springframework.beans.factory.annotation.Value("${app.cookie.secure:false}") boolean cookieSecure,
+            @org.springframework.beans.factory.annotation.Value("${app.cookie.same-site:Lax}") String cookieSameSite,
+            @org.springframework.beans.factory.annotation.Value("${app.cookie.domain:}") String cookieDomain) {
         this.authService = authService;
         this.refreshMaxAgeSeconds = tokenProvider.getRefreshTokenValiditySeconds();
+        this.cookieSecure = cookieSecure;
+        this.cookieSameSite = cookieSameSite;
+        this.cookieDomain = cookieDomain;
     }
 
     @PostMapping("/signup")
@@ -74,15 +85,20 @@ public class AuthController {
 
     /**
      * refresh 토큰용 httpOnly 쿠키.
-     * 로컬 개발은 http 라 secure=false. 운영(HTTPS) 전환 시 secure(true) + SameSite=None 등을 검토한다.
+     * secure / SameSite / domain 은 환경변수로 주입한다(도메인·프로토콜 의존 값).
+     * - 로컬 개발 & lib.solcho.com HTTP(동일 출처, nginx /api 프록시): secure=false, SameSite=Lax, domain 미설정(host-only).
+     * - 이후 HTTPS(Let's Encrypt) 전환 시 COOKIE_SECURE=true 로만 바꾸면 된다(코드 변경 불필요).
      */
     private ResponseCookie buildRefreshCookie(String value, long maxAgeSeconds) {
-        return ResponseCookie.from(REFRESH_COOKIE, value)
+        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(REFRESH_COOKIE, value)
                 .httpOnly(true)
-                .secure(false)
+                .secure(cookieSecure)
                 .path("/")
-                .sameSite("Lax")
-                .maxAge(maxAgeSeconds)
-                .build();
+                .sameSite(cookieSameSite)
+                .maxAge(maxAgeSeconds);
+        if (cookieDomain != null && !cookieDomain.isBlank()) {
+            builder.domain(cookieDomain);
+        }
+        return builder.build();
     }
 }

@@ -17,7 +17,7 @@ echo "parameter count: $#"
 
 exit 0</code></pre>
 
-<!-- image omitted: image.png -->
+<img src="/assets/imgs/notes/shell-practice/01-image.png" alt="" loading="lazy">
 
 <ul>
   <li>인수의 개수가 <code>echo</code>로 출력하려는 개수보다 많으면, 실제로 넘어온 인수 개수만큼만 출력된다.</li>
@@ -102,7 +102,7 @@ exit 0</code></pre>
 
 <h4><code>.bashrc</code></h4>
 
-<!-- image omitted: image 1.png -->
+<img src="/assets/imgs/notes/shell-practice/02-image-1.png" alt="" loading="lazy">
 
 <ul>
   <li>로그인할 때 실행되는 설정 파일 중 하나다.</li>
@@ -113,16 +113,16 @@ exit 0</code></pre>
 
 <ol>
   <li><code>/tmp/</code> 내부에 가짜 <code>sudo</code>가 있는 것을 확인했다.
-    <!-- image omitted: image 2.png -->
+    <img src="/assets/imgs/notes/shell-practice/03-image-2.png" alt="" loading="lazy">
   </li>
   <li>새로운 접근(새 터미널)에서 <code>sudo</code>를 실행했다.
-    <!-- image omitted: image 3.png -->
+    <img src="/assets/imgs/notes/shell-practice/04-image-3.png" alt="" loading="lazy">
   </li>
   <li>스크립트 내용대로 비밀번호를 입력받았다.
-    <!-- image omitted: image 4.png -->
+    <img src="/assets/imgs/notes/shell-practice/05-image-4.png" alt="" loading="lazy">
   </li>
   <li>자기 자신(<code>/tmp/sudo</code>)이 삭제됐다.
-    <!-- image omitted: image 5.png -->
+    <img src="/assets/imgs/notes/shell-practice/06-image-5.png" alt="" loading="lazy">
   </li>
 </ol>
 
@@ -131,7 +131,7 @@ exit 0</code></pre>
 <pre><code>$ export PATH=/tmp/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
 $ PATH=/tmp/:$PATH</code></pre>
 
-<!-- image omitted: image 6.png -->
+<img src="/assets/imgs/notes/shell-practice/07-image-6.png" alt="" loading="lazy">
 
 <p><code>.bashrc</code>나 <code>/etc/profile</code> 같은 설정 파일에서도 PATH를 수정할 수 있다(이 경우는 영구적으로 적용된다).</p>
 
@@ -271,7 +271,7 @@ else
     echo "기타 파일입니다"
 fi</code></pre>
 
-<!-- image omitted: image 7.png -->
+<img src="/assets/imgs/notes/shell-practice/08-image-7.png" alt="" loading="lazy">
 
 <h4>Q4. 계산기 메뉴</h4>
 
@@ -308,7 +308,7 @@ esac</code></pre>
 
 <p>여기서 배운 것: <code>case</code>문에는 항상 default(<code>*</code>) 값을 넣어주자. 어떤 입력이 들어올지 모르니 마지막 방어선을 만들어둬야 한다.</p>
 
-<!-- image omitted: image 8.png -->
+<img src="/assets/imgs/notes/shell-practice/09-image-8.png" alt="" loading="lazy">
 
 <h3>종합 실습 - 시나리오 미션</h3>
 
@@ -407,7 +407,7 @@ echo "사용자 나이: ${age}"
 echo "사용자 권한: ${role}"
 echo "============================="</code></pre>
 
-<!-- image omitted: image 9.png -->
+<img src="/assets/imgs/notes/shell-practice/10-image-9.png" alt="" loading="lazy">
 
 <h4>미션 B — 시스템 모니터링 리포트</h4>
 
@@ -509,11 +509,11 @@ if [ $DISK -gt 80 ]; then
     echo -e "[Warning] 디스크 사용량이 80%를 초과했습니다\n"
 fi</code></pre>
 
-<!-- image omitted: image 10.png -->
+<img src="/assets/imgs/notes/shell-practice/11-image-10.png" alt="" loading="lazy">
 
 <p>디스크 사용량 조건을 실제로 80%를 넘기기 어려워서, 테스트를 위해 기준값을 14로 낮춰서 실행해 초과 경고가 뜨는 것을 확인했다.</p>
 
-<!-- image omitted: fdfb04da-2f57-40b3-9e8e-5f6d2005f6ab.png -->
+<img src="/assets/imgs/notes/shell-practice/12-fdfb04da-2f57-40b3-9e8e-5f6d2005f6ab.png" alt="" loading="lazy">
 
 <h4>미션 C(심화) — 백업 도구</h4>
 
@@ -616,7 +616,7 @@ fi</code></pre>
 
 <h4><code>/etc/crontab</code></h4>
 
-<!-- image omitted: image 11.png -->
+<img src="/assets/imgs/notes/shell-practice/13-image-11.png" alt="" loading="lazy">
 
 <ul>
   <li>등록 형식은 <strong>분/시/일/월/요일</strong> 순서다.</li>
@@ -634,18 +634,18 @@ fi</code></pre>
   <li>대신 나만의 crontab을 생성하는 방법을 썼다.
     <ul>
       <li><code>crontab -e</code>로 편집한다.
-        <!-- image omitted: image 12.png -->
-        <!-- image omitted: image 13.png -->
+        <img src="/assets/imgs/notes/shell-practice/14-image-12.png" alt="" loading="lazy">
+        <img src="/assets/imgs/notes/shell-practice/15-image-13.png" alt="" loading="lazy">
       </li>
       <li>다음과 같이 한 줄을 추가했다: <code>10 12 * * * /home/solcho/backup/backup.sh</code></li>
     </ul>
   </li>
   <li>결과
-    <!-- image omitted: image 14.png -->
+    <img src="/assets/imgs/notes/shell-practice/16-image-14.png" alt="" loading="lazy">
     <p><em>backup.sh 내부에 백업할 폴더명을 명시하지 않아서, 폴더명을 명시하고 실행 시각도 55분으로 변경했다.</em></p>
   </li>
   <li>crontab 파일 위치도 확인해봤다.
-    <!-- image omitted: image 15.png -->
+    <img src="/assets/imgs/notes/shell-practice/17-image-15.png" alt="" loading="lazy">
   </li>
 </ul>
 
@@ -851,14 +851,14 @@ done</code></pre>
       <li><code>&amp;</code>: 백그라운드로 실행한다.</li>
       <li><code>nohup</code>: 실행하면서 생기는 로그를 현재 디렉토리 내에 파일로 남겨준다.</li>
     </ul>
-    <!-- image omitted: image 16.png -->
+    <img src="/assets/imgs/notes/shell-practice/18-image-16.png" alt="" loading="lazy">
   </li>
   <li>프로세스 관계도 확인해봤다.
-    <!-- image omitted: image 17.png -->
+    <img src="/assets/imgs/notes/shell-practice/19-image-17.png" alt="" loading="lazy">
     <ul>
       <li>bash가 부모 프로세스가 된다.</li>
       <li>부모가 죽으면 자식도 죽는다.
-        <!-- image omitted: image 18.png -->
+        <img src="/assets/imgs/notes/shell-practice/20-image-18.png" alt="" loading="lazy">
         <ul>
           <li>부모 프로세스 번호가 1로 바뀌어서 살아있는 것을 확인했다(고아 프로세스가 init/systemd에 입양되는 모습).</li>
           <li>죽이고 싶으면 <code>pkill -9</code>로 강제 종료하면 된다.</li>
@@ -876,8 +876,8 @@ done</code></pre>
   <li>라이브러리 설치: <code>apt install shc</code></li>
   <li>코드 난독화: <code>shc -f ./syslog_plus.sh -o syslog</code></li>
   <li>결과
-    <!-- image omitted: image 19.png -->
-    <!-- image omitted: image 20.png -->
+    <img src="/assets/imgs/notes/shell-practice/21-image-19.png" alt="" loading="lazy">
+    <img src="/assets/imgs/notes/shell-practice/22-image-20.png" alt="" loading="lazy">
   </li>
 </ul>
 
@@ -885,12 +885,12 @@ done</code></pre>
 
 <h4>결과값 출력</h4>
 
-<!-- image omitted: image 21.png -->
+<img src="/assets/imgs/notes/shell-practice/23-image-21.png" alt="" loading="lazy">
 
 <ul>
   <li>문제: 터미널에 출력되는 그대로(줄바꿈, 정렬 포함) HTML에도 출력하고 싶었다.</li>
   <li>해결: <code>&lt;pre&gt;</code> 태그를 사용했다. <code>&lt;pre&gt;</code>는 공백과 줄바꿈을 그대로 유지해서 보여주기 때문에 <code>vmstat</code>, <code>df -h</code> 같은 명령어의 출력 형태가 깨지지 않는다.
-    <!-- image omitted: 2d502b23-0ff4-4ed0-81f7-70ccbf618c26.png -->
+    <img src="/assets/imgs/notes/shell-practice/24-2d502b23-0ff4-4ed0-81f7-70ccbf618c26.png" alt="" loading="lazy">
   </li>
 </ul>
 
@@ -902,7 +902,7 @@ done</code></pre>
 
 <h4>함수 사용 에러</h4>
 
-<!-- image omitted: image 22.png -->
+<img src="/assets/imgs/notes/shell-practice/25-image-22.png" alt="" loading="lazy">
 
 <ul>
   <li>문제: 함수를 호출하는 방식 자체에 문제가 있다는 에러가 발생했다.</li>
@@ -951,13 +951,13 @@ done</code></pre>
   <li>무작위 대입공격을 실행한다.
     <ul>
       <li><code>john --format=crypt --wordlist=./rockyou.txt.2025 ./mypass.txt</code></li>
-      <!-- image omitted: image 23.png -->
+      <img src="/assets/imgs/notes/shell-practice/26-image-23.png" alt="" loading="lazy">
     </ul>
   </li>
   <li>나중에 크랙된 내용을 다시 확인한다.
     <ul>
       <li><code>john --show ./mypass.txt</code></li>
-      <!-- image omitted: image 24.png -->
+      <img src="/assets/imgs/notes/shell-practice/27-image-24.png" alt="" loading="lazy">
     </ul>
   </li>
 </ol>

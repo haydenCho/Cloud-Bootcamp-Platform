@@ -6,6 +6,8 @@ import OnboardingTour from './components/onboarding/OnboardingTour';
 import RequireAuth from './components/auth/RequireAuth';
 import RoadmapPage from './pages/RoadmapPage';
 import StudyPage from './pages/StudyPage';
+import ChapterIndexPage from './pages/ChapterIndexPage';
+import ChapterPage from './pages/ChapterPage';
 import DashboardPage from './pages/DashboardPage';
 import UnitDetailPage from './pages/UnitDetailPage';
 import LoginPage from './pages/LoginPage';
@@ -35,6 +37,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={<RoadmapPage />} />
             <Route path="/study" element={<StudyPage />} />
+            <Route path="/study/:unitCode" element={<ChapterIndexPage />} />
+            <Route path="/study/:unitCode/:sortOrder" element={<ChapterPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/units/:code" element={<UnitDetailPage />} />
 
